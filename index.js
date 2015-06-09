@@ -1,6 +1,5 @@
 // transpile:main
 
-import {default as sample} from './lib/sample';
+import { getSimulator } from './lib/simulator.js';
 
-export {sample};
-
+export { getSimulator };
