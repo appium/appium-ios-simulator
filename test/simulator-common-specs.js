@@ -16,17 +16,17 @@ let simulatorClasses = {
 for (let [name, simClass] of _.pairs(simulatorClasses)) {
   describe(`common methods - ${name}`, () => {
 
-    let sim = new simClass('6.0.0');
+    let sim = new simClass('123', '6.0.0');
 
     it('should exist', () => {
       should.exist(simClass);
     });
 
-    it('should return a path for getRootDir()', () => {
-      sim.getRootDir().should.exist;
+    it('should return a path for getDir()', () => {
+      sim.getDir().should.exist;
     });
 
-
+    
 
 
   });
