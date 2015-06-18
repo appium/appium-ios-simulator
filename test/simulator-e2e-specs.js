@@ -30,13 +30,31 @@ describe('sample', () => {
 
     await sim.isFresh().should.eventually.equal(true);
 
-    await quickLaunch(udid);
+    await sim.launchAndQuit();
 
     await sim.isFresh().should.eventually.equal(false);
   });
 
-  it.only('should clean a sim', async () => {
+  it.skip('should launch and shutdown a sim', async function () {
     this.timeout(15*1000);
+
+    let udid = await simctl.createDevice('ios-simulator testing',
+                                         testSimDevice,
+                                         testSimVersion);
+
+    after(async () => {
+      await simctl.eraseDevice(udid);
+    });
+
+    let sim = await getSimulator(udid);
+
+    await sim.launchAndQuit();
+
+    // TODO get sim stat
+  });
+
+  it.skip('should clean a sim', async function () {
+    this.timeout(30*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
