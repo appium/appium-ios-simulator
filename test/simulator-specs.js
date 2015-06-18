@@ -8,6 +8,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
 import sinon from 'sinon';
 
+
 /*let should =*/ chai.should();
 chai.use(chaiAsPromised);
 
@@ -39,6 +40,10 @@ describe('sample', () => {
 
     let sim = getSimulator('123');
     sim.should.eventually.be.rejectedWith('not yet');
+  });
+
+  it.skip('should clean a sim', async () => {
+
   });
 
   //TODO e2e tests. check that rootdir exists
