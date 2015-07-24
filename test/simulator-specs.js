@@ -45,7 +45,7 @@ describe('sample', () => {
     sim.should.eventually.be.rejectedWith('not yet');
   });
 
-  it.only('should list stats for sim', async () => {
+  it('should list stats for sim', async () => {
     getVersionStub = sinon.stub(xcode, 'getVersion').returns('6.0.0');
     let getDevicesStub = sinon.stub(simctl, 'getDevices').returns(devices);
 

@@ -1,7 +1,6 @@
 // transpile:mocha
 
 import { getSimulator } from '../..';
-import { quickLaunch } from 'appium-instruments';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,17 +12,16 @@ let testSimDevice = 'iPhone 6';
 /*let should =*/ chai.should();
 chai.use(chaiAsPromised);
 
-describe('sample', () => {
+describe('simulator', () => {
 
-  it('should detect whether a simulator has been run before', async function () {
-    this.timeout(15*1000);
+  it.only('should detect whether a simulator has been run before', async function () {
+    this.timeout(30*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
                                          testSimVersion);
-
-    after(async () => {
-      await simctl.eraseDevice(udid);
+    after(function(done) {
+      simctl.eraseDevice(udid).then(done);
     });
 
     let sim = await getSimulator(udid);
@@ -36,7 +34,7 @@ describe('sample', () => {
   });
 
   it.skip('should launch and shutdown a sim', async function () {
-    this.timeout(15*1000);
+    this.timeout(25*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
@@ -50,7 +48,7 @@ describe('sample', () => {
 
     await sim.launchAndQuit();
 
-    // TODO get sim stat
+    // TODO get sim stat to make sure it was shut down
   });
 
   it.skip('should clean a sim', async function () {
@@ -68,7 +66,7 @@ describe('sample', () => {
 
     await sim.isFresh().should.eventually.equal(true);
 
-    await quickLaunch(udid);
+    await sim.launchAndQuit();
 
     await sim.isFresh().should.eventually.equal(false);
 
@@ -78,4 +76,5 @@ describe('sample', () => {
   });
 
   //TODO e2e tests. check that rootdir exists
+  //shutdown
 });
