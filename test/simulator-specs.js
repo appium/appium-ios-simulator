@@ -2,7 +2,6 @@
 
 import { getSimulator } from '../..';
 import { SimulatorXcode6 } from '../lib/simulator-xcode-6';
-import * as xcode from 'appium-xcode';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -10,7 +9,7 @@ import 'mochawait';
 import sinon from 'sinon';
 import { devices } from './assets/deviceList';
 import B from 'bluebird';
-
+import xcode from 'appium-xcode';
 
 let should = chai.should();
 chai.use(chaiAsPromised);
@@ -34,15 +33,13 @@ describe('sample', () => {
   it('should throw an error if xcode version less than 6', async () => {
     getVersionStub = sinon.stub(xcode, 'getVersion').returns('5.4.0');
 
-    let sim = getSimulator('123');
-    sim.should.eventually.be.rejectedWith('version');
+    await getSimulator('123').should.eventually.be.rejectedWith('version');
   });
 
   it('should throw an error if xcode version above 6', async () => {
     getVersionStub = sinon.stub(xcode, 'getVersion').returns('7.0.0');
 
-    let sim = getSimulator('123');
-    sim.should.eventually.be.rejectedWith('not yet');
+    await getSimulator('123').should.eventually.be.rejectedWith('not yet');
   });
 
   it('should list stats for sim', async () => {

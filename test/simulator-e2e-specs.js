@@ -14,7 +14,7 @@ chai.use(chaiAsPromised);
 
 describe('simulator', () => {
 
-  it.only('should detect whether a simulator has been run before', async function () {
+  it('should detect whether a simulator has been run before', async function () {
     this.timeout(30*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
