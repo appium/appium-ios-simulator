@@ -33,8 +33,8 @@ describe('simulator', () => {
     await sim.isFresh().should.eventually.equal(false);
   });
 
-  it.skip('should launch and shutdown a sim', async function () {
-    this.timeout(25*1000);
+  it('should launch and shutdown a sim', async function () {
+    this.timeout(30*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
@@ -48,10 +48,10 @@ describe('simulator', () => {
 
     await sim.launchAndQuit();
 
-    // TODO get sim stat to make sure it was shut down
+    (await sim.stat()).state.should.equal('Shutdown');
   });
 
-  it.skip('should clean a sim', async function () {
+  it('should clean a sim', async function () {
     this.timeout(30*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
