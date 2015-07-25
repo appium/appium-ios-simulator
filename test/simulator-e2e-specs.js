@@ -76,5 +76,21 @@ describe('simulator', () => {
   });
 
   //TODO e2e tests. check that rootdir exists
-  //shutdown
+
+  it('should delete a sim', async function () {
+    let udid = await simctl.createDevice('ios-simulator deleteMe',
+                                         testSimDevice,
+                                         testSimVersion);
+
+    let numDevices = (await simctl.getDevices())[testSimVersion].length;
+    numDevices.should.be.above(0);
+
+    let sim = await getSimulator(udid);
+
+    await sim.delete();
+
+    let numDevicesAfter = (await simctl.getDevices())[testSimVersion].length;
+
+    numDevicesAfter.should.equal(numDevices-1);
+  });
 });
