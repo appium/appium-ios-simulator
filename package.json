@@ -34,7 +34,7 @@
     "bplist-parser": "^0.1.0",
     "lodash": "^3.10.0",
     "ncp": "^2.0.0",
-    "node-simctl": "^2.0.1",
+    "node-simctl": "^2.1.0",
     "sinon": "^1.14.1",
     "source-map-support": "^0.2.10",
     "teen_process": "^1.2.2"
