@@ -7,13 +7,12 @@ import B from 'bluebird';
 import { update } from '../lib/settings.js';
 import bplistParser from 'bplist-parser';
 import path from 'path';
-import { tempDir } from 'appium-support';
+import { tempDir, fs } from 'appium-support';
 import ncp from 'ncp';
-import fs from 'fs';
 
 let parseFile = B.promisify(bplistParser.parseFile);
 let copy = B.promisify(ncp.ncp);
-let del = B.promisify(fs.unlink);
+
 const plist = path.resolve('test/assets/sample.plist');
 // plist asset looks like this:
 // [ { 'com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework':
@@ -36,13 +35,13 @@ describe('settings', () => {
   let tmpPlist;
 
   beforeEach(async () => {
-    let temp = tempDir.path();
+    let temp = await tempDir.path();
     tmpPlist = path.resolve(temp, 'sample.plist');
     await copy(plist, tmpPlist);
   });
 
   afterEach(async () => {
-    del(tmpPlist);
+    await fs.unlink(tmpPlist);
   });
 
   it('should update a plist', async () => {

@@ -16,7 +16,7 @@ chai.use(chaiAsPromised);
 describe('simulator', () => {
 
   it('should detect whether a simulator has been run before', async function () {
-    this.timeout(30*1000);
+    this.timeout(35*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
@@ -35,7 +35,7 @@ describe('simulator', () => {
   });
 
   it('should launch and shutdown a sim', async function () {
-    this.timeout(30*1000);
+    this.timeout(35*1000);
 
     let udid = await simctl.createDevice('ios-simulator testing',
                                          testSimDevice,
@@ -107,11 +107,11 @@ describe('simulator', () => {
     await sim.launchAndQuit();
 
     let path = await sim.getAppDataDir('com.apple.mobilesafari');
-    await util.fileExists(path).should.eventually.be.true;
+    await util.hasAccess(path).should.eventually.be.true;
   });
 
-  it.only('should match a bundleId to its app directory on a fresh sim', async function () {
-    this.timeout(30*1000);
+  it('should match a bundleId to its app directory on a fresh sim', async function () {
+    this.timeout(35*1000);
     let udid = await simctl.createDevice('ios-simulator deleteMe',
                                          testSimDevice,
                                          testSimVersion);
@@ -123,6 +123,6 @@ describe('simulator', () => {
     let sim = await getSimulator(udid);
 
     let path = await sim.getAppDataDir('com.apple.mobilesafari');
-    await util.fileExists(path).should.eventually.be.true;
+    await util.hasAccess(path).should.eventually.be.true;
   });
 });
