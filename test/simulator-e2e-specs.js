@@ -7,122 +7,113 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
 import { util } from 'appium-support';
 
-let testSimVersion = '8.3';
-let testSimDevice = 'iPhone 6';
 
-/*let should =*/ chai.should();
+const LONG_TIMEOUT = 35*1000;
+const MED_TIMEOUT = 30*1000;
+
+chai.should();
 chai.use(chaiAsPromised);
 
-describe('simulator', () => {
-
-  it('should detect whether a simulator has been run before', async function () {
-    this.timeout(35*1000);
-
-    let udid = await simctl.createDevice('ios-simulator testing',
-                                         testSimDevice,
-                                         testSimVersion);
-    after(function(done) {
-      simctl.deleteDevice(udid).then(done);
+function runTests (deviceType) {
+  describe(`simulator ${deviceType.version}`, () => {
+    let udid;
+    beforeEach(async () => {
+      udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+    });
+    afterEach(async () => {
+      // only want to get rid of the device if it is present
+      let devicePresent = (await simctl.getDevices())[deviceType.version]
+        .filter((device) => {
+          return device.udid === udid;
+        }).length > 0;
+      if (devicePresent) {
+        await simctl.deleteDevice(udid);
+      }
     });
 
-    let sim = await getSimulator(udid);
 
-    await sim.isFresh().should.eventually.equal(true);
+    it('should detect whether a simulator has been run before', async function () {
+      this.timeout(LONG_TIMEOUT);
 
-    await sim.launchAndQuit();
-
-    await sim.isFresh().should.eventually.equal(false);
-  });
-
-  it('should launch and shutdown a sim', async function () {
-    this.timeout(35*1000);
-
-    let udid = await simctl.createDevice('ios-simulator testing',
-                                         testSimDevice,
-                                         testSimVersion);
-
-    after(async () => {
-      await simctl.deleteDevice(udid);
+      let sim = await getSimulator(udid);
+      await sim.isFresh().should.eventually.equal(true);
+      await sim.launchAndQuit();
+      await sim.isFresh().should.eventually.equal(false);
     });
 
-    let sim = await getSimulator(udid);
+    it('should launch and shutdown a sim', async function () {
+      this.timeout(LONG_TIMEOUT);
 
-    await sim.launchAndQuit();
-
-    (await sim.stat()).state.should.equal('Shutdown');
-  });
-
-  it('should clean a sim', async function () {
-    this.timeout(30*1000);
-
-    let udid = await simctl.createDevice('ios-simulator testing',
-                                         testSimDevice,
-                                         testSimVersion);
-
-    after(async () => {
-      await simctl.deleteDevice(udid);
+      let sim = await getSimulator(udid);
+      await sim.launchAndQuit();
+      (await sim.stat()).state.should.equal('Shutdown');
     });
 
-    let sim = await getSimulator(udid);
+    it('should clean a sim', async function () {
+      this.timeout(MED_TIMEOUT);
 
-    await sim.isFresh().should.eventually.equal(true);
-
-    await sim.launchAndQuit();
-
-    await sim.isFresh().should.eventually.equal(false);
-
-    await sim.clean();
-
-    await sim.isFresh().should.eventually.equal(true);
-  });
-
-  it('should delete a sim', async function () {
-    let udid = await simctl.createDevice('ios-simulator deleteMe',
-                                         testSimDevice,
-                                         testSimVersion);
-
-    let numDevices = (await simctl.getDevices())[testSimVersion].length;
-    numDevices.should.be.above(0);
-
-    let sim = await getSimulator(udid);
-
-    await sim.delete();
-
-    let numDevicesAfter = (await simctl.getDevices())[testSimVersion].length;
-
-    numDevicesAfter.should.equal(numDevices-1);
-  });
-
-  it('should match a bundleId to its app directory on a used sim', async function () {
-    this.timeout(30*1000);
-    let udid = await simctl.createDevice('ios-simulator deleteMe',
-                                         testSimDevice,
-                                         testSimVersion);
-
-    after(async () => {
-      await simctl.deleteDevice(udid);
+      let sim = await getSimulator(udid);
+      await sim.isFresh().should.eventually.equal(true);
+      await sim.launchAndQuit();
+      await sim.isFresh().should.eventually.equal(false);
+      await sim.clean();
+      await sim.isFresh().should.eventually.equal(true);
     });
 
-    let sim = await getSimulator(udid);
-    await sim.launchAndQuit();
+    it('should delete a sim', async function () {
+      let numDevices = (await simctl.getDevices())[deviceType.version].length;
+      numDevices.should.be.above(0);
 
-    let path = await sim.getAppDataDir('com.apple.mobilesafari');
-    await util.hasAccess(path).should.eventually.be.true;
-  });
-
-  it('should match a bundleId to its app directory on a fresh sim', async function () {
-    this.timeout(35*1000);
-    let udid = await simctl.createDevice('ios-simulator deleteMe',
-                                         testSimDevice,
-                                         testSimVersion);
-
-    after(async () => {
-      await simctl.deleteDevice(udid);
+      let sim = await getSimulator(udid);
+      await sim.delete();
+      let numDevicesAfter = (await simctl.getDevices())[deviceType.version].length;
+      numDevicesAfter.should.equal(numDevices-1);
     });
 
-    let sim = await getSimulator(udid);
+    let itText = 'should match a bundleId to its app directory on a used sim';
+    let bundleId = 'com.apple.mobilesafari';
+    if (deviceType.version === '7.1') {
+      itText = 'should match an app to its app directory on a used sim';
+      bundleId = 'MobileSafari';
+    }
+    it(itText, async function () {
+      this.timeout(MED_TIMEOUT);
 
-    let path = await sim.getAppDataDir('com.apple.mobilesafari');
-    await util.hasAccess(path).should.eventually.be.true;
+      let sim = await getSimulator(udid);
+      await sim.launchAndQuit();
+
+      let path = await sim.getAppDataDir(bundleId);
+      await util.hasAccess(path).should.eventually.be.true;
+    });
+
+    itText = 'should match a bundleId to its app directory on a fresh sim';
+    bundleId = 'com.apple.mobilesafari';
+    if (deviceType.version === '7.1') {
+      itText = 'should match an app to its app directory on a fresh sim';
+      bundleId = 'MobileSafari';
+    }
+    it(itText, async function () {
+      this.timeout(LONG_TIMEOUT);
+
+      let sim = await getSimulator(udid);
+      let path = await sim.getAppDataDir(bundleId);
+      await util.hasAccess(path).should.eventually.be.true;
+    });
   });
-});
+}
+
+const deviceTypes = [
+  {
+    version: '7.1',
+    device: 'iPhone 5s'
+  },
+  {
+    version: '8.3',
+    device: 'iPhone 6'
+  }
+];
+for (let deviceType of deviceTypes) {
+  runTests(deviceType);
+}

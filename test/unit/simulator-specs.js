@@ -1,20 +1,21 @@
 // transpile:mocha
 
 import { getSimulator } from '../..';
-import { SimulatorXcode6 } from '../lib/simulator-xcode-6';
+import SimulatorXcode6 from '../../lib/simulator-xcode-6';
+import SimulatorXcode7 from '../../lib/simulator-xcode-7';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
 import sinon from 'sinon';
-import { devices } from './assets/deviceList';
+import { devices } from '../assets/deviceList';
 import B from 'bluebird';
 import xcode from 'appium-xcode';
 
 let should = chai.should();
 chai.use(chaiAsPromised);
 
-describe('sample', () => {
+describe('simulator', () => {
 
   let getVersionStub;
 
@@ -27,7 +28,15 @@ describe('sample', () => {
 
     let sim = await getSimulator('123');
     sim.xcodeVersion.should.equal('6.0.0');
-    (sim instanceof SimulatorXcode6).should.equal(true);
+    sim.should.be.an.instanceof(SimulatorXcode6);
+  });
+
+  it('should create an xcode 7 simulator with xcode version 7', async () => {
+    getVersionStub = sinon.stub(xcode, 'getVersion').returns('7.0.0');
+
+    let sim = await getSimulator('123');
+    sim.xcodeVersion.should.equal('7.0.0');
+    sim.should.be.an.instanceof(SimulatorXcode7);
   });
 
   it('should throw an error if xcode version less than 6', async () => {
@@ -36,8 +45,8 @@ describe('sample', () => {
     await getSimulator('123').should.eventually.be.rejectedWith('version');
   });
 
-  it('should throw an error if xcode version above 6', async () => {
-    getVersionStub = sinon.stub(xcode, 'getVersion').returns('7.0.0');
+  it('should throw an error if xcode version above 7', async () => {
+    getVersionStub = sinon.stub(xcode, 'getVersion').returns('8.0.0');
 
     await getSimulator('123').should.eventually.be.rejectedWith('not yet');
   });
@@ -75,4 +84,8 @@ describe('sample', () => {
 
   //it.skip('should dectroy a simulator')
   //TODO e2e tests. check that rootdir exists
+
+  it('should get a list of application data directories', async () => {
+
+  });
 });

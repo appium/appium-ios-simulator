@@ -1,10 +1,10 @@
 {
   "name": "appium-ios-simulator",
-  "description": "Description goes here.",
+  "description": "Handle iOS Simulators for Xcode 6 and 7",
   "keywords": [
     "appium"
   ],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "appium",
   "license": "Apache-2.0",
   "repository": {
@@ -27,15 +27,15 @@
     "appium-logger": "^1.1.2",
     "appium-support": "2.0.0-beta13",
     "appium-xcode": "beta",
+    "asyncbox": "^2.1.0",
     "babel-core": "^5.4.3",
     "babel-runtime": "^5.3.3",
     "bluebird": "^2.9.34",
     "bplist-creator": "0.0.5",
     "bplist-parser": "^0.1.0",
+    "glob": "^5.0.14",
     "lodash": "^3.10.0",
-    "ncp": "^2.0.0",
     "node-simctl": "^2.1.0",
-    "sinon": "^1.14.1",
     "source-map-support": "^0.2.10",
     "teen_process": "^1.2.2"
   },
@@ -49,7 +49,10 @@
     "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "gulp": "^3.8.11",
+    "ios-test-app": "^2.1.5",
     "mochawait": "^2.0.0",
+    "ncp": "^2.0.0",
+    "sinon": "^1.15.4",
     "yargs": "^3.9.0"
   }
 }
