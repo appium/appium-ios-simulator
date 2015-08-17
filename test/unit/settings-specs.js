@@ -49,12 +49,12 @@ describe('settings', () => {
 
     it('should update a plist', async () => {
       let originalData = await read(tmpPlist);
-      originalData[0]['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
+      originalData['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
         .Whitelisted = true;
       await update(tmpPlist, originalData);
       let updatedData = await read(tmpPlist);
 
-      updatedData[0]['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
+      updatedData['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
         .Whitelisted.should.be.true;
 
       originalData.should.eql(updatedData);
@@ -62,9 +62,7 @@ describe('settings', () => {
 
     it('should read a plist', async () => {
       let data = await read(tmpPlist);
-      data.should.be.an.instanceof(Array);
-      data.should.have.length(1);
-      data[0]['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
+      data['com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework']
         .should.be.an.instanceof(Object);
     });
   });
@@ -106,17 +104,18 @@ describe('settings', () => {
                         'PrivateFrameworks/AOSNotification.framework';
       beforeEach(async () => {
         data = await read(realClientFile);
-        expect(data[0]['com.apple.mobilesafari']).to.not.exist;
-        expect(data[0][weirdLocKey]).to.not.exist;
+        expect(data['com.apple.mobilesafari']).to.not.exist;
+        expect(data[weirdLocKey]).to.not.exist;
       });
 
       it('should update', async () => {
         await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await read(realClientFile);
+        console.log(finalData);
         finalData.should.not.eql(data);
-        finalData[0]['com.apple.mobilesafari'].should.exist;
-        finalData[0]['com.apple.mobilesafari'].Authorized.should.be.true;
+        finalData['com.apple.mobilesafari'].should.exist;
+        finalData['com.apple.mobilesafari'].Authorized.should.be.true;
       });
 
       it('should update an already existing bundle without changing anything but Authorized', async () => {
@@ -125,8 +124,8 @@ describe('settings', () => {
         let finalData = await read(realClientFile);
         finalData.should.not.eql(data);
 
-        let originalRecord = data[0]['io.appium.test'];
-        let updatedRecord = finalData[0]['io.appium.test'];
+        let originalRecord = data['io.appium.test'];
+        let updatedRecord = finalData['io.appium.test'];
         updatedRecord.Whitelisted.should.equal(originalRecord.Whitelisted);
         updatedRecord.Executable.should.equal(originalRecord.Executable);
         updatedRecord.Registered.should.equal(originalRecord.Registered);
@@ -138,7 +137,7 @@ describe('settings', () => {
 
         let finalData = await read(realClientFile);
         finalData.should.not.eql(data);
-        finalData[0][weirdLocKey].should.exist;
+        finalData[weirdLocKey].should.exist;
       });
     });
 
@@ -148,9 +147,10 @@ describe('settings', () => {
 
         for (let file of realCacheFiles) {
           let finalData = await read(file);
-          finalData[0]['com.apple.mobilesafari'].should.exist;
-          finalData[0]['com.apple.mobilesafari'].LastFenceActivityTimestamp.should.equal(412122103.232983);
-          finalData[0]['com.apple.mobilesafari'].CleanShutdown.should.be.true;
+          console.log(finalData);
+          finalData['com.apple.mobilesafari'].should.exist;
+          finalData['com.apple.mobilesafari'].LastFenceActivityTimestamp.should.equal(412122103.232983);
+          finalData['com.apple.mobilesafari'].CleanShutdown.should.be.true;
         }
       });
     });
