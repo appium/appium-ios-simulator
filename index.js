@@ -1,6 +1,6 @@
 // transpile:main
 
-import { getSimulator } from './lib/simulator.js';
-//import { killAllSimulators } from './lib/util.js';
+import { getSimulator } from './lib/simulator';
+import { killAllSimulators } from './lib/utils';
 
-export { getSimulator };
+export { getSimulator, killAllSimulators };
