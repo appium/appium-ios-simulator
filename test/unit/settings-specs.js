@@ -4,7 +4,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
 import B from 'bluebird';
-import { update, read, updateLocationSettings } from '../../lib/settings.js';
+import { update, read, updateLocationSettings, updateLocale } from '../../lib/settings.js';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import path from 'path';
 import { tempDir, fs } from 'appium-support';
@@ -112,7 +112,6 @@ describe('settings', () => {
         await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await read(realClientFile);
-        console.log(finalData);
         finalData.should.not.eql(data);
         finalData['com.apple.mobilesafari'].should.exist;
         finalData['com.apple.mobilesafari'].Authorized.should.be.true;
@@ -147,12 +146,83 @@ describe('settings', () => {
 
         for (let file of realCacheFiles) {
           let finalData = await read(file);
-          console.log(finalData);
           finalData['com.apple.mobilesafari'].should.exist;
           finalData['com.apple.mobilesafari'].LastFenceActivityTimestamp.should.equal(412122103.232983);
           finalData['com.apple.mobilesafari'].CleanShutdown.should.be.true;
         }
       });
+    });
+  });
+
+  describe('updateLocale', () => {
+    let realPlistFile;
+    let sim;
+    beforeEach(async () => {
+      let temp = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences-fixture.plist');
+      realPlistFile = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences.plist');
+      await copy(temp, realPlistFile);
+
+      // create a stub for getting the simulator dir
+      sim = new SimulatorXcode6();
+      sinon.stub(sim, 'getDir').returns(SIM_DIRECTORY);
+    });
+    afterEach(async () => {
+      // get rid of the temporary plist we made
+      await fs.unlink(realPlistFile);
+    });
+
+    it('should update language', async () => {
+      let originalData = await read(realPlistFile);
+
+      await updateLocale(sim, 'rr');
+      let finalData = await read(realPlistFile);
+      finalData.should.not.eql(originalData);
+      finalData.AppleLanguages.should.include('rr');
+    });
+
+    it('should not do anything when language is already present', async () => {
+      let originalData = await read(realPlistFile);
+
+      await updateLocale(sim, 'en');
+      (await read(realPlistFile)).should.eql(originalData);
+    });
+
+    it('should update locale', async () => {
+      let originalData = await read(realPlistFile);
+
+      await updateLocale(sim, undefined, 'fr_US');
+      let finalData = await read(realPlistFile);
+      finalData.should.not.eql(originalData);
+      finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
+      finalData.AppleLocale.should.include('fr_US');
+    });
+
+    it('should update calendarFormat', async () => {
+      let originalData = await read(realPlistFile);
+
+      await updateLocale(sim, undefined, undefined, 'something');
+      let finalData = await read(realPlistFile);
+      finalData.should.not.eql(originalData);
+      finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
+      finalData.AppleLocale.should.include('@calendar=something');
+    });
+
+    it('should preserve the calendarFormat when updating locale alone', async () => {
+      let originalData = await read(realPlistFile);
+
+      // get a calendar format into the plist
+      await updateLocale(sim, undefined, undefined, 'something');
+      let intermediateData = await read(realPlistFile);
+      intermediateData.should.not.eql(originalData);
+      intermediateData.AppleLanguages.should.eql(originalData.AppleLanguages);
+      intermediateData.AppleLocale.should.include('@calendar=something');
+
+      // udpate with a new locale
+      await updateLocale(sim, undefined, 'fr_US');
+      let finalData = await read(realPlistFile);
+      finalData.should.not.eql(intermediateData);
+      finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
+      finalData.AppleLocale.should.eql('fr_US@calendar=something');
     });
   });
 });
