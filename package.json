@@ -30,8 +30,6 @@
     "asyncbox": "^2.3.1",
     "babel-runtime": "=5.8.24",
     "bluebird": "^2.9.34",
-    "bplist-creator": "0.0.5",
-    "bplist-parser": "^0.1.0",
     "glob": "^5.0.14",
     "lodash": "^3.10.0",
     "ncp": "^2.0.0",
