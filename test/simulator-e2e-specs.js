@@ -101,17 +101,31 @@ function runTests (deviceType) {
       let path = await sim.getAppDataDir(bundleId);
       await util.hasAccess(path).should.eventually.be.true;
     });
+
+    it('should start a sim using the "run" method', async function () {
+      this.timeout(LONG_TIMEOUT);
+
+      let sim = await getSimulator(udid);
+
+      await sim.run();
+      let stat = await sim.stat();
+      stat.state.should.equal('Booted');
+
+      await sim.shutdown();
+      stat = await sim.stat();
+      stat.state.should.equal('Shutdown');
+    });
   });
 }
 
 const deviceTypes = [
   {
-    version: '7.1',
-    device: 'iPhone 5s'
+    version: '8.4',
+    device: 'iPhone 6'
   },
   {
-    version: '8.3',
-    device: 'iPhone 6'
+    version: '9.0',
+    device: 'iPhone 6s'
   }
 ];
 for (let deviceType of deviceTypes) {
