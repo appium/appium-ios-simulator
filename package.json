@@ -1,10 +1,10 @@
 {
   "name": "appium-ios-simulator",
-  "description": "Handle iOS Simulators for Xcode 6 and 7",
+  "description": "Description goes here.",
   "keywords": [
     "appium"
   ],
-  "version": "0.0.16",
+  "version": "1.0.0",
   "author": "appium",
   "license": "Apache-2.0",
   "repository": {
@@ -23,19 +23,21 @@
     "lib": "lib"
   },
   "dependencies": {
-    "appium-instruments": "beta",
-    "appium-logger": "^1.1.2",
-    "appium-support": "beta",
-    "appium-xcode": "beta",
-    "asyncbox": "^2.2.0",
-    "babel-runtime": "=5.8.20",
+    "appium-instruments": "3.0.0-beta14",
+    "appium-logger": "^2.0.0",
+    "appium-support": "^2.0.0",
+    "appium-xcode": "3.0.1",
+    "asyncbox": "^2.3.1",
+    "babel-runtime": "=5.8.24",
     "bluebird": "^2.9.34",
-    "bplist-creator": "^0.0.6",
+    "bplist-creator": "0.0.5",
     "bplist-parser": "^0.1.0",
     "glob": "^5.0.14",
     "lodash": "^3.10.0",
-    "node-simctl": "^2.1.0",
-    "source-map-support": "^0.3.2",
+    "ncp": "^2.0.0",
+    "node-simctl": "^3.1.0",
+    "sinon": "^1.14.1",
+    "source-map-support": "^0.2.10",
     "teen_process": "^1.2.2"
   },
   "scripts": {
@@ -45,11 +47,10 @@
   },
   "devDependencies": {
     "appium-gulp-plugins": "^1.2.12",
-    "chai": "^3.2.0",
+    "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "gulp": "^3.8.11",
     "mochawait": "^2.0.0",
-    "sinon": "^1.15.4",
     "yargs": "^3.9.0"
   }
 }
