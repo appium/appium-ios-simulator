@@ -4,7 +4,6 @@ import { getSimulator } from '../..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
 import { util } from 'appium-support';
 
 
