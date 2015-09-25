@@ -4,7 +4,7 @@
   "keywords": [
     "appium"
   ],
-  "version": "0.0.16",
+  "version": "0.0.17",
   "author": "appium",
   "license": "Apache-2.0",
   "repository": {
@@ -25,8 +25,8 @@
   "dependencies": {
     "appium-instruments": "beta",
     "appium-logger": "^2.0.0",
-    "appium-support": "beta",
-    "appium-xcode": "beta",
+    "appium-support": "^2.0.0",
+    "appium-xcode": "^3.0.1",
     "asyncbox": "^2.2.0",
     "babel-runtime": "=5.8.24",
     "bluebird": "^2.9.34",
