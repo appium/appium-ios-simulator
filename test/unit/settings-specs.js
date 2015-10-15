@@ -2,9 +2,8 @@
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
 import { update, read, updateLocationSettings, updateLocale,
-         updateSafariUserSettings } from '../../lib/settings.js';
+         updateSafariUserSettings } from '../../lib/settings';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import path from 'path';
 import { tempDir, fs } from 'appium-support';

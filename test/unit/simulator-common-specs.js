@@ -4,7 +4,6 @@ import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import SimulatorXcode7 from '../../lib/simulator-xcode-7';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
 import _ from 'lodash';
 
 chai.should();

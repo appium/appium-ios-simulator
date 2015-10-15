@@ -6,7 +6,6 @@ import SimulatorXcode7 from '../../lib/simulator-xcode-7';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
 import sinon from 'sinon';
 import { devices } from '../assets/deviceList';
 import B from 'bluebird';

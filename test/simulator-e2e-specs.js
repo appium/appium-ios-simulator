@@ -4,9 +4,7 @@ import { getSimulator } from '../..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
 import { fs } from 'appium-support';
-
 
 const LONG_TIMEOUT = 35*1000;
 const MED_TIMEOUT = 30*1000;
