@@ -5,7 +5,7 @@ import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
-import { util } from 'appium-support';
+import { fs } from 'appium-support';
 
 
 const LONG_TIMEOUT = 35*1000;
@@ -85,7 +85,7 @@ function runTests (deviceType) {
       await sim.launchAndQuit();
 
       let path = await sim.getAppDataDir(bundleId);
-      await util.hasAccess(path).should.eventually.be.true;
+      await fs.hasAccess(path).should.eventually.be.true;
     });
 
     itText = 'should match a bundleId to its app directory on a fresh sim';
@@ -99,7 +99,7 @@ function runTests (deviceType) {
 
       let sim = await getSimulator(udid);
       let path = await sim.getAppDataDir(bundleId);
-      await util.hasAccess(path).should.eventually.be.true;
+      await fs.hasAccess(path).should.eventually.be.true;
     });
 
     it('should start a sim using the "run" method', async function () {
