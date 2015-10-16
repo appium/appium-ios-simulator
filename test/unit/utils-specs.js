@@ -27,14 +27,15 @@ const XCODE_VERSION_6 = {
 };
 
 describe('util', () => {
-  let execStub = sinon.stub(TeenProcess, 'exec');
+  let execStub;
   let xcodeMock;
 
   beforeEach(() => {
+    execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
   });
   afterEach(() => {
-    execStub.reset();
+    execStub.restore();
     xcodeMock.restore();
   });
 
