@@ -5,7 +5,7 @@ import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
-import { killAllSimulators } from '../../lib/utils';
+import { killAllSimulators, endAllSimulatorDaemons } from '../..';
 
 
 chai.should();
@@ -56,6 +56,19 @@ describe('util', () => {
       xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
       execStub.throws();
       await killAllSimulators().should.not.be.rejected;
+      execStub.threw().should.be.true;
+    });
+  });
+
+  describe('endAllSimulatorDaemons', () => {
+    it('should call exec five times to stop and remove each service', async () => {
+      await endAllSimulatorDaemons();
+      execStub.callCount.should.equal(5);
+    });
+    it('should ignore all errors', async () => {
+      execStub.throws();
+      await endAllSimulatorDaemons().should.not.be.rejected;
+      execStub.callCount.should.equal(5);
       execStub.threw().should.be.true;
     });
   });
