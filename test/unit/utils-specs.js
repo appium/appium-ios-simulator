@@ -27,14 +27,15 @@ const XCODE_VERSION_6 = {
 };
 
 describe('util', () => {
-  let execStub = sinon.stub(TeenProcess, 'exec');
+  let execStub;
   let xcodeMock;
 
   beforeEach(() => {
+    execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
   });
   afterEach(() => {
-    execStub.reset();
+    execStub.restore();
     xcodeMock.restore();
   });
 
@@ -52,6 +53,7 @@ describe('util', () => {
       execStub.calledWith('pkill', ['-9', '-f', 'iOS Simulator']).should.be.true;
     });
     it('should ignore errors thrown by exec', async () => {
+      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
       execStub.throws();
       await killAllSimulators().should.not.be.rejected;
       execStub.threw().should.be.true;
