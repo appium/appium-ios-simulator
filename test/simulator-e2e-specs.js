@@ -6,7 +6,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
 
-const LONG_TIMEOUT = 35*1000;
+const LONG_TIMEOUT = 50*1000;
 const MED_TIMEOUT = 30*1000;
 
 chai.should();
@@ -20,7 +20,8 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version);
     });
-    afterEach(async () => {
+    afterEach(async function () {
+      this.timeout(LONG_TIMEOUT);
       // only want to get rid of the device if it is present
       let devicePresent = (await simctl.getDevices())[deviceType.version]
         .filter((device) => {
@@ -106,6 +107,7 @@ function runTests (deviceType) {
       let sim = await getSimulator(udid);
 
       await sim.run();
+
       let stat = await sim.stat();
       stat.state.should.equal('Booted');
 
@@ -118,11 +120,27 @@ function runTests (deviceType) {
 
 const deviceTypes = [
   {
+    version: '8.1',
+    device: 'iPhone 6'
+  },
+  {
+    version: '8.2',
+    device: 'iPhone 6'
+  },
+  {
+    version: '8.3',
+    device: 'iPhone 6'
+  },
+  {
     version: '8.4',
     device: 'iPhone 6'
   },
   {
     version: '9.0',
+    device: 'iPhone 6s'
+  },
+  {
+    version: '9.1',
     device: 'iPhone 6s'
   }
 ];
