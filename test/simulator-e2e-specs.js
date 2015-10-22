@@ -5,6 +5,7 @@ import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
+import B from 'bluebird';
 
 const LONG_TIMEOUT = 50*1000;
 const MED_TIMEOUT = 30*1000;
@@ -105,6 +106,44 @@ function runTests (deviceType) {
       this.timeout(LONG_TIMEOUT);
 
       let sim = await getSimulator(udid);
+
+      await sim.run();
+
+      let stat = await sim.stat();
+      stat.state.should.equal('Booted');
+
+      await sim.shutdown();
+      stat = await sim.stat();
+      stat.state.should.equal('Shutdown');
+    });
+  });
+
+  describe('reuse an already-created already-run sim', () => {
+    let sim;
+    before(async function () {
+      this.timeout(LONG_TIMEOUT);
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run();
+      await sim.shutdown();
+      await B.delay(3000);
+    });
+    after(async function () {
+      this.timeout(LONG_TIMEOUT);
+      // only want to get rid of the device if it is present
+      let devicePresent = (await simctl.getDevices())[deviceType.version]
+        .filter((device) => {
+          return device.udid === sim.udid;
+        }).length > 0;
+      if (devicePresent) {
+        await simctl.deleteDevice(sim.udid);
+      }
+    });
+
+    it.only('should start a sim using the "run" method', async function () {
+      this.timeout(LONG_TIMEOUT);
 
       await sim.run();
 
