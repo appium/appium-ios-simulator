@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
 import B from 'bluebird';
 
-const LONG_TIMEOUT = 50*1000;
+const LONG_TIMEOUT = 120*1000;
 const MED_TIMEOUT = 30*1000;
 
 chai.should();
@@ -118,7 +118,7 @@ function runTests (deviceType) {
     });
   });
 
-  describe('reuse an already-created already-run sim', () => {
+  describe(`reuse an already-created already-run simulator ${deviceType.version}`, () => {
     let sim;
     before(async function () {
       this.timeout(LONG_TIMEOUT);
@@ -142,7 +142,7 @@ function runTests (deviceType) {
       }
     });
 
-    it.only('should start a sim using the "run" method', async function () {
+    it('should start a sim using the "run" method', async function () {
       this.timeout(LONG_TIMEOUT);
 
       await sim.run();
@@ -158,18 +158,6 @@ function runTests (deviceType) {
 }
 
 const deviceTypes = [
-  {
-    version: '8.1',
-    device: 'iPhone 6'
-  },
-  {
-    version: '8.2',
-    device: 'iPhone 6'
-  },
-  {
-    version: '8.3',
-    device: 'iPhone 6'
-  },
   {
     version: '8.4',
     device: 'iPhone 6'
