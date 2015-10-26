@@ -122,6 +122,11 @@ describe('simulator', () => {
         let device = await getDeviceString({deviceName: 'fancy device'});
         device.should.equal('fancy device (8.4 Simulator)');
       });
+      it('should handle string platform version', async () => {
+        xcodeMock.expects('getMaxIOSSDK').returns(Promise.resolve('8.4'));
+        let device = await getDeviceString();
+        device.should.equal('iPhone 6 (8.4 Simulator)');
+      });
     });
 
     describe('Xcode 7', () => {
