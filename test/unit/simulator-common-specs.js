@@ -31,6 +31,15 @@ for (let [name, simClass] of _.pairs(simulatorClasses)) {
       sim.getDir().should.exist;
     });
 
+    it('should return an array for getAppDirs()', async () => {
+      sinon.stub(sim, 'getAppDir').returns(Promise.resolve(['/App/Path/']));
+      sim._platformVersion = 9.1;
+      let dirs = await sim.getAppDirs('test');
+      dirs.should.have.length(2);
+      dirs.should.be.a('array');
+      sinon.restore();
+    });
+
     it('should return a path for getLogDir', () => {
       process.env.HOME = __dirname;
       let logDir = sim.getLogDir();
