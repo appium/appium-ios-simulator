@@ -63,14 +63,14 @@ function runTests (deviceType) {
       await sim.isFresh().should.eventually.equal(true);
     });
 
-    it('should not find any TestApp data or bundle directories on a fresh simulator', async function(){
+    it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
       this.timeout(MED_TIMEOUT);
       let sim = await getSimulator(udid);
       let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
       dirs.should.have.length(0);
     });
 
-    it('should find both a data and bundle directory for TestApp', async function(){
+    it('should find both a data and bundle directory for TestApp', async function () {
       this.timeout(MED_TIMEOUT);
       let sim = await getSimulator(udid);
       await sim.run();
@@ -85,7 +85,7 @@ function runTests (deviceType) {
       dirs[1].should.contain('/Bundle/');
     });
 
-    it('should delete custom app data', async function(){
+    it('should delete custom app data', async function () {
       this.timeout(MED_TIMEOUT);
       let sim = await getSimulator(udid);
       await sim.run();
