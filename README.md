@@ -68,6 +68,16 @@ import { endAllSimulatorDaemons } from 'appium-ios-simulator';
 await endAllSimulatorDaemons();
 ```
 
+`async simExists(udid)`
+
+Returns true if a simulator with UDID exists on the host system. False otherwise.
+
+```js
+import { simExists } from 'appium-ios-simulator';
+
+await simExists('D94E4CD7-D412-4198-BCD4-26799672975E');
+```
+
 
 #### Simulator object
 
