@@ -8,6 +8,7 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists } from '../..';
+import { devices } from '../assets/deviceList';
 
 
 chai.should();
@@ -37,6 +38,7 @@ describe('util', () => {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
+    getDevicesStub.returns(Promise.resolve(devices));
   });
   afterEach(() => {
     execStub.restore();
@@ -79,74 +81,33 @@ describe('util', () => {
   });
 
   describe('simExists', () => {
-    const devicesStub = {
-    '7.1': [
-     { name: 'iPhone 5',
-       udid: 'B236B73C-8EFA-4284-AC1F-2A45F3286E4C',
-       state: 'Shutdown' },
-     { name: 'iPhone 5s',
-       udid: '8E248C90-0F79-46AD-9CAA-8DF3B6E3FBA6',
-       state: 'Shutdown' },
-     { name: 'iPad Air',
-       udid: 'FA5C971D-4E05-4AA3-B48B-C9619C7453BE',
-       state: 'Shutdown' } ],
-    '8.1': [
-     { name: 'iPhone 5',
-       udid: 'B5048708-566E-45D5-9885-C878EF7D6D13',
-       state: 'Shutdown' },
-     { name: 'iPhone 5s',
-       udid: '2F7678F2-FD52-497F-9383-41D3BB401FBD',
-       state: 'Shutdown' },
-     { name: 'iPhone 6 Plus',
-       udid: '013D6994-B4E6-4548-AD77-C0D7C6C6D245',
-       state: 'Shutdown' } ],
-    '8.3': [
-     { name: 'iPhone 5',
-       udid: '813AAB6A-32C8-4859-A5CF-F3355C244F54',
-       state: 'Shutdown' },
-     { name: 'iPhone 5s',
-       udid: '9D3A405E-65D6-4743-85DA-E644DA9A8373',
-       state: 'Shutdown' },
-     { name: 'iPhone 6 Plus',
-       udid: 'D94E4CD7-D412-4198-BCD4-26799672975E',
-       state: 'Shutdown' },
-     { name: 'iPhone 6',
-       udid: '26EAADAE-1CD5-42F9-9A4C-50554CDF0910',
-       state: 'Shutdown' },
-     { name: 'iPad 2',
-       udid: 'C8E68217-82E6-42A8-8326-9824CA2E7C7C',
-       state: 'Shutdown' } ]
-  };
 
-  it('returns true if device is found', async () => {
-    getDevicesStub.returns(Promise.resolve(devicesStub));
-    let existence = [];
-     existence.push(simExists('D94E4CD7-D412-4198-BCD4-26799672975E'));
-     existence.push(simExists('C8E68217-82E6-42A8-8326-9824CA2E7C7C'));
-     existence.push(simExists('B5048708-566E-45D5-9885-C878EF7D6D13'));
-     existence.push(simExists('8E248C90-0F79-46AD-9CAA-8DF3B6E3FBA6'));
+    it('returns true if device is found', async () => {
+      let existence = [
+       simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
+       simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
+       simExists('E46EFA59-E2B4-4FF9-B290-B61F3CFECC65'),
+       simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410')
+     ];
 
-     let results = await B.all(existence);
+       let results = await B.all(existence);
 
-     for (let result of results) {
-       result.should.be.true;
-     }
-  });
+       for (let result of results) {
+         result.should.be.true;
+       }
+    });
 
-  it('returns false if device is not found', async () => {
-    getDevicesStub.returns(Promise.resolve(devicesStub));
-    let existence = [];
-     existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
-     existence.push(simExists('asdf'));
-     existence.push(simExists(4));
+    it('returns false if device is not found', async () => {
+      let existence = [];
+       existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
+       existence.push(simExists('asdf'));
+       existence.push(simExists(4));
 
-     let results = await B.all(existence);
+       let results = await B.all(existence);
 
-     for (let result of results) {
-       result.should.be.false;
-     }
-  });
-
-
+       for (let result of results) {
+         result.should.be.false;
+       }
+    });
   });
 });
