@@ -1,6 +1,6 @@
 // transpile:main
 
 import { getSimulator, getDeviceString } from './lib/simulator';
-import { killAllSimulators, endAllSimulatorDaemons } from './lib/utils';
+import { killAllSimulators, endAllSimulatorDaemons, simExists } from './lib/utils';
 
-export { getSimulator, getDeviceString, killAllSimulators, endAllSimulatorDaemons };
+export { getSimulator, getDeviceString, killAllSimulators, endAllSimulatorDaemons, simExists };

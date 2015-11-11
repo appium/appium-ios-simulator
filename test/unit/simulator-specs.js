@@ -12,17 +12,23 @@ import B from 'bluebird';
 import xcode from 'appium-xcode';
 
 
-let should = chai.should();
+chai.should();
 chai.use(chaiAsPromised);
+
+const UDID = devices['7.1'][0].udid;
 
 describe('simulator', () => {
   let xcodeMock;
+  let getDevicesStub;
 
   beforeEach(() => {
     xcodeMock = sinon.mock(xcode);
+    getDevicesStub = sinon.stub(simctl, 'getDevices');
+    getDevicesStub.returns(Promise.resolve(devices));
   });
   afterEach(() => {
     xcodeMock.restore();
+    simctl.getDevices.restore();
   });
 
   describe('getSimulator', () => {
@@ -30,7 +36,7 @@ describe('simulator', () => {
       let xcodeVersion = {major: 6, versionString: '6.0.0'};
       xcodeMock.expects('getVersion').returns(Promise.resolve(xcodeVersion));
 
-      let sim = await getSimulator('123');
+      let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
       sim.should.be.an.instanceof(SimulatorXcode6);
     });
@@ -39,7 +45,7 @@ describe('simulator', () => {
       let xcodeVersion = {major: 7, versionString: '7.0.0'};
       xcodeMock.expects('getVersion').returns(Promise.resolve(xcodeVersion));
 
-      let sim = await getSimulator('123');
+      let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
       sim.should.be.an.instanceof(SimulatorXcode7);
     });
@@ -48,25 +54,27 @@ describe('simulator', () => {
       let xcodeVersion = {major: 5, versionString: '5.4.0'};
       xcodeMock.expects('getVersion').returns(Promise.resolve(xcodeVersion));
 
-      await getSimulator('123').should.eventually.be.rejectedWith('version');
+      await getSimulator(UDID).should.eventually.be.rejectedWith('version');
     });
 
     it('should throw an error if xcode version above 7', async () => {
       let xcodeVersion = {major: 8, versionString: '8.0.0'};
       xcodeMock.expects('getVersion').returns(Promise.resolve(xcodeVersion));
 
-      await getSimulator('123').should.eventually.be.rejectedWith('not yet');
+      await getSimulator(UDID).should.eventually.be.rejectedWith('not yet');
+    });
+
+    it('should throw an error if udid does not exist', async () => {
+      await getSimulator('123').should.be.rejectedWith('No sim found');
     });
 
     it('should list stats for sim', async () => {
       let xcodeVersion = {major: 6, versionString: '6.0.0'};
       xcodeMock.expects('getVersion').atLeast(1).returns(Promise.resolve(xcodeVersion));
-      let getDevicesStub = sinon.stub(simctl, 'getDevices').returns(devices);
 
       let sims = [
         getSimulator('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
         getSimulator('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
-        getSimulator('123')
       ];
 
       let stats = sims.map((simProm) => {
@@ -79,9 +87,6 @@ describe('simulator', () => {
 
       stats[0].state.should.equal('Shutdown');
       stats[1].state.should.equal('Booted');
-      should.not.exist(stats[2]);
-
-      getDevicesStub.restore();
     });
   });
 

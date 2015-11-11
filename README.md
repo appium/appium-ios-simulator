@@ -17,7 +17,10 @@ The `appium-ios-simulator` exports four utility functions: `getSimulator`, `getD
 
 `async getSimulator(udid)`
 
-This function takes the `udid` of a simulator, and returns a simulator object (see below) associated with that identifier.
+This is the main entry of this module.
+This function returns a simulator object (see below) associated with the udid passed in. If an iOS simulator with the given udid does not exist already on this machine, it will throw an error.
+
+If you want to create a new simulator, you can use the `createDevice()` method of [node-simctl](github.com/appium/node-simctl).
 
 ```js
 import { getSimulator } from 'appium-ios-simulator';
@@ -66,6 +69,16 @@ Kills all running simulator daemon processes.
 import { endAllSimulatorDaemons } from 'appium-ios-simulator';
 
 await endAllSimulatorDaemons();
+```
+
+`async simExists(udid)`
+
+Returns true if a simulator with UDID exists on the host system. False otherwise.
+
+```js
+import { simExists } from 'appium-ios-simulator';
+
+await simExists('D94E4CD7-D412-4198-BCD4-26799672975E');
 ```
 
 
