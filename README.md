@@ -102,12 +102,19 @@ Retrieve the base directory for the simulator.
 
 Retrieve the directory in which logs are stored for the simulator.
 
-`async getAppDataDir (id, subDir)`
+`async getAppDir (id, subDir)`
 
 Retrieve the directory for a particular application's data.
 
 - `id` - the bundle id (for iOS 8+) or application name minus ".app" (for iOS 7.1).
-- `subDir` - the sub-directory we expect to be within the application directory. Defaults tp "Data".
+- `subDir` - the sub-directory we expect to be within the application directory. Defaults to "Data".
+
+`async cleanCustomApp (appFile, appBundleId)`
+
+Retrieve the directory for a particular application's data.
+
+- `appFile` - application name minus ".app" (for iOS 7.1).
+- `appBudleId` - the bundle id (for iOS 8+).
 
 `async stat ()`
 

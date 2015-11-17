@@ -6,6 +6,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
 import B from 'bluebird';
+import getAppPath from 'sample-apps';
 
 const LONG_TIMEOUT = 120*1000;
 const MED_TIMEOUT = 30*1000;
@@ -60,6 +61,47 @@ function runTests (deviceType) {
       await sim.isFresh().should.eventually.equal(false);
       await sim.clean();
       await sim.isFresh().should.eventually.equal(true);
+    });
+
+    it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
+      this.timeout(MED_TIMEOUT);
+      let sim = await getSimulator(udid);
+      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      dirs.should.have.length(0);
+    });
+
+    it('should find both a data and bundle directory for TestApp', async function () {
+      this.timeout(MED_TIMEOUT);
+      let sim = await getSimulator(udid);
+      await sim.run();
+
+      // install & launch test app
+      await simctl.installApp(udid, getAppPath('TestApp'));
+      await simctl.launch(udid, 'io.appium.TestApp');
+
+      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      dirs.should.have.length(2);
+      dirs[0].should.contain('/Data/');
+      dirs[1].should.contain('/Bundle/');
+    });
+
+    it('should delete custom app data', async function () {
+      this.timeout(MED_TIMEOUT);
+      let sim = await getSimulator(udid);
+      await sim.run();
+
+      // install & launch test app
+      await simctl.installApp(udid, getAppPath('TestApp'));
+      await simctl.launch(udid, 'io.appium.TestApp');
+
+      // delete app directories
+      await sim.cleanCustomApp('TestApp', 'io.appium.TestApp');
+
+      // clear paths to force the simulator to get a new list of directories
+      sim.appDataBundlePaths = {};
+
+      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      dirs.should.have.length(0);
     });
 
     it('should delete a sim', async function () {

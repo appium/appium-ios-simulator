@@ -46,6 +46,7 @@
     "chai": "^3.2.0",
     "chai-as-promised": "^5.1.0",
     "gulp": "^3.8.11",
+    "sample-apps": "^2.0.2",
     "sinon": "^1.15.4"
   }
 }
