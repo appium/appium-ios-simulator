@@ -145,6 +145,21 @@ function runTests (deviceType) {
       stat = await sim.stat();
       stat.state.should.equal('Shutdown');
     });
+
+    it('should detect if a sim is running', async function () {
+      let sim = await getSimulator(udid);
+      let running = await sim.isRunning();
+      running.should.be.false;
+
+      await sim.run();
+      running = await sim.isRunning();
+      running.should.be.true;
+
+      await sim.shutdown();
+      running = await sim.isRunning();
+      running.should.be.false;
+    });
+
   });
 
   describe(`reuse an already-created already-run simulator ${deviceType.version}`, function () {
