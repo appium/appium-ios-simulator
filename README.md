@@ -132,9 +132,19 @@ Retrieve state information about the simulator. Returns an object:
 
 Query whether the simulator has been run before.
 
+`async isRunning ()`
+
+Returns `true` if the simulator is running, `false` otherwise.
+
 `async run ()`
 
 Starts the simulator without any Instruments involvement, or application running.
+
+`async openUrl (url)`
+
+*Xcode version 7 and up only*
+
+Opens the input url with safari.
 
 `async clean ()`
 
