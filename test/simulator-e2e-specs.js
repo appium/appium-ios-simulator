@@ -160,6 +160,15 @@ function runTests (deviceType) {
       running.should.be.false;
     });
 
+    it('should isolate sim', async function () {
+      let sim = await getSimulator(udid);
+      await sim.isolateSim();
+
+      let numDevices = (await simctl.getDevices())[deviceType.version].length;
+
+      numDevices.should.equal(1);
+    });
+
   });
 
   describe(`reuse an already-created already-run simulator ${deviceType.version}`, function () {
