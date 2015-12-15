@@ -202,6 +202,12 @@ Delete the Safari application.
 
 Clean up the directories for Safari.
 
+`async tailLogsUntil (bootedIndicator, timeoutMs)`
+
+Tails the iOS system log of this simulator.
+Returns a promise that is resolved when the string `bootedIndicator` is output in the log.
+Times out after `timeoutMs` milliseconds.
+
 `static async getDeviceString (opts)`
 
 Static (class) method to get the particular device name string for Instruments to identify the device. Use exported `getDeviceString` method instead of this.
