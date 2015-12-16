@@ -50,6 +50,13 @@ function runTests (deviceType) {
       (await sim.stat()).state.should.equal('Shutdown');
     });
 
+    it('should launch and shutdown a sim, also starting safari', async function () {
+      let sim = await getSimulator(udid);
+      await sim.launchAndQuit(true);
+      (await sim.stat()).state.should.equal('Shutdown');
+    });
+
+
     it('should clean a sim', async function () {
       let sim = await getSimulator(udid);
       await sim.isFresh().should.eventually.equal(true);

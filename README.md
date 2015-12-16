@@ -142,8 +142,6 @@ Starts the simulator without any Instruments involvement, or application running
 
 `async openUrl (url)`
 
-*Xcode version 7 and up only*
-
 Opens the input url with safari.
 
 `async clean ()`
@@ -203,6 +201,12 @@ Delete the Safari application.
 `async cleanSafari (keepPrefs = true)`
 
 Clean up the directories for Safari.
+
+`async tailLogsUntil (bootedIndicator, timeoutMs)`
+
+Tails the iOS system log of this simulator.
+Returns a promise that is resolved when the string `bootedIndicator` is output in the log.
+Times out after `timeoutMs` milliseconds.
 
 `static async getDeviceString (opts)`
 
