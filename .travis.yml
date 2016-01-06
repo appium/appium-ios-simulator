@@ -14,6 +14,7 @@ install:
 
 script:
   - gulp once
+  - gulp e2e-test
 
 after_success:
     - gulp coveralls
