@@ -156,6 +156,16 @@ function runTests (deviceType) {
       stat.state.should.equal('Shutdown');
     });
 
+    it('should be able to start safari', async function () {
+      let sim = await getSimulator(udid);
+
+      await sim.run();
+      await sim.openUrl('http://apple.com');
+      await sim.shutdown();
+
+      // this test to catch errors in openUrl, that arise from bad sims or certain versions of xcode
+    });
+
     it('should detect if a sim is running', async function () {
       let sim = await getSimulator(udid);
       let running = await sim.isRunning();
