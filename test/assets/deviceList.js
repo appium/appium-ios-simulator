@@ -81,7 +81,7 @@ let devices = {
      state: 'Shutdown' },
    { name: 'Resizable iPad',
      udid: 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
-     state: 'Booted' } ]
+     state: 'Shutdown' } ]
 };
 
 export { devices };
