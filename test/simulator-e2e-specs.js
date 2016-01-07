@@ -18,8 +18,11 @@ function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
     this.timeout(LONG_TIMEOUT);
     let udid;
-    beforeEach(async function () {
+    before(async function () {
       await killAllSimulators();
+    });
+
+    beforeEach(async function () {
       udid = await simctl.createDevice('ios-simulator testing',
                                        deviceType.device,
                                        deviceType.version);
@@ -189,8 +192,7 @@ function runTests (deviceType) {
       sim = await getSimulator(udid);
       await sim.run();
       await sim.shutdown();
-      await B.delay(60000);
-      // if (true) throw 'heh';
+      await B.delay(4000);
     });
     after(async function () {
       // only want to get rid of the device if it is present
@@ -204,7 +206,6 @@ function runTests (deviceType) {
     });
 
     it('should start a sim using the "run" method', async function () {
-      await sim.shutdown();
       await sim.run();
 
       let stat = await sim.stat();
