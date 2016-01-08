@@ -1,19 +1,23 @@
+env:
+  - _FORCE_LOGS=1
 language:
   - objective-c
-
+osx_image: xcode7.1
 before_install:
-
-install:
+  # TavisCI's OSX environment gives us node 0.10.32
+  # Use NVM to update it to 0.12
   - rm -rf ~/.nvm
   - git clone https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
   - nvm install 0.12
+install:
   - node --version
   - npm install
   - npm install -g gulp
 
 script:
   - gulp once
+  - gulp e2e-test
 
 after_success:
     - gulp coveralls

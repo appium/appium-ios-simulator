@@ -51,19 +51,11 @@ describe('util', () => {
       xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
-      execStub.calledWith('pkill', ['-9', '-f', 'Simulator']).should.be.true;
     });
     it('should call exec with iOS Simulator for Xcode 6', async () => {
       xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_6));
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
-      execStub.calledWith('pkill', ['-9', '-f', 'iOS Simulator']).should.be.true;
-    });
-    it('should ignore errors thrown by exec', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
-      execStub.throws();
-      await killAllSimulators().should.not.be.rejected;
-      execStub.threw().should.be.true;
     });
   });
 

@@ -86,7 +86,9 @@ describe('simulator', () => {
       stats = await B.all(stats);
 
       stats[0].state.should.equal('Shutdown');
-      stats[1].state.should.equal('Booted');
+      stats[0].name.should.equal('Resizable iPhone');
+      stats[1].state.should.equal('Shutdown');
+      stats[1].name.should.equal('Resizable iPad');
     });
   });
 

@@ -150,7 +150,7 @@ Stops and releases the simulator.
 
 `async launchAndQuit (safari)`
 
-Launches the simualator and runs a blank Instruments test on a test app, waits for the file system to be updated, and then shuts down.
+Launches the simulator and runs a blank Instruments test on a test app, waits for the file system to be updated, and then shuts down.
 
 - `safari` - whether or not to launch the Safari simulator. Defaults to false.
 
