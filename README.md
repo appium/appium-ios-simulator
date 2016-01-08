@@ -140,11 +140,9 @@ Returns `true` if the simulator is running, `false` otherwise.
 
 Starts the simulator without any Instruments involvement, or application running.
 
-`async openUrl (url, [bufferTime])`
+`async openUrl (url)`
 
 Opens the input url with safari.
-Optional `bufferTime` argument is an amount of time to wait before opening the url.
-This is added because opening a url right after a sim launches can result in simctl errors out of our control. _The default wait time is between 4 to .5 seconds, depending on the version of iOS_. If you want to run right away, pass in `0`.
 
 `async clean ()`
 
