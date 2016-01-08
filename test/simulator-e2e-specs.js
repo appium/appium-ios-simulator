@@ -160,7 +160,6 @@ function runTests (deviceType) {
       let sim = await getSimulator(udid);
 
       await sim.run();
-      await B.delay(10 * 1000);
       await sim.openUrl('http://apple.com');
       await sim.shutdown();
 
