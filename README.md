@@ -231,7 +231,27 @@ See [wikipedia](https://en.wikipedia.org/wiki/Xcode#Xcode_5.0_-_7.x_.28with_arm6
 
 #### file locations
 
-iOS 9.1, 9.0, 8.4, 8.3
+iOS 9.3
+  - base
+    - ~/Library/Developer/CoreSimulator/Devices/[identifier]/data/
+  - safari plists
+    - [base]/Containers/Containers/Data/Application/[identifier]/<.com.apple.mobile_container_manager.metadata.plist, com.apple.mobilesafari>
+  - locationd cache plists
+    - [base]/Library/Caches/locationd/cache.plist
+    - [base]/Library/Preferences/com.apple.locationd.plist
+  - locationd clients plists
+    - [base]/Library/Caches/locationd/clients.plist
+  - user settings plists
+    - [base]/Library/UserConfigurationProfiles/UserSettings.plist
+    - [base]/Library/UserConfigurationProfiles/EffectiveUserSettings.plist
+    - [base]/Library/UserConfigurationProfiles/PublicInfo/PublicEffectiveUserSettings.plist
+  - other plists
+    - [base]/Library/Preferences
+  - logs
+    - ~/Library/Logs/CoreSimulator/[identifier]/
+    - sym linked to [base]/Library/Logs
+
+iOS 9.2, 9.1, 9.0, 8.4, 8.3
   - base
     - ~/Library/Developer/CoreSimulator/Devices/[identifier]/data/
   - safari plists
