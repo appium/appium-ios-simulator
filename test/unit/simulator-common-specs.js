@@ -16,7 +16,7 @@ let simulatorClasses = {
   'SimulatorXcode7': SimulatorXcode7
 };
 
-for (let [name, simClass] of _.pairs(simulatorClasses)) {
+for (let [name, simClass] of _.toPairs(simulatorClasses)) {
   describe(`common methods - ${name}`, () => {
     let sim;
     beforeEach(() => {
