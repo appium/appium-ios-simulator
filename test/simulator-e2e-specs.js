@@ -39,7 +39,6 @@ function runTests (deviceType) {
       }
     });
 
-
     it('should detect whether a simulator has been run before', async function () {
       let sim = await getSimulator(udid);
       await sim.isFresh().should.eventually.equal(true);

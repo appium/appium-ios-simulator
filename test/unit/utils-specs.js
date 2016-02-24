@@ -57,6 +57,11 @@ describe('util', () => {
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
+    it('should continue if application is not running error gets thrown', async () => {
+      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
+      execStub.throws('{"stdout":"","stderr":"0:24: execution error: iOS Simulator got an error: Application isn’t running. (-600)\n","code":1}');
+      await killAllSimulators();
+    });
   });
 
   describe('endAllSimulatorDaemons', () => {
