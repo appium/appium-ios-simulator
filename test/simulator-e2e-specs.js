@@ -88,6 +88,25 @@ function runTests (deviceType) {
       dirs[1].should.contain('/Bundle/');
     });
 
+    it.only('should be able to delete an app', async function () {
+      let sim = await getSimulator(udid);
+      await sim.run();
+
+      // should not be able to launch
+      await simctl.launch(udid, 'io.appium.TestApp')
+        .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
+
+      // install & launch test app
+      await simctl.installApp(udid, getAppPath('TestApp'));
+      await simctl.launch(udid, 'io.appium.TestApp');
+
+      await sim.removeApp('io.appium.TestApp');
+
+      // should not be able to launch anymore
+      await simctl.launch(udid, 'io.appium.TestApp')
+        .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
+    });
+
     it('should delete custom app data', async function () {
       let sim = await getSimulator(udid);
       await sim.run();
