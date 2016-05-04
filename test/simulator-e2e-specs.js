@@ -25,7 +25,8 @@ function runTests (deviceType) {
     beforeEach(async function () {
       udid = await simctl.createDevice('ios-simulator testing',
                                        deviceType.device,
-                                       deviceType.version);
+                                       deviceType.version,
+                                       20000);
     });
     afterEach(async function () {
       // only want to get rid of the device if it is present
@@ -88,7 +89,7 @@ function runTests (deviceType) {
       dirs[1].should.contain('/Bundle/');
     });
 
-    it.only('should be able to delete an app', async function () {
+    it('should be able to delete an app', async function () {
       let sim = await getSimulator(udid);
       await sim.run();
 
@@ -246,20 +247,31 @@ function runTests (deviceType) {
   });
 }
 
-const deviceTypes = [
+let deviceTypes = [
   {
-    version: '8.4',
-    device: 'iPhone 6'
+    version: '9.2',
+    device: 'iPhone 5s'
   },
   {
-    version: '9.0',
-    device: 'iPhone 6s'
+    version: '9.3',
+    device: 'iPhone 5s'
   },
-  {
-    version: '9.1',
-    device: 'iPhone 6s'
-  }
 ];
+
+// travis cannot at the moment create 9.0 and 9.1 sims
+// so only do these if testing somewhere else
+if (!!!process.env.TRAVIS) {
+  console.log('Not on TRAVIS, so adding iOS 9.0 and 9.1');
+  deviceTypes.push({
+      version: '9.0',
+      device: 'iPhone 5s'
+    },
+    {
+      version: '9.1',
+      device: 'iPhone 5s'
+    });
+}
+
 for (let deviceType of deviceTypes) {
   runTests(deviceType);
 }
