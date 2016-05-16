@@ -27,6 +27,8 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version,
                                        20000);
+      // just need a little more space in the logs
+      console.log('\n\n');
     });
     afterEach(async function () {
       // only want to get rid of the device if it is present
@@ -94,17 +96,17 @@ function runTests (deviceType) {
       await sim.run();
 
       // should not be able to launch
-      await simctl.launch(udid, 'io.appium.TestApp')
+      await simctl.launch(udid, 'io.appium.TestApp', 1)
         .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
 
       // install & launch test app
       await simctl.installApp(udid, getAppPath('TestApp'));
-      await simctl.launch(udid, 'io.appium.TestApp');
+      await simctl.launch(udid, 'io.appium.TestApp', 1);
 
       await sim.removeApp('io.appium.TestApp');
 
       // should not be able to launch anymore
-      await simctl.launch(udid, 'io.appium.TestApp')
+      await simctl.launch(udid, 'io.appium.TestApp', 1)
         .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
     });
 
@@ -247,29 +249,47 @@ function runTests (deviceType) {
   });
 }
 
-let deviceTypes = [
-  {
-    version: '9.2',
-    device: 'iPhone 5s'
-  },
-  {
-    version: '9.3',
-    device: 'iPhone 5s'
-  },
-];
 
-// travis cannot at the moment create 9.0 and 9.1 sims
-// so only do these if testing somewhere else
+let deviceTypes;
 if (!!!process.env.TRAVIS) {
-  console.log('Not on TRAVIS, so adding iOS 9.0 and 9.1');
-  deviceTypes.push({
+  console.log('Not on TRAVIS, testing all versions');
+  deviceTypes = [
+    {
+      version: '9.2',
+      device: 'iPhone 5s'
+    },
+    {
+      version: '9.3',
+      device: 'iPhone 5s'
+    },
+    {
       version: '9.0',
       device: 'iPhone 5s'
     },
     {
       version: '9.1',
       device: 'iPhone 5s'
-    });
+    }
+  ];
+} else {
+  // on travis, we want to just do what we specify
+  // travis also cannot at the moment create 9.0 and 9.1 sims
+  // so only do these if testing somewhere else
+  if (process.env.DEVICE === '9.3') {
+    deviceTypes = [
+      {
+        version: '9.3',
+        device: 'iPhone 5s'
+      }
+    ];
+  } else if (process.env.DEVICE === '9.2') {
+    deviceTypes = [
+      {
+        version: '9.2',
+        device: 'iPhone 5s'
+      }
+    ];
+  }
 }
 
 for (let deviceType of deviceTypes) {
