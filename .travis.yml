@@ -1,13 +1,11 @@
 language:
   - objective-c
 osx_image: xcode7.3
-before_install:
-  # TavisCI's OSX environment gives us node 0.10.32
-  # Use NVM to update it to 0.12
-  - rm -rf ~/.nvm
-  - git clone https://github.com/creationix/nvm.git ~/.nvm
-  - source ~/.nvm/nvm.sh
-  - nvm install 0.12
+env:
+  - DEVICE=9.2
+  - DEVICE=9.3
+node_js:
+  - "0.12"
 install:
   - node --version
   - npm install
