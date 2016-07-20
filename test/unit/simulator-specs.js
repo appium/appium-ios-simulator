@@ -134,6 +134,11 @@ describe('simulator', () => {
         let device = await getDeviceString();
         device.should.equal('iPhone 6 (8.4 Simulator)');
       });
+      it('should strip " Simulator" when not necessary', async () => {
+        xcodeMock.expects('getMaxIOSSDK').returns(Promise.resolve('8.4'));
+        let device = await getDeviceString({deviceName: "iPhone 6 Simulator"});
+        device.should.equal('iPhone 6 (8.4 Simulator)');
+      });
     });
 
     describe('Xcode 7', () => {
@@ -170,6 +175,11 @@ describe('simulator', () => {
         xcodeMock.expects('getMaxIOSSDK').returns(Promise.resolve(9.0));
         let device = await getDeviceString({deviceName: 'fancy device'});
         device.should.equal('fancy device (9.0)');
+      });
+      it('should strip " Simulator" when not necessary', async () => {
+        xcodeMock.expects('getMaxIOSSDK').returns(Promise.resolve('9.0'));
+        let device = await getDeviceString({deviceName: "iPhone 6 Simulator"});
+        device.should.equal('iPhone 6 (9.0) [');
       });
     });
   });
