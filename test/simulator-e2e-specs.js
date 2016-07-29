@@ -1,6 +1,6 @@
 // transpile:mocha
 
-import { getSimulator, killAllSimulators } from '../..';
+import { getSimulator, killAllSimulators } from '..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -28,7 +28,7 @@ function runTests (deviceType) {
                                        deviceType.version,
                                        20000);
       // just need a little more space in the logs
-      console.log('\n\n');
+      console.log('\n\n');  // eslint-disable-line no-console
     });
     afterEach(async function () {
       // only want to get rid of the device if it is present
@@ -251,8 +251,8 @@ function runTests (deviceType) {
 
 
 let deviceTypes;
-if (!!!process.env.TRAVIS) {
-  console.log('Not on TRAVIS, testing all versions');
+if (!process.env.TRAVIS) {
+  console.log('Not on TRAVIS, testing all versions'); // eslint-disable-line no-console
   deviceTypes = [
     {
       version: '9.2',
