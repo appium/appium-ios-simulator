@@ -19,7 +19,7 @@ let devices = {
      state: 'Shutdown' },
    { name: 'iPad Air',
      udid: 'FA5C971D-4E05-4AA3-B48B-C9619C7453BE',
-     state: 'Shutdown' } ],
+     state: 'Shutdown' }],
   '8.1': [
    { name: 'iPhone 4s',
      udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
@@ -50,7 +50,7 @@ let devices = {
      state: 'Shutdown' },
    { name: 'Resizable iPad',
      udid: '6DAB91C9-CCD1-4C17-9124-D765E2F0567A',
-     state: 'Shutdown' } ],
+     state: 'Shutdown' }],
   '8.3': [
    { name: 'iPhone 4s',
      udid: '3D1A8D2A-615A-4C1E-A73C-91E92D6637FF',
@@ -81,7 +81,7 @@ let devices = {
      state: 'Shutdown' },
    { name: 'Resizable iPad',
      udid: 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
-     state: 'Shutdown' } ]
+     state: 'Shutdown' }]
 };
 
 export { devices };

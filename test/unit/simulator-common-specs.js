@@ -12,8 +12,8 @@ chai.should();
 chai.use(chaiAsPromised);
 
 let simulatorClasses = {
-  'SimulatorXcode6': SimulatorXcode6,
-  'SimulatorXcode7': SimulatorXcode7
+  SimulatorXcode6,
+  SimulatorXcode7
 };
 
 for (let [name, simClass] of _.toPairs(simulatorClasses)) {

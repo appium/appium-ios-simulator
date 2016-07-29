@@ -23,12 +23,12 @@ describe('settings', () => {
     // create a simulator object that returns our fixture directory
     sim = new SimulatorXcode6();
     sim.xcodeVersion = {
-     versionString: '6.1',
-     versionFloat: 6.1,
-     major: 6,
-     minor: 1,
-     patch: undefined
-   };
+      versionString: '6.1',
+      versionFloat: 6.1,
+      major: 6,
+      minor: 1,
+      patch: undefined
+    };
     sinon.stub(sim, 'getDir').returns(SIM_DIRECTORY);
   });
 

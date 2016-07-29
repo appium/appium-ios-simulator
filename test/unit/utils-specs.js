@@ -78,33 +78,32 @@ describe('util', () => {
   });
 
   describe('simExists', () => {
-
     it('returns true if device is found', async () => {
       let existence = [
-       simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
-       simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
-       simExists('E46EFA59-E2B4-4FF9-B290-B61F3CFECC65'),
-       simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410')
-     ];
+        simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
+        simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
+        simExists('E46EFA59-E2B4-4FF9-B290-B61F3CFECC65'),
+        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410')
+      ];
 
-       let results = await B.all(existence);
+      let results = await B.all(existence);
 
-       for (let result of results) {
-         result.should.be.true;
-       }
+      for (let result of results) {
+        result.should.be.true;
+      }
     });
 
     it('returns false if device is not found', async () => {
       let existence = [];
-       existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
-       existence.push(simExists('asdf'));
-       existence.push(simExists(4));
+      existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
+      existence.push(simExists('asdf'));
+      existence.push(simExists(4));
 
-       let results = await B.all(existence);
+      let results = await B.all(existence);
 
-       for (let result of results) {
-         result.should.be.false;
-       }
+      for (let result of results) {
+        result.should.be.false;
+      }
     });
   });
 });

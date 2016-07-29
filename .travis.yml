@@ -11,6 +11,7 @@ install:
   - npm install
   - npm install -g gulp
 script:
+  - gulp eslint
   - gulp once
   - _FORCE_LOGS=1 gulp e2e-test
 after_success:
