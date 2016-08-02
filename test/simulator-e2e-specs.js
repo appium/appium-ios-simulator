@@ -7,6 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
 import B from 'bluebird';
 import getAppPath from 'sample-apps';
+import { retryInterval } from 'asyncbox';
 
 
 const LONG_TIMEOUT = 120*1000;
@@ -101,7 +102,11 @@ function runTests (deviceType) {
 
       // install & launch test app
       await simctl.installApp(udid, getAppPath('TestApp'));
-      await simctl.launch(udid, 'io.appium.TestApp', 1);
+
+      // this remains somewhat flakey
+      await retryInterval(5, 1000, async () => {
+        await simctl.launch(udid, 'io.appium.TestApp', 1);
+      });
 
       await sim.removeApp('io.appium.TestApp');
 
