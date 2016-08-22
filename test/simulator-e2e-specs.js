@@ -10,7 +10,7 @@ import getAppPath from 'sample-apps';
 import { retryInterval } from 'asyncbox';
 
 
-const LONG_TIMEOUT = 120*1000;
+const LONG_TIMEOUT = 240*1000;
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -256,24 +256,24 @@ function runTests (deviceType) {
 
 
 let deviceTypes;
-if (!process.env.TRAVIS) {
+if (!process.env.TRAVIS && !process.env.DEVICE) {
   console.log('Not on TRAVIS, testing all versions'); // eslint-disable-line no-console
   deviceTypes = [
     {
       version: '9.2',
-      device: 'iPhone 5s'
+      device: 'iPhone 6s'
     },
     {
       version: '9.3',
-      device: 'iPhone 5s'
+      device: 'iPhone 6s'
     },
     {
       version: '9.0',
-      device: 'iPhone 5s'
+      device: 'iPhone 6s'
     },
     {
       version: '9.1',
-      device: 'iPhone 5s'
+      device: 'iPhone 6s'
     }
   ];
 } else {
@@ -284,14 +284,21 @@ if (!process.env.TRAVIS) {
     deviceTypes = [
       {
         version: '9.3',
-        device: 'iPhone 5s'
+        device: 'iPhone 6s'
       }
     ];
   } else if (process.env.DEVICE === '9.2') {
     deviceTypes = [
       {
         version: '9.2',
-        device: 'iPhone 5s'
+        device: 'iPhone 6s'
+      }
+    ];
+  } else if (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') {
+    deviceTypes = [
+      {
+        version: '10.0',
+        device: 'iPhone 6s'
       }
     ];
   }
