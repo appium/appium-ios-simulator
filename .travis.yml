@@ -1,11 +1,13 @@
-language:
-  - objective-c
-osx_image: xcode7.3
+sudo: required
+os: osx
+osx_image: xcode8
+language: node_js
 env:
-  - DEVICE=9.2
+  - DEVICE=10.0
   - DEVICE=9.3
 node_js:
-  - "0.12"
+  - "6"
+  - "4"
 install:
   - node --version
   - npm install

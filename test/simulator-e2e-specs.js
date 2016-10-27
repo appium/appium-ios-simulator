@@ -96,9 +96,14 @@ function runTests (deviceType) {
       let sim = await getSimulator(udid);
       await sim.run();
 
+      let error = /The operation couldn’t be completed/;
+      if (parseInt(process.env.DEVICE, 10) >= 10) {
+        error = /The request was denied by service delegate/;
+      }
+
       // should not be able to launch
       await simctl.launch(udid, 'io.appium.TestApp', 1)
-        .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
+        .should.eventually.be.rejectedWith(error);
 
       // install & launch test app
       await simctl.installApp(udid, getAppPath('TestApp'));
@@ -112,7 +117,7 @@ function runTests (deviceType) {
 
       // should not be able to launch anymore
       await simctl.launch(udid, 'io.appium.TestApp', 1)
-        .should.eventually.be.rejectedWith(/The operation couldn’t be completed/);
+        .should.eventually.be.rejectedWith(error);
     });
 
     it('should delete custom app data', async function () {
