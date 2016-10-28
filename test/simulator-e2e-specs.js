@@ -47,6 +47,10 @@ function runTests (deviceType) {
       let sim = await getSimulator(udid);
       await sim.isFresh().should.eventually.equal(true);
       await sim.launchAndQuit();
+      if (process.env.TRAVIS) {
+        // travis is flakey on this first test
+        await sim.launchAndQuit();
+      }
       await sim.isFresh().should.eventually.equal(false);
     });
 
