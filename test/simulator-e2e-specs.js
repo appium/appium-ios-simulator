@@ -43,14 +43,17 @@ function runTests (deviceType) {
       }
     });
 
+    async function installApp (udid, app) {
+      await simctl.installApp(udid, app);
+      if (process.env.TRAVIS) {
+        await B.delay(5000);
+      }
+    }
+
     it('should detect whether a simulator has been run before', async function () {
       let sim = await getSimulator(udid);
       await sim.isFresh().should.eventually.equal(true);
       await sim.launchAndQuit();
-      if (process.env.TRAVIS) {
-        // travis is flakey on this first test
-        await sim.launchAndQuit();
-      }
       await sim.isFresh().should.eventually.equal(false);
     });
 
@@ -87,7 +90,7 @@ function runTests (deviceType) {
       await sim.run();
 
       // install & launch test app
-      await simctl.installApp(udid, getAppPath('TestApp'));
+      await installApp(udid, getAppPath('TestApp'));
       await simctl.launch(udid, 'io.appium.TestApp');
 
       let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
@@ -105,17 +108,15 @@ function runTests (deviceType) {
         error = /The request was denied by service delegate/;
       }
 
-      // should not be able to launch
-      await simctl.launch(udid, 'io.appium.TestApp', 1)
-        .should.eventually.be.rejectedWith(error);
-
       // install & launch test app
-      await simctl.installApp(udid, getAppPath('TestApp'));
+      await installApp(udid, getAppPath('TestApp'));
 
       // this remains somewhat flakey
       await retryInterval(5, 1000, async () => {
         await simctl.launch(udid, 'io.appium.TestApp', 1);
       });
+
+      console.log('Application installed and launched'); // eslint-disable-line no-console
 
       await sim.removeApp('io.appium.TestApp');
 
@@ -129,8 +130,12 @@ function runTests (deviceType) {
       await sim.run();
 
       // install & launch test app
-      await simctl.installApp(udid, getAppPath('TestApp'));
-      await simctl.launch(udid, 'io.appium.TestApp');
+      await installApp(udid, getAppPath('TestApp'));
+
+      // this remains somewhat flakey
+      await retryInterval(5, 1000, async () => {
+        await simctl.launch(udid, 'io.appium.TestApp', 1);
+      });
 
       // delete app directories
       await sim.cleanCustomApp('TestApp', 'io.appium.TestApp');
