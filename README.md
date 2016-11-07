@@ -212,6 +212,10 @@ Times out after `timeoutMs` milliseconds.
 
 Static (class) method to get the particular device name string for Instruments to identify the device. Use exported `getDeviceString` method instead of this.
 
+`setScaleFactor (newScaleFactor)`
+
+Invoke this method to set non-default scale factor before to start the Simulator.
+Supported values are: 1.0, 0.75, 0.5, 0.33 and 0.25. An error will be thrown if any non-valid value is passed.
 
 ### Xcode and iOS versions
 
