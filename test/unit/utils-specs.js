@@ -7,7 +7,7 @@ import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as nodeSimctl from 'node-simctl';
-import { killAllSimulators, endAllSimulatorDaemons, simExists } from '../..';
+import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert } from '../..';
 import { devices } from '../assets/deviceList';
 
 
@@ -104,6 +104,13 @@ describe('util', () => {
       for (let result of results) {
         result.should.be.false;
       }
+    });
+  });
+
+  describe('installSSLCert', () => {
+    it('should install an SSL certificate', async () => {
+      let result = await installSSLCert();
+      result.should.be.true;
     });
   });
 });
