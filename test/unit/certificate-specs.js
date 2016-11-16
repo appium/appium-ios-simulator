@@ -46,4 +46,15 @@ describe('when using Certificate class', () => {
     tsettings = await certificate.getRecords(testUUID);
     chai.assert(tsettings.length === 0); 
   });
+
+  it('can update a record in the TrustStore tsettings', async () => {
+    let certificate = new Certificate(assetsDir);
+    let testUUID = uuid.v4();
+    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data1');
+    let tsettings = await certificate.getRecords(testUUID);
+    chai.assert(tsettings[0].data === 'data1');
+    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
+    tsettings = await certificate.getRecords(testUUID);
+    chai.assert(tsettings[0].data === 'data2');  
+  });
 });
