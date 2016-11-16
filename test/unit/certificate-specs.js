@@ -30,8 +30,20 @@ describe('when using Certificate class', () => {
   it('can add a record to the TrustStore tsettings', async () => {
     let certificate = new Certificate(assetsDir);
     let testUUID = uuid.v4();
-    await certificate.addRecord('sha1', 'tset', testUUID, 'data');
-    let setting = await certificate.getRecord(testUUID);
-    chai.assert(setting.subj === testUUID);
+    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data');
+    let tsettings = await certificate.getRecords(testUUID);
+    chai.assert(tsettings.length > 0);
+    chai.assert(tsettings[0].subj === testUUID);
+  });
+
+  it('can add and remove records to in TrustStore tsettings', async () => {
+    let certificate = new Certificate(assetsDir);
+    let testUUID = uuid.v4();
+    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data');
+    let tsettings = await certificate.getRecords(testUUID);
+    chai.assert(tsettings.length > 0);
+    await certificate.removeRecord(testUUID);
+    tsettings = await certificate.getRecords(testUUID);
+    chai.assert(tsettings.length === 0); 
   });
 });
