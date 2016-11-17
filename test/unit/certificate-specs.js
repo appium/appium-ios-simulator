@@ -19,7 +19,7 @@ let assetsDir = `${cwd}/test/assets`;
 let keychainsDir = `${assetsDir}/Library/Keychains`;
 let keychainsDirOriginal;
 
-describe('when using Certificate class', () => {
+describe('when using Certificate class', () => { 
 
   before(() => {
     keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
@@ -56,5 +56,11 @@ describe('when using Certificate class', () => {
     await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
     tsettings = await certificate.getRecords(testUUID);
     chai.assert(tsettings[0].data === 'data2');  
+  });
+
+  it('can add a certificate', async () => {
+    let certificate = new Certificate(assetsDir);
+    let der = await certificate.addCertificate(`${assetsDir}/test-pem.pem`);
+    chai.assert(der === der);
   });
 });
