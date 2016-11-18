@@ -2,3 +2,4 @@ node_modules
 build
 *.log
 .DS_Store
+test/assets/certificate-test-server/random-pem.pem
