@@ -6,7 +6,7 @@ import chaiAsPromised from 'chai-as-promised';
 //import * as nodeSimctl from 'node-simctl';
 //import { devices } from '../assets/deviceList';
 //import { getAllUdids } from '../../lib/extensions/isolate-sim.js';
-import Certificate from '../../lib/certificate';
+import { Certificate, TrustStore } from '../../lib/certificate';
 import fse from 'fs-extra';
 import uuid from 'uuid';
 
@@ -28,33 +28,33 @@ describe('when using Certificate class', () => {
   });
 
   it('can add a record to the TrustStore tsettings', async () => {
-    let certificate = new Certificate(assetsDir);
+    let trustStore = new TrustStore(assetsDir);
     let testUUID = uuid.v4();
-    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    let tsettings = await certificate.getRecords(testUUID);
+    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
+    let tsettings = await trustStore.getRecords(testUUID);
     chai.assert(tsettings.length > 0);
     chai.assert(tsettings[0].subj === testUUID);
   });
 
   it('can add and remove records to in TrustStore tsettings', async () => {
-    let certificate = new Certificate(assetsDir);
+    let trustStore = new TrustStore(assetsDir);
     let testUUID = uuid.v4();
-    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    let tsettings = await certificate.getRecords(testUUID);
+    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
+    let tsettings = await trustStore.getRecords(testUUID);
     chai.assert(tsettings.length > 0);
-    await certificate.removeRecord(testUUID);
-    tsettings = await certificate.getRecords(testUUID);
+    await trustStore.removeRecord(testUUID);
+    tsettings = await trustStore.getRecords(testUUID);
     chai.assert(tsettings.length === 0); 
   });
 
   it('can update a record in the TrustStore tsettings', async () => {
-    let certificate = new Certificate(assetsDir);
+    let trustStore = new TrustStore(assetsDir);
     let testUUID = uuid.v4();
-    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data1');
-    let tsettings = await certificate.getRecords(testUUID);
+    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data1');
+    let tsettings = await trustStore.getRecords(testUUID);
     chai.assert(tsettings[0].data === 'data1');
-    await certificate.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
-    tsettings = await certificate.getRecords(testUUID);
+    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
+    tsettings = await trustStore.getRecords(testUUID) ;
     chai.assert(tsettings[0].data === 'data2');  
   });
 
