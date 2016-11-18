@@ -2,10 +2,6 @@
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-//import sinon from 'sinon';
-//import * as nodeSimctl from 'node-simctl';
-//import { devices } from '../assets/deviceList';
-//import { getAllUdids } from '../../lib/extensions/isolate-sim.js';
 import { Certificate, TrustStore } from '../../lib/certificate';
 import fse from 'fs-extra';
 import uuid from 'uuid';
@@ -31,9 +27,9 @@ describe('when using Certificate class', () => {
     let trustStore = new TrustStore(assetsDir);
     let testUUID = uuid.v4();
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    let tsettings = await trustStore.getRecords(testUUID);
+    let tsettings = await trustStore.getRecords(testUUID); 
     chai.assert(tsettings.length > 0);
-    chai.assert(tsettings[0].subj === testUUID);
+    chai.assert.equal(tsettings[0].subj, testUUID);
   });
 
   it('can add and remove records to in TrustStore tsettings', async () => {
@@ -52,10 +48,10 @@ describe('when using Certificate class', () => {
     let testUUID = uuid.v4();
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data1');
     let tsettings = await trustStore.getRecords(testUUID);
-    chai.assert(tsettings[0].data === 'data1');
+    chai.assert.equal(tsettings[0].data, 'data1');
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
     tsettings = await trustStore.getRecords(testUUID) ;
-    chai.assert(tsettings[0].data === 'data2');  
+    chai.assert.equal(tsettings[0].data, 'data2');  
   });
 
   it('can translate PEM certificate to DER format', async () => {
@@ -63,7 +59,7 @@ describe('when using Certificate class', () => {
     let testData = fse.readFileSync(`${assetsDir}/Library/certificates/test-data.txt`);
     chai.assert(testData.equals(derData), 'not translating PEM to DER correctly'); 
   });
-
+ 
   it('can get a fingerprint from a PEM certificate', async () => {
     let derData = await Certificate.pemFileToDer(`${assetsDir}/test-pem.pem`);
     let fingerprint = Certificate.getFingerPrint(derData);
@@ -71,7 +67,13 @@ describe('when using Certificate class', () => {
     chai.assert(fingerprint.equals(testFingerprint));   
   });
 
-  it('can get a subject from a PEM certificate', async () => {
+  /*it('can get a subject from a PEM certificate', async () => {
+    let subject = await Certificate.getSubject(`${assetsDir}/test-pem.pem`);
+    let testSubject = fse.readFileSync(`${assetsDir}/Library/certificates/test-subj.txt`, 'utf-8');
+    chai.assert.equal(subject, testSubject);
+  });*/
 
+  it('can add a certificate to a sqlite store', async () => { 
+    Certificate.addCertificate(`${assetsDir}/test-pem.pem`, assetsDir);
   });
 });

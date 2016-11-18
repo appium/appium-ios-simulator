@@ -30,7 +30,6 @@
     "asyncbox": "^2.3.1",
     "babel-runtime": "=5.8.24",
     "bluebird": "^2.9.34",
-    "fs-promise": "^1.0.0",
     "lodash": "^4.2.1",
     "node-simctl": "^3.4.3",
     "openssl-wrapper": "^0.3.4",
