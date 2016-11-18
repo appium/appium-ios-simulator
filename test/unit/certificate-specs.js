@@ -61,14 +61,14 @@ describe('when using Certificate class', () => {
   it('can translate PEM certificate to DER format', async () => {
     let derData = await Certificate.pemFileToDer(`${assetsDir}/test-pem.pem`);
     let testData = fse.readFileSync(`${assetsDir}/Library/certificates/test-data.txt`);
-    chai.assert(testData.equals(derData), 'not translating PEM to DER correctly');
+    chai.assert(testData.equals(derData), 'not translating PEM to DER correctly'); 
   });
 
   it('can get a fingerprint from a PEM certificate', async () => {
-    //let pemData = fse.readFileSync(`${assetsDir}/test-pem.pem`);
-    //let fingerprint = Certificate.getFingerPrint(pemData);
-    //let testFingerprint = fse.readFileSync(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
-    //chai.assert(fingerprint.equals(testFingerprint));
+    let derData = await Certificate.pemFileToDer(`${assetsDir}/test-pem.pem`);
+    let fingerprint = Certificate.getFingerPrint(derData);
+    let testFingerprint = fse.readFileSync(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
+    chai.assert(fingerprint.equals(testFingerprint));   
   });
 
   it('can get a subject from a PEM certificate', async () => {
