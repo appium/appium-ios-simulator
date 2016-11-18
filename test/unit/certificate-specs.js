@@ -73,7 +73,8 @@ describe('when using Certificate class', () => {
     chai.assert.equal(subject, testSubject);
   });*/
 
-  it('can add a certificate to a sqlite store', async () => { 
-    Certificate.addCertificate(`${assetsDir}/test-pem.pem`, assetsDir);
+  it('can add a certificate to a sqlite store', async () => {
+    let certificate = new Certificate(`${assetsDir}/test-pem.pem`); 
+    await certificate.add(assetsDir);
   });
 });
