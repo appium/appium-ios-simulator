@@ -17,7 +17,7 @@ let keychainsDirOriginal;
 
 describe('when using Certificate class', () => { 
 
-  before(() => {
+  beforeEach(() => {
     keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
     fse.emptyDirSync(keychainsDir);
     fse.copySync(keychainsDirOriginal, keychainsDir); 
@@ -26,8 +26,10 @@ describe('when using Certificate class', () => {
   it('can add a record to the TrustStore tsettings', async () => {
     let trustStore = new TrustStore(assetsDir);
     let testUUID = uuid.v4();
-    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
     let tsettings = await trustStore.getRecords(testUUID); 
+    chai.assert(tsettings.length===0);
+    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
+    tsettings = await trustStore.getRecords(testUUID); 
     chai.assert(tsettings.length > 0);
     chai.assert.equal(tsettings[0].subj, testUUID);
   });
@@ -73,8 +75,10 @@ describe('when using Certificate class', () => {
     chai.assert.equal(subject, testSubject);
   });*/
 
-  it('can add a certificate to a sqlite store', async () => {
+  it('can add a certificate to a sqlite store', async () => {  
     let certificate = new Certificate(`${assetsDir}/test-pem.pem`); 
     await certificate.add(assetsDir);
-  });
+    let hasCert = await certificate.has(assetsDir);
+    chai.assert(hasCert, 'after adding a cert, should have one cert in records');
+  });  
 });
