@@ -81,4 +81,14 @@ describe('when using Certificate class', () => {
     let hasCert = await certificate.has(assetsDir);
     chai.assert(hasCert, 'after adding a cert, should have one cert in records');
   });  
+
+  it('can add and remove a certificate to a sqlite store', async () => {
+    let certificate = new Certificate(`${assetsDir}/test-pem.pem`); 
+    await certificate.add(assetsDir);
+    let hasCert = await certificate.has(assetsDir);
+    chai.assert(hasCert, 'after adding a cert, should have one cert in records');
+    await certificate.remove(assetsDir);
+    hasCert = await certificate.has(assetsDir);
+    chai.assert(!hasCert, 'after removing the cert, should have no certs left in record');
+  });
 });
