@@ -1,4 +1,4 @@
-/* jshint ignore:start */
+/* eslint-disable */
 var https =  require('https');
 var pem =  require('pem');
 var fs = require('fs');
@@ -44,4 +44,4 @@ pem.createPrivateKey(function (err, key){
 });
 
 
-/* jshint ignore:end */
+/* eslint-enable */
