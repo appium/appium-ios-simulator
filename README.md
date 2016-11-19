@@ -8,7 +8,7 @@
 [![Build Status](https://api.travis-ci.org/appium/appium-ios-simulator.png?branch=master)](https://travis-ci.org/appium/appium-ios-simulator)
 [![Coverage Status](https://coveralls.io/repos/appium/appium-ios-simulator/badge.svg?branch=master)](https://coveralls.io/r/appium/appium-ios-simulator?branch=master)
 
-Appium API for dealing with iOS simulators. Allows the user to find locations of directories and applications, gives access to settings in order to read from and write to simualtor plists, and allows control over starting and stopping simulators.
+Appium API for dealing with iOS simulators. Allows the user to find locations of directories and applications, gives access to settings in order to read from and write to simulator plists, and allows control over starting and stopping simulators.
 
 
 ### Usage

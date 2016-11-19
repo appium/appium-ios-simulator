@@ -57,6 +57,7 @@
     "babel-eslint": "^6.1.0",
     "chai": "^3.2.0",
     "chai-as-promised": "^5.1.0",
+    "colors": "^1.1.2",
     "eslint": "^2.13.1",
     "eslint-config-appium": "0.0.6",
     "eslint-plugin-babel": "^3.3.0",
