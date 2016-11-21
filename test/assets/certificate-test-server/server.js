@@ -5,7 +5,7 @@ import pem from 'pem';
 import fs from 'fs';
 import inquirer from 'inquirer';
 import colors from 'colors';
-import Certificate from '../../../lib/certificate';
+import { installSSLCert, uninstallSSLCert } from '../../../lib/utils';
 import { getDevices } from 'node-simctl';
 import _ from 'lodash';
 
@@ -14,7 +14,6 @@ pem.createPrivateKey(function (err, key){
   pem.createCertificate({days:1, selfSigned: true, serviceKey: key.key},  async (err, keys) => {
 
     // Save that certificate to a file so it can be used later
-    fs.writeFileSync('random-pem.pem', keys.certificate);
     let server = https.createServer({key: keys.serviceKey, cert: keys.certificate}, function (req, res){
       res.end('If you are seeing this the certificate has been installed');
     }).listen(9758);
@@ -42,12 +41,12 @@ pem.createPrivateKey(function (err, key){
     let deviceName = bootedDevice.name;
 
     console.log('HTTPS server is running at localhost:9758 and has created a new certificate at "random-pem.pem"'.yellow);  
-    console.log(`Navigate to https://localhost:9758 in '${deviceName} Simulator' to confirm that you cannot open the page`.yellow);
+    console.log(`Navigate to https://localhost:9758 in '${deviceName} Simulator'`.yellow);
     console.log('DO NOT PUSH THE CONTINUE BUTTON. PUSH CANCEL.'.red);
     
-    function done(){
-      if(certificate)
-        certificate.remove(dir);
+    // Call this if the user answers 'No' to any prompts
+    async function done(){
+      await uninstallSSLCert(keys.certificate, udid);
       server.close();
       console.log('Incomplete/failed test'.red);
     }
@@ -55,38 +54,44 @@ pem.createPrivateKey(function (err, key){
     let result = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirmOpenSite',
-      message: `Have you attempted to open https//localhost:9758 in '${deviceName} Simulator' and it failed?`,
+      message: `Is https//localhost:9758 on '${deviceName} Simulator' unaccessible?`,
     }]);
+
+    await installSSLCert(keys.certificate, udid);
 
     if (!result.confirmOpenSite) return done();
 
-    result = await inquirer.prompt([{
-      type: 'confirm',
-      name: 'confirmInstallCert',
-      message: `Are you ready to install the certificate to '${deviceName} Simulator'?`,
-    }]);
-
-    if (!result.confirmInstallCert) return done();
-
-    // Apply certificate to 
-    let pemFile = 'random-pem.pem';
+    // Apply certificate to Simulator
     let dir = `${process.env.HOME}/Library/Developer/CoreSimulator/Devices/${udid}/data/`;
     console.log('Installing certificate'.yellow);
-    let certificate = new Certificate(pemFile);
-    certificate.add(dir);
-    console.log(`Certificate installed to '${deviceName} ${udid}'. Navigate back to https://localhost:9758 to confirm that it can be opened.`.yellow);
+    console.log(`Certificate installed to '${deviceName} ${udid}'. Navigate back to https://localhost:9758.`.yellow);
 
     result = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirmOpenedSite',
-      message: 'Are you able to access https://localhost:9758? now?',
+      message: 'Now is https://localhost:9758 accessible?',
     }]);
 
-    if(result.confirmOpenedSite){
-      console.log('Test passed'.green);
+    if(!result.confirmOpenedSite){
+      return done();
     }
     
-    certificate.remove(dir);
+    // Uninstall cert
+    console.log(`Uninstalling SSL cert`.yellow);
+    await uninstallSSLCert(keys.certificate, udid);
+    console.log(`SSL cert removed.`.yellow);
+    console.log(`Close the simulator, re-open it and then navigate back to https://localhost:9758`.yellow);
+
+    result = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'confirmUninstallCert',
+      message: `Is https://localhost:9758 unaccessible?`,
+    }]);
+
+    if(result.confirmUninstallCert){
+      console.log('Test passed'.green);
+    }
+
     return server.close();
   });
 });

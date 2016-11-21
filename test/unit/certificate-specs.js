@@ -95,4 +95,15 @@ describe('when using Certificate class', () => {
     hasCert = await certificate.has(assetsDir);
     chai.assert(!hasCert, 'after removing the cert, should have no certs left in record');
   });
+
+  it('can add a certificate and then remove the same certificate later', async () => {
+    await certificate.add(assetsDir);
+    let hasCert = await certificate.has(assetsDir);
+    chai.assert(hasCert, 'after adding a cert, should have one cert in records');
+
+    certificate = new Certificate(`${assetsDir}/test-pem.pem`);
+    await certificate.remove(assetsDir);
+    hasCert = await certificate.has(assetsDir);
+    chai.assert(!hasCert, 'after removing the cert, should have no certs left in record');
+  });
 });
