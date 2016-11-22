@@ -18,15 +18,18 @@ let certificate;
 let trustStore;
 let testUUID;
 
-describe('when using TrustStore class', () => {
+describe('when using TrustStore class', () => { 
 
   beforeEach(() => {
+    keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
+    fse.emptyDirSync(keychainsDir);
+    fse.copySync(keychainsDirOriginal, keychainsDir); 
     trustStore = new TrustStore(assetsDir);
     testUUID = uuid.v4();
   });
 
   it('can add a record to the TrustStore tsettings', async () => {
-    let tsettings = await trustStore.getRecords(testUUID); 
+    let tsettings = await trustStore.getRecords(testUUID);
     chai.assert(tsettings.length===0);
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
     tsettings = await trustStore.getRecords(testUUID); 
@@ -54,12 +57,6 @@ describe('when using TrustStore class', () => {
 });
 
 describe('when using Certificate class', () => { 
-
-  before(() => {
-    keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
-    fse.emptyDirSync(keychainsDir);
-    fse.copySync(keychainsDirOriginal, keychainsDir); 
-  });
 
   beforeEach(async () => {
     certificate = await new Certificate(`${assetsDir}/test-pem.pem`);
