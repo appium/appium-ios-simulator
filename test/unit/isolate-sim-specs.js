@@ -6,6 +6,7 @@ import sinon from 'sinon';
 import * as nodeSimctl from 'node-simctl';
 import { devices } from '../assets/deviceList';
 import { getAllUdids } from '../../lib/extensions/isolate-sim.js';
+import Promise from 'bluebird';
 
 
 chai.should();
