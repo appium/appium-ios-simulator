@@ -75,10 +75,12 @@ describe('when using Certificate class', () => {
   });
 
   it('can get a subject from a PEM certificate', async () => {
-    await certificate.getSubject(`${assetsDir}/test-pem.pem`);
+    let subject = await certificate.getSubject(`${assetsDir}/test-pem.pem`);
+    let testSubject = fse.readFileSync(`${assetsDir}/Library/certificates/test-subj.txt`, 'utf-8');
+    expect(subject).to.equal(testSubject);
   });
 
-  it('can add a certificate to a sqlite store', async () => { 
+  it('can add a certificate to a sqlite store', async () => {
     await certificate.add(assetsDir);
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
