@@ -38,7 +38,7 @@ describe('util', () => {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
-    getDevicesStub.returns(Promise.resolve(devices));
+    getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(() => {
     execStub.restore();
@@ -48,17 +48,17 @@ describe('util', () => {
 
   describe('killAllSimulators', () => {
     it('should call exec with Simulator for Xcode 7', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
+      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
     it('should call exec with iOS Simulator for Xcode 6', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_6));
+      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_6));
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
     it('should continue if application is not running error gets thrown', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(Promise.resolve(XCODE_VERSION_7));
+      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
       execStub.throws('{"stdout":"","stderr":"0:24: execution error: iOS Simulator got an error: Application isn’t running. (-600)\n","code":1}');
       await killAllSimulators();
     });
