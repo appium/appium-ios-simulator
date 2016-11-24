@@ -2,4 +2,5 @@ node_modules
 build
 *.log
 .DS_Store
-test/assets/certificate-test-server/random-pem.pem
+test/assets/certificate-test-server/random-pem.pemtest/assets/Library/Keychains/TrustStore.sqlite3
+test/assets/Library/Keychains/TrustStore.sqlite3
