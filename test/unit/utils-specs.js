@@ -139,8 +139,12 @@ describe('installSSLCert and uninstallSSLCert', () => {
     execStub.restore();
   });
 
-  it('should throw exception if udid is invalid', async () => {
+  it('should throw exception on installSSLCert if udid is invalid', async () => {
     await installSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
+  });
+
+  it('should throw exception on uninstallSSLCert if udid is invalid', async () => {
+    await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 
 });
