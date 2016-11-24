@@ -7,12 +7,15 @@ import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as nodeSimctl from 'node-simctl';
-import { killAllSimulators, endAllSimulatorDaemons, simExists } from '../..';
+import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
 import { devices } from '../assets/deviceList';
-
+import Simulator from '../../lib/simulator-xcode-6';
+import { fs } from 'appium-support';
+import path from 'path';
 
 chai.should();
 chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 const XCODE_VERSION_7 = {
   versionString: '7.1.1',
@@ -28,6 +31,9 @@ const XCODE_VERSION_6 = {
   minor: 1,
   patch: 1
 };
+
+
+let assetsDir = `${process.cwd()}/test/assets`;
 
 describe('util', () => {
   let execStub;
@@ -106,4 +112,35 @@ describe('util', () => {
       }
     });
   });
+
+});
+
+describe('installSSLCert and uninstallSSLCert', () => {
+
+  it('should install and uninstall certs in keychain directories', async () => {
+    let simulatorGetDirStub = sinon.stub(Simulator.prototype, 'getDir', function () {
+      return path.resolve(assetsDir);
+    });
+    let testPem = await fs.readFile(path.resolve(assetsDir, 'test-pem.pem'));
+    let certificate = await installSSLCert(testPem, `using mock, udid doesn't matter`);
+    let certExistsInAssetsDir = await certificate.has(assetsDir);
+    expect(certExistsInAssetsDir).to.be.true;
+    await uninstallSSLCert(testPem, `using mock, udid doesn't matter`);
+    certExistsInAssetsDir = await certificate.has(assetsDir);
+    expect(certExistsInAssetsDir).to.be.false;
+    simulatorGetDirStub.restore();
+  });
+
+  it('should throw exception if openssl is unavailable', async () => {    
+    let execStub = sinon.stub(TeenProcess, 'exec', () => {
+      throw 'no openssl';
+    });
+    await installSSLCert(`doesn't matter`, `doesn't matter`).should.be.rejected;
+    execStub.restore();
+  });
+
+  it('should throw exception if udid is invalid', async () => {
+    await installSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
+  });
+
 });
