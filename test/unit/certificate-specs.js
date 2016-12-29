@@ -34,7 +34,7 @@ describe('when using TrustStore class', () => {
     let tsettings = await trustStore.getRecords(testUUID);
     expect(tsettings).to.have.length.of(0);
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    tsettings = await trustStore.getRecords(testUUID); 
+    tsettings = await trustStore.getRecords(testUUID);
     expect(tsettings).to.have.length.above(0);
     tsettings[0].subj.should.equal(testUUID);
   });
@@ -45,7 +45,7 @@ describe('when using TrustStore class', () => {
     expect(tsettings).to.have.length.above(0);
     await trustStore.removeRecord(testUUID);
     tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings).to.have.length(0); 
+    expect(tsettings).to.have.length(0);
   });
 
   it('can update a record in the TrustStore tsettings', async () => {
@@ -54,7 +54,7 @@ describe('when using TrustStore class', () => {
     expect(tsettings[0].data).to.equal('data1');
     await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
     tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings[0].data).to.equal('data2');  
+    expect(tsettings[0].data).to.equal('data2');
   });
 });
 
@@ -62,7 +62,7 @@ describe('when using TrustStore class when the keychains directory doesn\'t exis
   beforeEach(async () => {
     tempDirectory = `${assetsDir}/temp`;
     await fs.rimraf(tempDirectory);
-    await fs.mkdir(tempDirectory); 
+    await fs.mkdir(tempDirectory);
   });
 
   afterEach(async () => {
@@ -86,13 +86,13 @@ describe('when using Certificate class', () => {
   it('can translate PEM certificate to DER format', async () => {
     let derData = await certificate.getDerData();
     let testData = await fs.readFile(`${assetsDir}/Library/certificates/test-data.txt`);
-    expect(testData.equals(derData)); 
+    expect(testData.equals(derData));
   });
- 
+
   it('can get a fingerprint from a PEM certificate', async () => {
     let fingerprint = await certificate.getFingerPrint();
     let testFingerprint = await fs.readFile(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
-    expect(fingerprint.equals(testFingerprint));   
+    expect(fingerprint.equals(testFingerprint));
   });
 
   it('can get a subject from a PEM certificate', async () => {
@@ -105,7 +105,7 @@ describe('when using Certificate class', () => {
     await certificate.add(assetsDir);
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
-  });  
+  });
 
   it('can add and remove a certificate to a sqlite store', async () => {
     await certificate.add(assetsDir);
@@ -121,7 +121,7 @@ describe('when using Certificate class', () => {
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
 
-    certificate = new Certificate(`${assetsDir}/test-pem.pem`); 
+    certificate = new Certificate(`${assetsDir}/test-pem.pem`);
     await certificate.remove(assetsDir);
     hasCert = await certificate.has(assetsDir);
     expect(!hasCert);
