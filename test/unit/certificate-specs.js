@@ -82,13 +82,13 @@ describe('when using Certificate class', () => {
   it('can translate PEM certificate to DER format', async () => {
     let derData = await certificate.getDerData();
     let testData = await fs.readFile(`${assetsDir}/Library/certificates/test-data.txt`);
-    expect(testData.equals(derData)); 
+    expect(testData.equals(derData));
   });
- 
+
   it('can get a fingerprint from a PEM certificate', async () => {
     let fingerprint = await certificate.getFingerPrint();
     let testFingerprint = await fs.readFile(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
-    expect(fingerprint.equals(testFingerprint));   
+    expect(fingerprint.equals(testFingerprint));
   });
 
   it('can get a subject from a PEM certificate', async () => {
@@ -101,7 +101,7 @@ describe('when using Certificate class', () => {
     await certificate.add(assetsDir);
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
-  });  
+  });
 
   it('can add and remove a certificate to a sqlite store', async () => {
     await certificate.add(assetsDir);

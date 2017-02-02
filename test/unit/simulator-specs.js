@@ -77,7 +77,7 @@ describe('simulator', () => {
       ];
 
       let stats = sims.map((simProm) => {
-        return simProm.then((sim) => {
+        return simProm.then((sim) => { // eslint-disable-line promise/prefer-await-to-then
           return sim.stat();
         });
       });

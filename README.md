@@ -10,6 +10,7 @@
 
 Appium API for dealing with iOS simulators. Allows the user to find locations of directories and applications, gives access to settings in order to read from and write to simulator plists, and allows control over starting and stopping simulators.
 
+*Note*: Issue tracking for this repo has been disabled. Please use the [main Appium issue tracker](https://github.com/appium/appium/issues) instead.
 
 ### Usage
 

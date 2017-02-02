@@ -131,12 +131,13 @@ describe('installSSLCert and uninstallSSLCert', () => {
     simulatorGetDirStub.restore();
   });
 
-  it('should throw exception if openssl is unavailable', async () => {    
-    let execStub = sinon.stub(TeenProcess, 'exec', () => {
+  it('should throw exception if openssl is unavailable', async () => {
+    let whichStub = sinon.stub(fs, 'which', () => {
       throw 'no openssl';
     });
     await installSSLCert(`doesn't matter`, `doesn't matter`).should.be.rejected;
-    execStub.restore();
+    whichStub.calledOnce.should.be.true;
+    whichStub.restore();
   });
 
   it('should throw exception on installSSLCert if udid is invalid', async () => {
