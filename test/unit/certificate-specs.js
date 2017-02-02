@@ -22,39 +22,36 @@ let tempDirectory;
 
 describe('when using TrustStore class', () => {
 
+  function getUUID () {
+    return uuid.v4().replace(/\-/g, '');
+  }
+
   beforeEach(async () => {
     keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
     await fs.rimraf(keychainsDir);
     copySync(keychainsDirOriginal, keychainsDir);
     trustStore = new TrustStore(assetsDir);
-    testUUID = uuid.v4();
+    testUUID = getUUID();
   });
 
   it('can add a record to the TrustStore tsettings', async () => {
-    let tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings).to.have.length.of(0);
-    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    tsettings = await trustStore.getRecords(testUUID); 
-    expect(tsettings).to.have.length.above(0);
-    tsettings[0].subj.should.equal(testUUID);
+    expect(await trustStore.hasRecords(testUUID)).to.be.false;
+    await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
+    expect(await trustStore.hasRecords(testUUID)).to.be.true;
   });
 
   it('can add and remove records to in TrustStore tsettings', async () => {
-    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data');
-    let tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings).to.have.length.above(0);
+    await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
+    expect(await trustStore.hasRecords(testUUID)).to.be.true;
     await trustStore.removeRecord(testUUID);
-    tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings).to.have.length(0); 
+    expect(await trustStore.hasRecords(testUUID)).to.be.false;
   });
 
   it('can update a record in the TrustStore tsettings', async () => {
-    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data1');
-    let tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings[0].data).to.equal('data1');
-    await trustStore.addRecord(uuid.v4(), 'tset', testUUID, 'data2');
-    tsettings = await trustStore.getRecords(testUUID);
-    expect(tsettings[0].data).to.equal('data2');  
+    await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
+    await trustStore.addRecord(getUUID(), 'tset', testUUID, '4567');
+
+    expect(await trustStore.getRecordCount(testUUID)).to.equal(1);  
   });
 });
 
@@ -71,9 +68,8 @@ describe('when using TrustStore class when the keychains directory doesn\'t exis
 
   it('will create a new keychains directory with a SQLite DB', async () => {
     let newTrustStore = new TrustStore(tempDirectory);
-    await newTrustStore.addRecord('test', 'test', 'test', 'test');
-    let tsettings = await newTrustStore.getRecords('test');
-    expect(tsettings).to.have.length(1);
+    await newTrustStore.addRecord('0123', 'test', 'test', '0123');
+    expect(await newTrustStore.hasRecords('test')).to.be.true;
   });
 });
 
