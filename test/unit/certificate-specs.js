@@ -59,7 +59,7 @@ describe('when using TrustStore class when the keychains directory doesn\'t exis
   beforeEach(async () => {
     tempDirectory = `${assetsDir}/temp`;
     await fs.rimraf(tempDirectory);
-    await fs.mkdir(tempDirectory); 
+    await fs.mkdir(tempDirectory);
   });
 
   afterEach(async () => {
@@ -117,7 +117,7 @@ describe('when using Certificate class', () => {
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
 
-    certificate = new Certificate(`${assetsDir}/test-pem.pem`); 
+    certificate = new Certificate(`${assetsDir}/test-pem.pem`);
     await certificate.remove(assetsDir);
     hasCert = await certificate.has(assetsDir);
     expect(!hasCert);
