@@ -1,14 +1,10 @@
 /* eslint-disable no-console */
 import https from 'https';
 import inquirer from 'inquirer';
-
 import { installSSLCert, uninstallSSLCert } from '../../../lib/utils';
 import { getDevices } from 'node-simctl';
 import B from 'bluebird';
-
-/* jshint ignore:start */ /* eslint-disable no-unused-vars */
-import colors from 'colors';
-/* eslint-enable */ /* jshint ignore:end */
+import 'colors';
 
 const pem = B.promisifyAll(require('pem'));
 
@@ -45,6 +41,7 @@ const pem = B.promisifyAll(require('pem'));
   let bootedDevice = bootedDevices[0];
   let udid = bootedDevice.udid;
   let deviceName = bootedDevice.name;
+  console.log(`Using bootedDevice ${udid}`);
 
   console.log('HTTPS server is running at localhost:9758 and has created a new certificate at "random-pem.pem"'.yellow);  
   console.log(`Navigate to https://localhost:9758 in '${deviceName} Simulator'`.yellow);
