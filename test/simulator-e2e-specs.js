@@ -104,7 +104,7 @@ function runTests (deviceType) {
       await sim.run();
 
       let error = /The operation couldn’t be completed/;
-      if (parseInt(process.env.DEVICE, 10) >= 10) {
+      if ((process.env.DEVICE && parseInt(process.env.DEVICE, 10) >= 10) || (deviceType.version && parseInt(deviceType.version, 10) >= 10)) {
         error = /The request was denied by service delegate/;
       }
 
@@ -285,37 +285,18 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
       version: '9.0',
       device: 'iPhone 6s'
     },
-    {
-      version: '9.1',
-      device: 'iPhone 6s'
-    }
   ];
 } else {
   // on travis, we want to just do what we specify
   // travis also cannot at the moment create 9.0 and 9.1 sims
   // so only do these if testing somewhere else
-  if (process.env.DEVICE === '9.3') {
-    deviceTypes = [
-      {
-        version: '9.3',
-        device: 'iPhone 6s'
-      }
-    ];
-  } else if (process.env.DEVICE === '9.2') {
-    deviceTypes = [
-      {
-        version: '9.2',
-        device: 'iPhone 6s'
-      }
-    ];
-  } else if (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') {
-    deviceTypes = [
-      {
-        version: '10.0',
-        device: 'iPhone 6s'
-      }
-    ];
-  }
+  let version = (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') ? '10.0' : process.env.DEVICE;
+  deviceTypes = [
+    {
+      version,
+      device: 'iPhone 6s'
+    }
+  ];
 }
 
 for (let deviceType of deviceTypes) {
