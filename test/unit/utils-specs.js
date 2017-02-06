@@ -10,13 +10,20 @@ import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
-import { fs } from 'appium-support';
+import { fs, system } from 'appium-support';
 import path from 'path';
 
 chai.should();
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
+const XCODE_VERSION_8 = {
+  versionString: '8.2.1',
+  versionFloat: 8.2,
+  major: 8,
+  minor: 2,
+  patch: 1
+};
 const XCODE_VERSION_7 = {
   versionString: '7.1.1',
   versionFloat: 7.1,
@@ -38,30 +45,65 @@ let assetsDir = `${process.cwd()}/test/assets`;
 describe('util', () => {
   let execStub;
   let xcodeMock;
+  let systemMock;
   let getDevicesStub;
 
   beforeEach(() => {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
+    systemMock = sinon.mock(system);
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(() => {
     execStub.restore();
     xcodeMock.restore();
+    systemMock.restore();
     nodeSimctl.getDevices.restore();
   });
 
   describe('killAllSimulators', () => {
-    it('should call exec with Simulator for Xcode 7', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
+    it('should call exec with Simulator for Xcode 8', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
+      systemMock.expects('macOsxVersion').returns('10.11');
+
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
-    it('should call exec with iOS Simulator for Xcode 6', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_6));
+    it('should call exec and kill with Simulator for Xcode 8 in Sierra', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
+      systemMock.expects('macOsxVersion').returns('10.12');
+
+      await killAllSimulators();
+      execStub.calledTwice.should.be.true;
+    });
+    it('should call exec with Simulator for Xcode 7', async () => {
+      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
+      systemMock.expects('macOsxVersion').returns('10.11');
+
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
+    });
+    it('should call exec and kill with Simulator for Xcode 7 in Sierra', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_7));
+      systemMock.expects('macOsxVersion').returns('10.12');
+
+      await killAllSimulators();
+      execStub.calledTwice.should.be.true;
+    });
+    it('should call exec with iOS Simulator for Xcode 6', async () => {
+      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_6));
+      systemMock.expects('macOsxVersion').returns('10.11');
+
+      await killAllSimulators();
+      execStub.calledOnce.should.be.true;
+    });
+    it('should call exec and kill with Simulator for Xcode 6 in Sierra', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
+      systemMock.expects('macOsxVersion').returns('10.12');
+
+      await killAllSimulators();
+      execStub.calledTwice.should.be.true;
     });
     it('should continue if application is not running error gets thrown', async () => {
       xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
