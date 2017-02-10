@@ -11,6 +11,7 @@ import { retryInterval } from 'asyncbox';
 
 
 const LONG_TIMEOUT = 240*1000;
+const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -43,8 +44,8 @@ function runTests (deviceType) {
       }
     });
 
-    async function installApp (udid, app) {
-      await simctl.installApp(udid, app);
+    async function installApp (sim, app) {
+      await sim.installApp(app);
       if (process.env.TRAVIS) {
         await B.delay(5000);
       }
@@ -81,7 +82,7 @@ function runTests (deviceType) {
 
     it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
       let sim = await getSimulator(udid);
-      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
       dirs.should.have.length(0);
     });
 
@@ -90,10 +91,10 @@ function runTests (deviceType) {
       await sim.run();
 
       // install & launch test app
-      await installApp(udid, getAppPath('TestApp'));
-      await simctl.launch(udid, 'io.appium.TestApp');
+      await installApp(sim, getAppPath('TestApp'));
+      await simctl.launch(udid, BUNDLE_ID);
 
-      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
       dirs.should.have.length(2);
       dirs[0].should.contain('/Data/');
       dirs[1].should.contain('/Bundle/');
@@ -109,20 +110,26 @@ function runTests (deviceType) {
       }
 
       // install & launch test app
-      await installApp(udid, getAppPath('TestApp'));
+      await installApp(sim, getAppPath('TestApp'));
+
+      console.log('Application installed'); // eslint-disable-line no-console
+
+      (await sim.isAppInstalled(BUNDLE_ID)).should.be.true;
 
       // this remains somewhat flakey
       await retryInterval(5, 1000, async () => {
-        await simctl.launch(udid, 'io.appium.TestApp', 1);
+        await simctl.launch(udid, BUNDLE_ID, 1);
       });
 
-      console.log('Application installed and launched'); // eslint-disable-line no-console
+      console.log('Application launched'); // eslint-disable-line no-console
 
-      await sim.removeApp('io.appium.TestApp');
+      await sim.removeApp(BUNDLE_ID);
 
       // should not be able to launch anymore
-      await simctl.launch(udid, 'io.appium.TestApp', 1)
+      await simctl.launch(udid, BUNDLE_ID, 1)
         .should.eventually.be.rejectedWith(error);
+
+      (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
     });
 
     it('should delete custom app data', async function () {
@@ -130,20 +137,20 @@ function runTests (deviceType) {
       await sim.run();
 
       // install & launch test app
-      await installApp(udid, getAppPath('TestApp'));
+      await installApp(sim, getAppPath('TestApp'));
 
       // this remains somewhat flakey
       await retryInterval(5, 1000, async () => {
-        await simctl.launch(udid, 'io.appium.TestApp', 1);
+        await simctl.launch(udid, BUNDLE_ID, 1);
       });
 
       // delete app directories
-      await sim.cleanCustomApp('TestApp', 'io.appium.TestApp');
+      await sim.cleanCustomApp('TestApp', BUNDLE_ID);
 
       // clear paths to force the simulator to get a new list of directories
       sim.appDataBundlePaths = {};
 
-      let dirs = await sim.getAppDirs('TestApp', 'io.appium.TestApp');
+      let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
       dirs.should.have.length(0);
     });
 
@@ -282,7 +289,15 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
       device: 'iPhone 6s'
     },
     {
-      version: '9.0',
+      version: '10.0',
+      device: 'iPhone 6s'
+    },
+    {
+      version: '10.1',
+      device: 'iPhone 6s'
+    },
+    {
+      version: '10.2',
       device: 'iPhone 6s'
     },
   ];
