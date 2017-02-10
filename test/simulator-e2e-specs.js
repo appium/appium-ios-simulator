@@ -171,16 +171,16 @@ function runTests (deviceType) {
       await fs.hasAccess(path).should.eventually.be.true;
     });
 
-    itText = 'should match a bundleId to its app directory on a fresh sim';
+    itText = 'should not match a bundleId to its app directory on a fresh sim';
     bundleId = 'com.apple.mobilesafari';
     if (deviceType.version === '7.1') {
-      itText = 'should match an app to its app directory on a fresh sim';
+      itText = 'should not match an app to its app directory on a fresh sim';
       bundleId = 'MobileSafari';
     }
     it(itText, async function () {
       let sim = await getSimulator(udid);
       let path = await sim.getAppDir(bundleId);
-      await fs.hasAccess(path).should.eventually.be.true;
+      chai.should().equal(path, undefined);
     });
 
     it('should start a sim using the "run" method', async function () {
