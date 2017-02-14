@@ -30,7 +30,7 @@
     "babel-runtime": "=5.8.24",
     "bluebird": "^2.9.34",
     "lodash": "^4.2.1",
-    "node-simctl": "^3.4.3",
+    "node-simctl": "^3.5.1",
     "openssl-wrapper": "^0.3.4",
     "semver-compare": "^1.0.0",
     "source-map-support": "^0.4.0",
