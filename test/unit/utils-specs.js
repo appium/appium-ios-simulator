@@ -67,26 +67,30 @@ describe('util', () => {
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
-    it('should call exec twice if pgrep does find running Simulator with Xcode7 and pkill returns code 1', async () => {
+    it('should call exec twice if pgrep does find running Simulator with Xcode7 and shutdown succeeds', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_7));
       execStub.withArgs('pgrep').returns(0);
-      execStub.withArgs('pkill').throws({code: 1});
+      execStub.withArgs('xcrun').returns(0);
 
       await killAllSimulators();
       execStub.calledTwice.should.be.true;
     });
-    it('should call exec thrice if pgrep does find running Simulator with Xcode6 and non-forced pkill fails', async () => {
+    it('should call exec thrice if pgrep does find running Simulator with Xcode6 and shutdown fails', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      execStub.returns(0);
+      execStub.withArgs('pgrep').returns(0);
+      execStub.withArgs('xcrun').throws();
+      execStub.withArgs('pkill').returns(0);
 
-      await killAllSimulators(500);
+      try {
+        await killAllSimulators(500);
+      } catch (e) {}
       execStub.calledThrice.should.be.true;
     });
-    it('should call exec thrice if pgrep and pkill returns unexpected error codes with Xcode8', async () => {
+    it('should call exec thrice if pgrep and simctl fail with Xcode8', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
       execStub.withArgs('pgrep').throws({code: 3});
-      execStub.withArgs('pkill').onFirstCall().throws({code: 3});
-      execStub.withArgs('pkill').onSecondCall().throws({code: 1});
+      execStub.withArgs('xcrun').throws();
+      execStub.withArgs('pkill').throws({code: 1});
 
       await killAllSimulators(500);
       execStub.calledThrice.should.be.true;
