@@ -10,7 +10,7 @@ import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
-import { fs, system } from 'appium-support';
+import { fs } from 'appium-support';
 import path from 'path';
 
 chai.should();
@@ -45,70 +45,55 @@ let assetsDir = `${process.cwd()}/test/assets`;
 describe('util', () => {
   let execStub;
   let xcodeMock;
-  let systemMock;
   let getDevicesStub;
 
   beforeEach(() => {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
-    systemMock = sinon.mock(system);
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(() => {
     execStub.restore();
     xcodeMock.restore();
-    systemMock.restore();
     nodeSimctl.getDevices.restore();
   });
 
   describe('killAllSimulators', () => {
-    it('should call exec with Simulator for Xcode 8', async () => {
+    it('should call exec once if pgrep does not find any running Simulator with Xcode8', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
-      systemMock.expects('macOsxVersion').returns('10.11');
+      execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
-    it('should call exec and kill with Simulator for Xcode 8 in Sierra', async () => {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
-      systemMock.expects('macOsxVersion').returns('10.12');
-
-      await killAllSimulators();
-      execStub.calledTwice.should.be.true;
-    });
-    it('should call exec with Simulator for Xcode 7', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
-      systemMock.expects('macOsxVersion').returns('10.11');
-
-      await killAllSimulators();
-      execStub.calledOnce.should.be.true;
-    });
-    it('should call exec and kill with Simulator for Xcode 7 in Sierra', async () => {
+    it('should call exec twice if pgrep does find running Simulator with Xcode7 and shutdown succeeds', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_7));
-      systemMock.expects('macOsxVersion').returns('10.12');
+      execStub.withArgs('pgrep').returns(0);
+      execStub.withArgs('xcrun').returns(0);
 
       await killAllSimulators();
       execStub.calledTwice.should.be.true;
     });
-    it('should call exec with iOS Simulator for Xcode 6', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      systemMock.expects('macOsxVersion').returns('10.11');
-
-      await killAllSimulators();
-      execStub.calledOnce.should.be.true;
-    });
-    it('should call exec and kill with Simulator for Xcode 6 in Sierra', async () => {
+    it('should call exec thrice if pgrep does find running Simulator with Xcode6 and shutdown fails', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      systemMock.expects('macOsxVersion').returns('10.12');
+      execStub.withArgs('pgrep').returns(0);
+      execStub.withArgs('xcrun').throws();
+      execStub.withArgs('pkill').returns(0);
 
-      await killAllSimulators();
-      execStub.calledTwice.should.be.true;
+      try {
+        await killAllSimulators(500);
+      } catch (e) {}
+      execStub.calledThrice.should.be.true;
     });
-    it('should continue if application is not running error gets thrown', async () => {
-      xcodeMock.expects('getVersion').withArgs(true).returns(B.resolve(XCODE_VERSION_7));
-      execStub.throws('{"stdout":"","stderr":"0:24: execution error: iOS Simulator got an error: Application isn’t running. (-600)\n","code":1}');
-      await killAllSimulators();
+    it('should call exec thrice if pgrep and simctl fail with Xcode8', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
+      execStub.withArgs('pgrep').throws({code: 3});
+      execStub.withArgs('xcrun').throws();
+      execStub.withArgs('pkill').throws({code: 1});
+
+      await killAllSimulators(500);
+      execStub.calledThrice.should.be.true;
     });
   });
 
