@@ -1,10 +1,12 @@
 sudo: required
 os: osx
-osx_image: xcode8
+osx_image: xcode8.2
 language: node_js
 env:
+  # Travis has problems building 10.0 and 10.1 sims
   - DEVICE=9.3
-node_js: 
+  - DEVICE=10.2
+node_js:
   - "7"
   - "6"
   - "4"
@@ -12,6 +14,11 @@ install:
   - node --version
   - npm install
   - npm install -g gulp
+before_script:
+  - node --version
+  - xcodebuild -version
+  - pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+  - xcrun simctl list
 script:
   - gulp eslint
   - gulp once
