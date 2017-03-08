@@ -9,7 +9,6 @@ import B from 'bluebird';
 import getAppPath from 'sample-apps';
 import { retryInterval } from 'asyncbox';
 
-
 const LONG_TIMEOUT = 240*1000;
 const BUNDLE_ID = 'io.appium.TestApp';
 
@@ -234,6 +233,15 @@ function runTests (deviceType) {
       let numDevices = (await simctl.getDevices())[deviceType.version].length;
 
       numDevices.should.equal(1);
+    });
+
+    it('should apply calendar access to simulator', async function () {
+      let arbitraryUDID = (await simctl.getDevices())[deviceType.version][0].udid;
+      let sim = await getSimulator(arbitraryUDID);
+      await sim.enableCalendarAccess(BUNDLE_ID);
+      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
+      await sim.disableCalendarAccess(BUNDLE_ID);
+      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
     });
 
   });
