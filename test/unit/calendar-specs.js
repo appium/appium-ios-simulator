@@ -8,7 +8,7 @@ import { copySync } from 'fs-extra';
 import { execSQLiteQuery } from '../../lib/utils';
 import sinon from 'sinon';
 
-const { getCalendarDB, enableCalendarAccess, disableCalendarAccess } = Calendar;
+const { getCalendarRowCount, getCalendarDB, enableCalendarAccess, disableCalendarAccess } = Calendar;
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -53,11 +53,11 @@ describe('Calendar.js', () => {
 
   describe('enableCalendarAccess()', () => {
     let db;
-    let getCount = Calendar.getCalendarRowCount;
+    let getCount = getCalendarRowCount;
     let bundleID = 'com.fake.bundleid';
 
     before(async () => {
-      db = await Calendar.getCalendarDB(assetsDir);
+      db = await getCalendarDB(assetsDir);
       sinon.stub(Calendar, 'getCalendarDB').returns(db);
     });
 
