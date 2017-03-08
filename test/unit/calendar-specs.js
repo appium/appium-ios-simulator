@@ -1,4 +1,4 @@
-// transpile:mocha
+ // transpile:mocha
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -8,7 +8,7 @@ import { copySync } from 'fs-extra';
 import { execSQLiteQuery } from '../../lib/utils';
 import sinon from 'sinon';
 
-const { getCalendarDB, enableCalendarAccess } = Calendar;
+const { getCalendarDB, enableCalendarAccess, disableCalendarAccess } = Calendar;
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -89,6 +89,18 @@ describe('Calendar.js', () => {
       out = (await execSQLiteQuery(db, `SELECT allowed FROM 'access' WHERE client='${bundleID}' AND service='kTCCServiceCalendar'`)).stdout;
       allowed = parseInt(out.split('=')[1], 10);
       expect(allowed).to.equal(1);
+    });
+
+    it('can enable and then disable', async () => {
+      await getCount(db, bundleID).should.eventually.equal(0);
+      await enableCalendarAccess(null, bundleID);
+      await getCount(db, bundleID).should.eventually.equal(1);
+      await disableCalendarAccess(null, bundleID);
+      await getCount(db, bundleID).should.eventually.equal(0);
+    });
+
+    it('does nothing if disableCalendarAccess called without calendar access being enabled', async () => {
+      await disableCalendarAccess(null, bundleID).should.not.be.rejected;
     });
 
   });
