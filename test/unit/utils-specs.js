@@ -92,7 +92,7 @@ describe('util', () => {
       execStub.withArgs('xcrun').throws();
       execStub.withArgs('pkill').throws({code: 1});
 
-      await killAllSimulators(500);
+      await killAllSimulators(500).should.eventually.be.rejected;
       execStub.calledThrice.should.be.true;
     });
   });
