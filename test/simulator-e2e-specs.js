@@ -297,6 +297,35 @@ function runTests (deviceType) {
       stat.state.should.equal('Shutdown');
     });
   });
+
+  describe('enrollTouchID()', async function () {
+    let sim, udid;
+    this.timeout(LONG_TIMEOUT);
+
+    beforeEach(async function () {
+      udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run(LONG_TIMEOUT);
+    });
+
+    afterEach(async function () {
+      // only want to get rid of the device if it is present
+      await sim.shutdown();
+      let devicePresent = (await simctl.getDevices())[deviceType.version]
+        .filter((device) => {
+          return device.udid === sim.udid;
+        }).length > 0;
+      if (devicePresent) {
+        await simctl.deleteDevice(sim.udid);
+      }
+    });
+
+    it('should not reject calls to enrollTouchID()', async function () {
+      await sim.enrollTouchID().should.eventually.be.resolved;
+    });
+  });
 }
 
 
