@@ -13,6 +13,7 @@ import Simulator from '../../lib/simulator-xcode-6';
 import { fs } from 'appium-support';
 import path from 'path';
 
+
 chai.should();
 chai.use(chaiAsPromised);
 const expect = chai.expect;
