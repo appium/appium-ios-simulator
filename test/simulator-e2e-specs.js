@@ -9,7 +9,7 @@ import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
-
+import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS } from '../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -295,6 +295,41 @@ function runTests (deviceType) {
       await sim.shutdown();
       stat = await sim.stat();
       stat.state.should.equal('Shutdown');
+    });
+  });
+
+  describe('touch ID enrollment', async function () {
+    let sim, udid, originalValues;
+    this.timeout(LONG_TIMEOUT);
+
+    it('should not reject calls to enrollTouchID() and should correctly restore backed up values', async function () {
+      // Set the touch enroll menu keys to NIL
+      for (let key of touchEnrollMenuKeys) {
+        await setUserDefault(NS_USER_KEY_EQUIVALENTS, key);
+      }
+      originalValues = await getTouchEnrollKeys();
+      udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+
+      await sim.run(LONG_TIMEOUT);
+
+      await sim.enrollTouchID().should.eventually.be.resolved;
+      await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
+
+      // only want to get rid of the device if it is present
+      await sim.shutdown();
+      let devicePresent = (await simctl.getDevices())[deviceType.version]
+        .filter((device) => {
+          return device.udid === sim.udid;
+        }).length > 0;
+      if (devicePresent) {
+        await simctl.deleteDevice(sim.udid);
+      }
+
+      // Check that the touchEnrollKeys where correctly restored
+      await getTouchEnrollKeys().should.eventually.deep.equal(originalValues);
     });
   });
 }
