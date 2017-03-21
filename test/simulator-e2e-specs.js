@@ -9,7 +9,7 @@ import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
-import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS } from '../lib/touch-enroll';
+import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -302,6 +302,28 @@ function runTests (deviceType) {
     let sim, udid, originalValues;
     this.timeout(LONG_TIMEOUT);
 
+    it('should backup Touch ID Enroll key bindings before running if allowTouchEnroll == true', async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      let sim = await getSimulator(udid);
+      await sim.run(LONG_TIMEOUT, true);
+      getTouchEnrollBackups().should.exist;
+      await sim.shutdown();
+    });
+
+    it('should not backup Touch ID Enroll key bindings if allowTouchEnroll == false', async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      let sim = await getSimulator(udid);
+      await sim.run(LONG_TIMEOUT);
+      chai.should(getTouchEnrollBackups()).not.exist;
+      await sim.shutdown();
+    });
+
     it('should not reject calls to enrollTouchID() and should correctly restore backed up values', async function () {
       // Set the touch enroll menu keys to NIL
       for (let key of touchEnrollMenuKeys) {
@@ -313,7 +335,7 @@ function runTests (deviceType) {
                                        deviceType.version);
       sim = await getSimulator(udid);
 
-      await sim.run(LONG_TIMEOUT);
+      await sim.run(LONG_TIMEOUT, true);
 
       await sim.enrollTouchID().should.eventually.be.resolved;
       await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
