@@ -68,13 +68,13 @@ describe('util', () => {
       await killAllSimulators();
       execStub.calledOnce.should.be.true;
     });
-    it('should call exec twice if pgrep does find running Simulator with Xcode7 and shutdown succeeds', async () => {
+    it('should call exec thrice if pgrep does find running Simulator with Xcode7 and shutdown succeeds', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_7));
       execStub.withArgs('pgrep').returns(0);
       execStub.withArgs('xcrun').returns(0);
 
       await killAllSimulators();
-      execStub.calledTwice.should.be.true;
+      execStub.calledThrice.should.be.true;
     });
     it('should call exec thrice if pgrep does find running Simulator with Xcode6 and shutdown fails', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
