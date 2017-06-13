@@ -56,8 +56,8 @@ describe('simulator', () => {
       await getSimulator(UDID).should.eventually.be.rejectedWith('version');
     });
 
-    it('should throw an error if xcode version above 8', async () => {
-      let xcodeVersion = {major: 9, versionString: '9.0.0'};
+    it('should throw an error if xcode version above 9', async () => {
+      let xcodeVersion = {major: 10, versionString: '10.0.0'};
       xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
 
       await getSimulator(UDID).should.eventually.be.rejectedWith('not yet');
