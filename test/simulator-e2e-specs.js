@@ -308,7 +308,7 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version);
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT, true);
+      await sim.run(LONG_TIMEOUT, {allowTouchEnroll: true});
       getTouchEnrollBackups().should.exist;
       await sim.shutdown();
     });
@@ -335,7 +335,7 @@ function runTests (deviceType) {
                                        deviceType.version);
       sim = await getSimulator(udid);
 
-      await sim.run(LONG_TIMEOUT, true);
+      await sim.run(LONG_TIMEOUT, {allowTouchEnroll: true});
 
       await sim.enrollTouchID().should.eventually.be.resolved;
       await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
