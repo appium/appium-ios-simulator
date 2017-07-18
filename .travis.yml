@@ -4,7 +4,7 @@ language: node_js
 env:
   global:
     - _FORCE_LOGS=1
-  env:
+  matrix:
     # Travis has problems building 10.0 and 10.1 sims
     - DEVICE=9.3
     - DEVICE=10.2
