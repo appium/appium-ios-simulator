@@ -96,7 +96,7 @@ function runTests (deviceType) {
 
     it('should find both a data and bundle directory for TestApp', async function () {
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
 
       // install & launch test app
       await installApp(sim, app);
@@ -113,7 +113,7 @@ function runTests (deviceType) {
       if (process.env.TRAVIS) return this.skip();
 
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
 
       let error = /The operation couldn’t be completed/;
       if (!process.env.TRAVIS) {
@@ -149,7 +149,7 @@ function runTests (deviceType) {
 
     it('should delete custom app data', async function () {
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
 
       // install & launch test app
       await installApp(sim, app);
@@ -208,7 +208,7 @@ function runTests (deviceType) {
     it('should start a sim using the "run" method', async function () {
       let sim = await getSimulator(udid);
 
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
 
       let stat = await sim.stat();
       stat.state.should.equal('Booted');
@@ -221,7 +221,7 @@ function runTests (deviceType) {
     it('should be able to start safari', async function () {
       let sim = await getSimulator(udid);
 
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
       await sim.openUrl('http://apple.com');
       await sim.shutdown();
 
@@ -233,7 +233,7 @@ function runTests (deviceType) {
       let running = await sim.isRunning();
       running.should.be.false;
 
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
       running = await sim.isRunning();
       running.should.be.true;
 
@@ -271,7 +271,7 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version);
       sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
       await sim.shutdown();
       await B.delay(4000);
     });
@@ -287,7 +287,7 @@ function runTests (deviceType) {
     });
 
     it('should start a sim using the "run" method', async function () {
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
 
       let stat = await sim.stat();
       stat.state.should.equal('Booted');
@@ -308,7 +308,10 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version);
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT, {allowTouchEnroll: true});
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+        allowTouchEnroll: true,
+      });
       getTouchEnrollBackups().should.exist;
       await sim.shutdown();
     });
@@ -319,7 +322,7 @@ function runTests (deviceType) {
                                        deviceType.device,
                                        deviceType.version);
       let sim = await getSimulator(udid);
-      await sim.run(LONG_TIMEOUT);
+      await sim.run({startupTimeout: LONG_TIMEOUT});
       chai.should(getTouchEnrollBackups()).not.exist;
       await sim.shutdown();
     });
@@ -335,7 +338,10 @@ function runTests (deviceType) {
                                        deviceType.version);
       sim = await getSimulator(udid);
 
-      await sim.run(LONG_TIMEOUT, {allowTouchEnroll: true});
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+        allowTouchEnroll: true,
+      });
 
       await sim.enrollTouchID().should.eventually.be.resolved;
       await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
