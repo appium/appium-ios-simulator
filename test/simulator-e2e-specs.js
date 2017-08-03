@@ -270,9 +270,9 @@ function runTests (deviceType) {
 
     it('should properly start simulator in headless mode on Xcode9+', async function () {
       const sim = await getSimulator(udid);
-      if (!(parseInt(sim.constructor.name.replace(/\D/g, ''), 10) >= 9)) {
-        // This feature is only supported on XCode9+
-        this.skip();
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
       }
 
       const verifyStates = async (shouldServerRun, shouldClientRun) => {
