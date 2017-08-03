@@ -1,5 +1,5 @@
 // transpile:mocha
-
+import _ from 'lodash';
 import { getSimulator, killAllSimulators } from '..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
@@ -9,6 +9,7 @@ import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
+import xcode from 'appium-xcode';
 import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
@@ -358,6 +359,74 @@ function runTests (deviceType) {
 
       // Check that the touchEnrollKeys where correctly restored
       await getTouchEnrollKeys().should.eventually.deep.equal(originalValues);
+    });
+  });
+
+  describe(`multiple instances of ${deviceType.version} simulator on Xcode9+`, function () {
+    this.timeout(LONG_TIMEOUT);
+    const simulatorsMapping = new Map();
+    const DEVICES_COUNT = 2;
+    const verifyStates = async (sim, shouldServerRun, shouldClientRun) => {
+      const isServerRunning = await sim.isRunning();
+      isServerRunning.should.eql(shouldServerRun);
+      const isClientRunning = await sim.isUIClientRunning();
+      isClientRunning.should.eql(shouldClientRun);
+    };
+
+    before(async function () {
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
+      }
+
+      await killAllSimulators();
+      for (const deviceIdx of _.range(1, DEVICES_COUNT + 1)) {
+        const udid = await simctl.createDevice(`ios-simulator_${deviceIdx}_testing`,
+                                               deviceType.device,
+                                               deviceType.version);
+        const sim = await getSimulator(udid);
+        simulatorsMapping.set(udid, sim);
+      }
+    });
+    after(async function () {
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
+      }
+
+      const existingDevices = (await simctl.getDevices())[deviceType.version];
+      for (const existingDevice of existingDevices) {
+        if (simulatorsMapping.has(existingDevice.udid)) {
+          try {
+            await simctl.deleteDevice(existingDevice.udid);
+          } catch (ign) {}
+        }
+      }
+      simulatorsMapping.clear();
+    });
+
+    it('should start multiple simulators in "default" mode', async function () {
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
+      }
+
+      const simulators = Array.from(simulatorsMapping.values());
+      for (const sim of simulators) {
+        await verifyStates(sim, false, false);
+      }
+
+      const runPromises = simulators.map((sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
+      await B.all(runPromises);
+      for (const sim of simulators) {
+        await verifyStates(sim, true, true);
+      }
+
+      const shutdownPromises = simulators.map((sim) => sim.shutdown());
+      await B.all(shutdownPromises);
+      for (const sim of simulators) {
+        await verifyStates(sim, false, true);
+      }
     });
   });
 }
