@@ -1,5 +1,5 @@
 // transpile:mocha
-
+import _ from 'lodash';
 import { getSimulator, killAllSimulators } from '..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
@@ -9,6 +9,7 @@ import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
+import xcode from 'appium-xcode';
 import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
@@ -16,6 +17,13 @@ const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
 chai.use(chaiAsPromised);
+
+async function verifyStates (sim, shouldServerRun, shouldClientRun) {
+  const isServerRunning = await sim.isRunning();
+  isServerRunning.should.eql(shouldServerRun);
+  const isClientRunning = await sim.isUIClientRunning();
+  isClientRunning.should.eql(shouldClientRun);
+}
 
 function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
@@ -358,6 +366,47 @@ function runTests (deviceType) {
 
       // Check that the touchEnrollKeys where correctly restored
       await getTouchEnrollKeys().should.eventually.deep.equal(originalValues);
+    });
+  });
+
+  describe(`multiple instances of ${deviceType.version} simulator on Xcode9+`, function () {
+    this.timeout(LONG_TIMEOUT);
+    const simulatorsMapping = new Map();
+    const DEVICES_COUNT = 2;
+
+    beforeEach(async function () {
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
+      }
+
+      await killAllSimulators();
+      const udids = await B.map(_.range(1, DEVICES_COUNT + 1),
+                                (deviceIdx) => simctl.createDevice(`ios-simulator_${deviceIdx}_testing`,
+                                                                   deviceType.device,
+                                                                   deviceType.version));
+      const simulators = await B.map(udids, (udid) => getSimulator(udid));
+      _.zip(udids, simulators).map(([udid, sim]) => simulatorsMapping.set(udid, sim));
+    });
+    afterEach(async function () {
+      try {
+        await killAllSimulators();
+        const existingUdids = ((await simctl.getDevices())[deviceType.version] || []).map((dev) => dev.udid);
+        await B.map(existingUdids.filter((udid) => simulatorsMapping.has(udid)), (udid) => simctl.deleteDevice(udid));
+      } finally {
+        simulatorsMapping.clear();
+      }
+    });
+
+    it('should start multiple simulators in "default" mode', async function () {
+      const simulators = Array.from(simulatorsMapping.values());
+      await B.map(simulators, (sim) => verifyStates(sim, false, false));
+
+      await B.map(simulators, (sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
+      await B.map(simulators, (sim) => verifyStates(sim, true, true));
+
+      await B.map(simulators, (sim) => sim.shutdown());
+      await B.map(simulators, (sim) => verifyStates(sim, false, true));
     });
   });
 }
