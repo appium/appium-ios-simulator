@@ -18,6 +18,13 @@ const BUNDLE_ID = 'io.appium.TestApp';
 chai.should();
 chai.use(chaiAsPromised);
 
+async function verifyStates (sim, shouldServerRun, shouldClientRun) {
+  const isServerRunning = await sim.isRunning();
+  isServerRunning.should.eql(shouldServerRun);
+  const isClientRunning = await sim.isUIClientRunning();
+  isClientRunning.should.eql(shouldClientRun);
+}
+
 function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
     this.timeout(LONG_TIMEOUT);
@@ -366,14 +373,8 @@ function runTests (deviceType) {
     this.timeout(LONG_TIMEOUT);
     const simulatorsMapping = new Map();
     const DEVICES_COUNT = 2;
-    const verifyStates = async (sim, shouldServerRun, shouldClientRun) => {
-      const isServerRunning = await sim.isRunning();
-      isServerRunning.should.eql(shouldServerRun);
-      const isClientRunning = await sim.isUIClientRunning();
-      isClientRunning.should.eql(shouldClientRun);
-    };
 
-    before(async function () {
+    beforeEach(async function () {
       const xcodeVersion = await xcode.getVersion(true);
       if (xcodeVersion.major < 9) {
         return this.skip();
@@ -388,29 +389,22 @@ function runTests (deviceType) {
         simulatorsMapping.set(udid, sim);
       }
     });
-    after(async function () {
-      const xcodeVersion = await xcode.getVersion(true);
-      if (xcodeVersion.major < 9) {
-        return this.skip();
-      }
-
+    afterEach(async function () {
+      await killAllSimulators();
       const existingDevices = (await simctl.getDevices())[deviceType.version];
-      for (const existingDevice of existingDevices) {
-        if (simulatorsMapping.has(existingDevice.udid)) {
-          try {
-            await simctl.deleteDevice(existingDevice.udid);
-          } catch (ign) {}
+      if (existingDevices) {
+        for (const existingDevice of existingDevices) {
+          if (simulatorsMapping.has(existingDevice.udid)) {
+            try {
+              await simctl.deleteDevice(existingDevice.udid);
+            } catch (ign) {}
+          }
         }
       }
       simulatorsMapping.clear();
     });
 
     it('should start multiple simulators in "default" mode', async function () {
-      const xcodeVersion = await xcode.getVersion(true);
-      if (xcodeVersion.major < 9) {
-        return this.skip();
-      }
-
       const simulators = Array.from(simulatorsMapping.values());
       for (const sim of simulators) {
         await verifyStates(sim, false, false);
