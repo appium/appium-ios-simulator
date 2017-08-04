@@ -268,6 +268,30 @@ function runTests (deviceType) {
       (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
     });
 
+    it('should properly start simulator in headless mode on Xcode9+', async function () {
+      const xcodeVersion = await xcode.getVersion(true);
+      if (xcodeVersion.major < 9) {
+        return this.skip();
+      }
+
+      const sim = await getSimulator(udid);
+      await verifyStates(sim, false, false);
+
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+        isHeadless: false,
+      });
+      await verifyStates(sim, true, true);
+
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+        isHeadless: true,
+      });
+      await verifyStates(sim, true, false);
+
+      await sim.shutdown();
+      await verifyStates(sim, false, false);
+    });
   });
 
   describe(`reuse an already-created already-run simulator ${deviceType.version}`, function () {
