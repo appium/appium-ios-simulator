@@ -43,7 +43,7 @@ const pem = B.promisifyAll(require('pem'));
   let deviceName = bootedDevice.name;
   console.log(`Using bootedDevice ${udid}`);
 
-  console.log('HTTPS server is running at localhost:9758 and has created a new certificate at "random-pem.pem"'.yellow);  
+  console.log('HTTPS server is running at localhost:9758 and has created a new certificate at "random-pem.pem"'.yellow);
   console.log(`Navigate to https://localhost:9758 in '${deviceName} Simulator'`.yellow);
   console.log('DO NOT PUSH THE CONTINUE BUTTON. PUSH CANCEL.'.red);
 
@@ -64,7 +64,7 @@ const pem = B.promisifyAll(require('pem'));
 
   await installSSLCert(keys.certificate, udid);
 
-  if (!result.confirmOpenSite) return done();
+  if (!result.confirmOpenSite) return done(); // eslint-disable-line curly
 
   // Apply certificate to Simulator
   console.log('Installing certificate'.yellow);

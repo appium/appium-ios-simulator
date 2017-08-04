@@ -118,7 +118,7 @@ function runTests (deviceType) {
 
     it('should be able to delete an app', async function () {
       // TODO: figure out why this times out in Travis
-      if (process.env.TRAVIS) return this.skip();
+      if (process.env.TRAVIS) return this.skip(); // eslint-disable-line curly
 
       let sim = await getSimulator(udid);
       await sim.run({startupTimeout: LONG_TIMEOUT});

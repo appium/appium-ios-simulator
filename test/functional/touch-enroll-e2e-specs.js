@@ -3,7 +3,7 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { exec } from 'teen_process';
-import { getUserDefault, setUserDefault, setTouchEnrollKey, setTouchEnrollKeys, getTouchEnrollKeys, touchEnrollMenuKeys, 
+import { getUserDefault, setUserDefault, setTouchEnrollKey, setTouchEnrollKeys, getTouchEnrollKeys, touchEnrollMenuKeys,
   restoreTouchEnrollShortcuts, NS_USER_KEY_EQUIVALENTS, TOUCH_ENROLL_KEY_CODE } from '../../lib/touch-enroll';
 
 chai.should();
@@ -108,7 +108,7 @@ describe('touch-enroll.js', () => {
       let index = 0;
       for (let key of touchEnrollMenuKeys) {
         await setUserDefault(NS_USER_KEY_EQUIVALENTS, key, index++);
-      } 
+      }
       let backedUpKeys = await getTouchEnrollKeys();
       backedUpKeys[0][1].should.equal('0');
       backedUpKeys[1][1].should.equal('1');
@@ -126,7 +126,7 @@ describe('touch-enroll.js', () => {
       restoredKeys[1][1].should.equal('1');
     });
   });
-  
+
   describe('backup and restore defaults', async () => {
 
     beforeEach(async () => {

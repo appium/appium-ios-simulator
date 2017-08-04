@@ -51,7 +51,7 @@ describe('when using TrustStore class', () => {
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '4567');
 
-    expect(await trustStore.getRecordCount(testUUID)).to.equal(1);  
+    expect(await trustStore.getRecordCount(testUUID)).to.equal(1);
   });
 });
 
