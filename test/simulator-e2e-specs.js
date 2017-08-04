@@ -381,46 +381,32 @@ function runTests (deviceType) {
       }
 
       await killAllSimulators();
-      for (const deviceIdx of _.range(1, DEVICES_COUNT + 1)) {
-        const udid = await simctl.createDevice(`ios-simulator_${deviceIdx}_testing`,
-                                               deviceType.device,
-                                               deviceType.version);
-        const sim = await getSimulator(udid);
-        simulatorsMapping.set(udid, sim);
-      }
+      const udids = await B.map(_.range(1, DEVICES_COUNT + 1),
+                                (deviceIdx) => simctl.createDevice(`ios-simulator_${deviceIdx}_testing`,
+                                                                   deviceType.device,
+                                                                   deviceType.version));
+      const simulators = await B.map(udids, (udid) => getSimulator(udid));
+      _.zip(udids, simulators).map(([udid, sim]) => simulatorsMapping.set(udid, sim));
     });
     afterEach(async function () {
-      await killAllSimulators();
-      const existingDevices = (await simctl.getDevices())[deviceType.version];
-      if (existingDevices) {
-        for (const existingDevice of existingDevices) {
-          if (simulatorsMapping.has(existingDevice.udid)) {
-            try {
-              await simctl.deleteDevice(existingDevice.udid);
-            } catch (ign) {}
-          }
-        }
+      try {
+        await killAllSimulators();
+        const existingUdids = ((await simctl.getDevices())[deviceType.version] || []).map((dev) => dev.udid);
+        await B.map(existingUdids.filter((udid) => simulatorsMapping.has(udid)), (udid) => simctl.deleteDevice(udid));
+      } finally {
+        simulatorsMapping.clear();
       }
-      simulatorsMapping.clear();
     });
 
     it('should start multiple simulators in "default" mode', async function () {
       const simulators = Array.from(simulatorsMapping.values());
-      for (const sim of simulators) {
-        await verifyStates(sim, false, false);
-      }
+      await B.map(simulators, (sim) => verifyStates(sim, false, false));
 
-      const runPromises = simulators.map((sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
-      await B.all(runPromises);
-      for (const sim of simulators) {
-        await verifyStates(sim, true, true);
-      }
+      await B.map(simulators, (sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
+      await B.map(simulators, (sim) => verifyStates(sim, true, true));
 
-      const shutdownPromises = simulators.map((sim) => sim.shutdown());
-      await B.all(shutdownPromises);
-      for (const sim of simulators) {
-        await verifyStates(sim, false, true);
-      }
+      await B.map(simulators, (sim) => sim.shutdown());
+      await B.map(simulators, (sim) => verifyStates(sim, false, true));
     });
   });
 }
