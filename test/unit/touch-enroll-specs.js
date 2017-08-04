@@ -1,12 +1,10 @@
 // transpile:mocha
-
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-// import { exec } from 'teen_process';
-// import B from 'bluebird';
 import * as TouchEnroll from '../../lib/touch-enroll';
 import * as TeenProcess from 'teen_process';
 import sinon from 'sinon';
+
 
 chai.should();
 chai.use(chaiAsPromised);
