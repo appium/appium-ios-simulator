@@ -78,7 +78,7 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
     });
 
     it('should return a path for getLogDir', () => {
-      var home = process.env.HOME;
+      const home = process.env.HOME;
       process.env.HOME = __dirname;
       let logDir = sim.getLogDir();
       logDir.should.equal(`${__dirname}/Library/Logs/CoreSimulator/123`);
