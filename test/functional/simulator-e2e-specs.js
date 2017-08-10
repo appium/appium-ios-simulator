@@ -10,7 +10,6 @@ import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
-import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -330,55 +329,22 @@ function runTests (deviceType) {
   });
 
   describe('touch ID enrollment', async function () {
-    let sim, udid, originalValues;
+    let sim;
     this.timeout(LONG_TIMEOUT);
 
-    it('should backup Touch ID Enroll key bindings before running if allowTouchEnroll == true', async function () {
+    beforeEach(async function () {
       await killAllSimulators();
       let udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
-      let sim = await getSimulator(udid);
-      await sim.run({
-        startupTimeout: LONG_TIMEOUT,
-        allowTouchEnroll: true,
-      });
-      getTouchEnrollBackups().should.exist;
-      await sim.shutdown();
-    });
-
-    it('should not backup Touch ID Enroll key bindings if allowTouchEnroll == false', async function () {
-      await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
-      let sim = await getSimulator(udid);
-      await sim.run({startupTimeout: LONG_TIMEOUT});
-      chai.should(getTouchEnrollBackups()).not.exist;
-      await sim.shutdown();
-    });
-
-    it('should not reject calls to enrollTouchID() and should correctly restore backed up values', async function () {
-      // Set the touch enroll menu keys to NIL
-      for (let key of touchEnrollMenuKeys) {
-        await setUserDefault(NS_USER_KEY_EQUIVALENTS, key);
-      }
-      originalValues = await getTouchEnrollKeys();
-      udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
+                                           deviceType.device,
+                                           deviceType.version);
       sim = await getSimulator(udid);
-
       await sim.run({
         startupTimeout: LONG_TIMEOUT,
-        allowTouchEnroll: true,
       });
-
-      await sim.enrollTouchID().should.not.be.rejected;
-      await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
-
+    });
+    afterEach(async function () {
+      await killAllSimulators();
       // only want to get rid of the device if it is present
-      await sim.shutdown();
       let devicePresent = (await simctl.getDevices())[deviceType.version]
         .filter((device) => {
           return device.udid === sim.udid;
@@ -386,9 +352,16 @@ function runTests (deviceType) {
       if (devicePresent) {
         await simctl.deleteDevice(sim.udid);
       }
+    });
 
-      // Check that the touchEnrollKeys where correctly restored
-      await getTouchEnrollKeys().should.eventually.deep.equal(originalValues);
+    it('should properly enroll Touch ID to enabled state', async function () {
+      await sim.enrollTouchID().should.eventually.be.resolved;
+      await sim.isTouchIDEnrolled().should.be.true;
+    });
+
+    it('should properly enroll Touch ID to disabled state', async function () {
+      await sim.enrollTouchID(false).should.eventually.be.resolved;
+      await sim.isTouchIDEnrolled().should.be.false;
     });
   });
 
