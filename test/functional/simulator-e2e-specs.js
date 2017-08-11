@@ -332,7 +332,7 @@ function runTests (deviceType) {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
-    beforeEach(async function () {
+    before(async function () {
       await killAllSimulators();
       let udid = await simctl.createDevice('ios-simulator testing',
                                            deviceType.device,
@@ -342,7 +342,7 @@ function runTests (deviceType) {
         startupTimeout: LONG_TIMEOUT,
       });
     });
-    afterEach(async function () {
+    after(async function () {
       await killAllSimulators();
       // only want to get rid of the device if it is present
       let devicePresent = (await simctl.getDevices())[deviceType.version]
@@ -356,12 +356,12 @@ function runTests (deviceType) {
 
     it('should properly enroll Touch ID to enabled state', async function () {
       await sim.enrollTouchID().should.eventually.be.resolved;
-      await sim.isTouchIDEnrolled().should.be.true;
+      (await sim.isTouchIDEnrolled()).should.be.true;
     });
 
     it('should properly enroll Touch ID to disabled state', async function () {
       await sim.enrollTouchID(false).should.eventually.be.resolved;
-      await sim.isTouchIDEnrolled().should.be.false;
+      (await sim.isTouchIDEnrolled()).should.be.false;
     });
   });
 
