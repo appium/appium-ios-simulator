@@ -7,10 +7,9 @@ boilerplate({
   build: 'appium-ios-simulator',
   e2eTest: {
     files: 'build/test/functional/**/*-e2e-specs.js',
-    forceExit: false
   },
   coverage: {
     files: ['./test/unit/**/*-specs.js'],
-    verbose: true
+    verbose: true,
   },
 });
