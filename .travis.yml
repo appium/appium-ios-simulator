@@ -1,9 +1,6 @@
 sudo: required
 os: osx
 language: node_js
-env:
-  global:
-    - _FORCE_LOGS=1
 matrix:
   include:
     - osx_image: xcode7.3
@@ -42,18 +39,7 @@ matrix:
       node_js: "6"
       env: DEVICE=11.0
 
-install:
-  - node --version
-  - npm install
-  - npm install -g gulp
-before_script:
-  - node --version
-  - xcodebuild -version
-  - pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
-  - xcrun simctl list
 script:
-  - gulp eslint
-  - gulp once
-  - gulp e2e-test
+  - npm test && _FORCE_LOGS=1 npm run e2e-test
 after_success:
-    - gulp coveralls
+  - npm run coverage
