@@ -374,7 +374,7 @@ function runTests (deviceType) {
         allowTouchEnroll: true,
       });
 
-      await sim.enrollTouchID().should.eventually.be.resolved;
+      await sim.enrollTouchID().should.not.be.rejected;
       await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
 
       // only want to get rid of the device if it is present
