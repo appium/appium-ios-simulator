@@ -6,6 +6,7 @@ import { exec } from 'teen_process';
 import { getUserDefault, setUserDefault, setTouchEnrollKey, setTouchEnrollKeys, getTouchEnrollKeys, touchEnrollMenuKeys,
   restoreTouchEnrollShortcuts, NS_USER_KEY_EQUIVALENTS, TOUCH_ENROLL_KEY_CODE } from '../../lib/touch-enroll';
 
+
 chai.should();
 chai.use(chaiAsPromised);
 

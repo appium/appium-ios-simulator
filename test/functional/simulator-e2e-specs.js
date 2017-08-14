@@ -34,9 +34,8 @@ function runTests (deviceType) {
     before(async function () {
       let exists = await fs.exists(app);
       if (!exists) {
-        app = path.resolve(__dirname, '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
+        app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
-
       await killAllSimulators();
     });
 
