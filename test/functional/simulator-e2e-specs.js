@@ -1,6 +1,6 @@
 // transpile:mocha
 import _ from 'lodash';
-import { getSimulator, killAllSimulators } from '..';
+import { getSimulator, killAllSimulators } from '../..';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -10,7 +10,7 @@ import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
-import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../lib/touch-enroll';
+import { setUserDefault, getTouchEnrollKeys, touchEnrollMenuKeys, NS_USER_KEY_EQUIVALENTS, getTouchEnrollBackups } from '../../lib/touch-enroll';
 
 const LONG_TIMEOUT = 480 * 1000;
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -34,9 +34,8 @@ function runTests (deviceType) {
     before(async function () {
       let exists = await fs.exists(app);
       if (!exists) {
-        app = path.resolve(__dirname, '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
+        app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
-
       await killAllSimulators();
     });
 
@@ -375,7 +374,7 @@ function runTests (deviceType) {
         allowTouchEnroll: true,
       });
 
-      await sim.enrollTouchID().should.eventually.be.resolved;
+      await sim.enrollTouchID().should.not.be.rejected;
       await getTouchEnrollKeys().should.eventually.not.deep.equal(originalValues);
 
       // only want to get rid of the device if it is present

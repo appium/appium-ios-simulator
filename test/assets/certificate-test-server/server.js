@@ -98,5 +98,3 @@ const pem = B.promisifyAll(require('pem'));
 
   return server.close();
 })();
-
-/* eslint-enable */
