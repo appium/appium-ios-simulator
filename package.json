@@ -55,8 +55,8 @@
   "devDependencies": {
     "appium-gulp-plugins": "^2.1.4",
     "babel-eslint": "^7.1.1",
-    "chai": "^3.2.0",
-    "chai-as-promised": "^5.1.0",
+    "chai": "^4.1.0",
+    "chai-as-promised": "^7.1.1",
     "colors": "^1.1.2",
     "eslint": "^3.10.2",
     "eslint-config-appium": "2.0.1",

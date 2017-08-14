@@ -22,6 +22,6 @@ matrix:
       env: DEVICE=11.0
 
 script:
-  - npm test && _FORCE_LOGS=1 npm run e2e-test
+  - npm test && _FORCE_LOGS=1 npm run mocha -- -R spec build/test/**/*-e2e-specs.js
 after_success:
   - npm run coverage
