@@ -354,13 +354,34 @@ function runTests (deviceType) {
       }
     });
 
+    // FIXME: Remove this test after Appium's parent process has accessibility permissions
+    // on Travis
+    it('should fail if cannot enroll Touch ID', async function () {
+      if (!process.env.TRAVIS) {
+        this.skip();
+      }
+      const errorPattern = /is present in System Preferences/;
+      await sim.enrollTouchID().should.eventually.be.rejectedWith(errorPattern);
+      await sim.isTouchIDEnrolled().should.eventually.be.rejectedWith(errorPattern);
+    });
+
     it('should properly enroll Touch ID to enabled state', async function () {
-      await sim.enrollTouchID().should.eventually.be.resolved;
+      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+      // on Travis
+      if (process.env.TRAVIS) {
+        this.skip();
+      }
+      await sim.enrollTouchID();
       (await sim.isTouchIDEnrolled()).should.be.true;
     });
 
     it('should properly enroll Touch ID to disabled state', async function () {
-      await sim.enrollTouchID(false).should.eventually.be.resolved;
+      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+      // on Travis
+      if (process.env.TRAVIS) {
+        this.skip();
+      }
+      await sim.enrollTouchID(false);
       (await sim.isTouchIDEnrolled()).should.be.false;
     });
   });
