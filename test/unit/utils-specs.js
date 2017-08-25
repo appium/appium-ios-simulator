@@ -18,6 +18,13 @@ chai.should();
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
+const XCODE_VERSION_9 = {
+  versionString: '9.0',
+  versionFloat: 9.0,
+  major: 9,
+  minor: 0,
+  patch: undefined
+};
 const XCODE_VERSION_8 = {
   versionString: '8.2.1',
   versionFloat: 8.2,
@@ -61,6 +68,13 @@ describe('util', () => {
   });
 
   describe('killAllSimulators', () => {
+    it('should call exec once if pgrep does not find any running Simulator with Xcode9', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_9));
+      execStub.withArgs('pgrep').throws({code: 1});
+
+      await killAllSimulators();
+      execStub.calledOnce.should.be.true;
+    });
     it('should call exec once if pgrep does not find any running Simulator with Xcode8', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
       execStub.withArgs('pgrep').throws({code: 1});
@@ -89,6 +103,15 @@ describe('util', () => {
     });
     it('should call exec thrice if pgrep and simctl fail with Xcode8', async () => {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
+      execStub.withArgs('pgrep').throws({code: 3});
+      execStub.withArgs('xcrun').throws();
+      execStub.withArgs('pkill').throws({code: 1});
+
+      await killAllSimulators(500).should.eventually.be.rejected;
+      execStub.calledThrice.should.be.true;
+    });
+    it('should call exec thrice if pgrep and simctl fail with Xcode9', async () => {
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_9));
       execStub.withArgs('pgrep').throws({code: 3});
       execStub.withArgs('xcrun').throws();
       execStub.withArgs('pkill').throws({code: 1});

@@ -10,8 +10,9 @@ import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
+import { LONG_TIMEOUT } from './helpers';
 
-const LONG_TIMEOUT = 480 * 1000;
+
 const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
@@ -451,6 +452,10 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
     },
     {
       version: '10.2',
+      device: 'iPhone 6s'
+    },
+    {
+      version: '11.0',
       device: 'iPhone 6s'
     },
   ];
