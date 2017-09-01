@@ -31,7 +31,7 @@
     "bluebird": "^2.9.34",
     "fkill": "^5.0.0",
     "lodash": "^4.2.1",
-    "node-simctl": "^3.8.0",
+    "node-simctl": "^3.11.0",
     "openssl-wrapper": "^0.3.4",
     "semver-compare": "^1.0.0",
     "source-map-support": "^0.4.0",
