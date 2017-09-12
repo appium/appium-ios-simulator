@@ -19,7 +19,7 @@ Appium API for dealing with iOS simulators. Allows the user to find locations of
 This is the main entry of this module.
 This function returns a simulator object (see below) associated with the udid passed in. If an iOS simulator with the given udid does not exist already on this machine, it will throw an error.
 
-If you want to create a new simulator, you can use the `createDevice()` method of [node-simctl](github.com/appium/node-simctl).
+If you want to create a new simulator, you can use the `createDevice()` method of [node-simctl](https://github.com/appium/node-simctl).
 
 ```js
 import { getSimulator } from 'appium-ios-simulator';
