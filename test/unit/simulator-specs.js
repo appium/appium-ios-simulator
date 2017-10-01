@@ -199,7 +199,7 @@ describe('simulator', () => {
         xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
       });
 
-      it('should create an xcode 7 simulator with xcode version 7', async () => {
+      it('should create an xcode 9 simulator with xcode version 9', async () => {
         let sim = await getSimulator(UDID);
         sim.xcodeVersion.should.equal(xcodeVersion);
         sim.should.be.an.instanceof(SimulatorXcode9);
