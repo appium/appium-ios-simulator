@@ -3,6 +3,7 @@
 import { getSimulator, getDeviceString } from '../..';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import SimulatorXcode7 from '../../lib/simulator-xcode-7';
+import SimulatorXcode9 from '../../lib/simulator-xcode-9';
 import * as simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -190,6 +191,20 @@ describe('simulator', () => {
         let device = await getDeviceString({deviceName: "iPhone"});
         device.should.equal('iPhone 6 (9.0) [');
       });
+    });
+
+    describe('Xcode 9', () => {
+      let xcodeVersion = {major: 9, versionString: '9.0.0'};
+      beforeEach(() => {
+        xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
+      });
+
+      it('should create an xcode 9 simulator with xcode version 9', async () => {
+        let sim = await getSimulator(UDID);
+        sim.xcodeVersion.should.equal(xcodeVersion);
+        sim.should.be.an.instanceof(SimulatorXcode9);
+      });
+
     });
   });
 });

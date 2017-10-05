@@ -8,6 +8,7 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
+import { validCoordinates } from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
 import { fs } from 'appium-support';
@@ -199,4 +200,24 @@ describe('installSSLCert and uninstallSSLCert', () => {
     await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 
+});
+
+describe('validCoordinates', () => {
+  it('should verify validCoordinates string', () => {
+    validCoordinates().should.equal(false);
+    validCoordinates("").should.equal(false);
+    validCoordinates("{}").should.equal(false);
+    validCoordinates("{,}").should.equal(false);
+    validCoordinates("{0,}").should.equal(false);
+    validCoordinates("{,0}").should.equal(false);
+    validCoordinates("{0,0}").should.equal(true);
+    validCoordinates("{0.0,0}").should.equal(true);
+    validCoordinates("{0,0.0}").should.equal(true);
+    validCoordinates("{-10,0}").should.equal(true);
+    validCoordinates("{0,-10}").should.equal(true);
+    validCoordinates("{-10,-10}").should.equal(true);
+    validCoordinates("{-32.58,0}").should.equal(true);
+    validCoordinates("{0,-32.58}").should.equal(true);
+    validCoordinates("{-32.58,-32.58}").should.equal(true);
+  });
 });
