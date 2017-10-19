@@ -10,6 +10,7 @@ import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
+import SimulatorXcode9 from '../../lib/simulator-xcode-9';
 import { fs } from 'appium-support';
 import path from 'path';
 
@@ -197,6 +198,101 @@ describe('installSSLCert and uninstallSSLCert', () => {
 
   it('should throw exception on uninstallSSLCert if udid is invalid', async () => {
     await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
+  });
+
+});
+
+describe('Device preferences verification', function () {
+  const sim = new SimulatorXcode9('1234', XCODE_VERSION_9);
+
+  describe('for SimulatorWindowLastScale option', function () {
+
+    it('should pass if correct', function () {
+      const validValues = [0.5, 1, 1.5];
+      for (const validValue of validValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowLastScale: validValue
+        })).should.not.throw();
+      }
+    });
+
+    it('should throw if incorrect', function () {
+      const invalidValues = [-1, 0.0, '', 'abc', null];
+      for (const invalidValue of invalidValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowLastScale: invalidValue
+        })).should.throw(Error, /is expected to be a positive float value/);
+      }
+    });
+
+  });
+
+  describe('for SimulatorWindowCenter option', function () {
+
+    it('should pass if correct', function () {
+      const validValues = ['{0,0}', '{0.0,0}', '{0,0.0}', '{-10,0}', '{0,-10}',
+        '{-32.58,0}', '{0,-32.58}', '{-32.58,-32.58}'];
+      for (const validValue of validValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowCenter: validValue
+        })).should.not.throw();
+      }
+    });
+
+    it('should throw if incorrect', function () {
+      const invalidValues = ['', '{}', '{,}', '{0,}', '{,0}', '{abc}', null,
+        '{-10,-10', '{0. 0, 0}', '{ 0,0}', '{0, 0}'];
+      for (const invalidValue of invalidValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowCenter: invalidValue
+        })).should.throw(Error, /is expected to match/);
+      }
+    });
+
+  });
+
+  describe('for SimulatorWindowOrientation option', function () {
+
+    it('should pass if correct', function () {
+      const validValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
+      for (const validValue of validValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowOrientation: validValue
+        })).should.not.throw();
+      }
+    });
+
+    it('should throw if incorrect', function () {
+      const invalidValues = ['',  null, 'portrait', 'bla', -1];
+      for (const invalidValue of invalidValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowOrientation: invalidValue
+        })).should.throw(Error, /is expected to be one of/);
+      }
+    });
+
+  });
+
+  describe('for SimulatorWindowRotationAngle option', function () {
+
+    it('should pass if correct', function () {
+      const validValues = [0, -100, 100, 1.0];
+      for (const validValue of validValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowRotationAngle: validValue
+        })).should.not.throw();
+      }
+    });
+
+    it('should throw if incorrect', function () {
+      const invalidValues = ['',  null, 'bla', '0'];
+      for (const invalidValue of invalidValues) {
+        (() => sim.verifyDevicePreferences({
+          SimulatorWindowRotationAngle: invalidValue
+        })).should.throw(Error, /is expected to be a valid number/);
+      }
+    });
+
   });
 
 });
