@@ -46,11 +46,12 @@
     "mocha": "mocha",
     "coverage": "gulp coveralls",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
+    "precommit-test": "REPORTER=dot gulp once",
     "lint": "gulp eslint"
   },
   "pre-commit": [
     "precommit-msg",
-    "test"
+    "precommit-test"
   ],
   "devDependencies": {
     "appium-gulp-plugins": "^2.1.4",
