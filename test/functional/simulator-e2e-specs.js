@@ -10,20 +10,13 @@ import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
-import { LONG_TIMEOUT } from './helpers';
+import { LONG_TIMEOUT, verifyStates } from './helpers';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
 chai.use(chaiAsPromised);
-
-async function verifyStates (sim, shouldServerRun, shouldClientRun) {
-  const isServerRunning = await sim.isRunning();
-  isServerRunning.should.eql(shouldServerRun);
-  const isClientRunning = await sim.isUIClientRunning();
-  isClientRunning.should.eql(shouldClientRun);
-}
 
 function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
@@ -36,10 +29,10 @@ function runTests (deviceType) {
       if (!exists) {
         app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
-      await killAllSimulators();
     });
 
     beforeEach(async function () {
+      await killAllSimulators();
       udid = await simctl.createDevice('ios-simulator testing',
                                        deviceType.device,
                                        deviceType.version,
@@ -48,13 +41,13 @@ function runTests (deviceType) {
       console.log('\n\n'); // eslint-disable-line no-console
     });
     afterEach(async function () {
+      await killAllSimulators();
       // only want to get rid of the device if it is present
       let devicePresent = (await simctl.getDevices())[deviceType.version]
         .filter((device) => {
           return device.udid === udid;
         }).length > 0;
       if (devicePresent) {
-        await killAllSimulators();
         await simctl.deleteDevice(udid);
       }
     });
@@ -307,6 +300,7 @@ function runTests (deviceType) {
       await B.delay(4000);
     });
     after(async function () {
+      await killAllSimulators();
       // only want to get rid of the device if it is present
       let devicePresent = (await simctl.getDevices())[deviceType.version]
         .filter((device) => {
