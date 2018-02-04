@@ -381,6 +381,39 @@ function runTests (deviceType) {
     });
   });
 
+
+  describe('keychains backup', async function () {
+    let sim;
+    this.timeout(LONG_TIMEOUT);
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                           deviceType.device,
+                                           deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+      });
+    });
+    after(async function () {
+      await killAllSimulators();
+      // only want to get rid of the device if it is present
+      let devicePresent = (await simctl.getDevices())[deviceType.version]
+        .filter((device) => {
+          return device.udid === sim.udid;
+        }).length > 0;
+      if (devicePresent) {
+        await simctl.deleteDevice(sim.udid);
+      }
+    });
+
+    it('should properly backup and restore Simulator keychains', async function () {
+      (await sim.backupKeychains()).should.be.true;
+      (await sim.restoreKeychains('*.db*')).should.be.true;
+    });
+  });
+
   describe(`multiple instances of ${deviceType.version} simulator on Xcode9+`, function () {
     this.timeout(LONG_TIMEOUT);
     const simulatorsMapping = new Map();
