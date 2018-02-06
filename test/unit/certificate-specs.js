@@ -79,6 +79,10 @@ describe('when using Certificate class', () => {
     certificate = await new Certificate(`${assetsDir}/test-pem.pem`);
   });
 
+  afterEach(async () => {
+    await certificate.remove(assetsDir);
+  });
+
   it('can translate PEM certificate to DER format', async () => {
     let derData = await certificate.getDerData();
     let testData = await fs.readFile(`${assetsDir}/Library/certificates/test-data.txt`);
@@ -98,9 +102,9 @@ describe('when using Certificate class', () => {
   });
 
   it('can add a certificate to a sqlite store', async () => {
+    await certificate.has(assetsDir).should.eventually.be.false;
     await certificate.add(assetsDir);
-    let hasCert = await certificate.has(assetsDir);
-    expect(hasCert);
+    await certificate.has(assetsDir).should.eventually.be.true;
   });
 
   it('can add and remove a certificate to a sqlite store', async () => {
