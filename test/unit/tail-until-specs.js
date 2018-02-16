@@ -6,7 +6,7 @@ import path from 'path';
 chai.should();
 chai.use(chaiAsPromised);
 
-describe('tail-until', () => {
+describe('tail-until', function () {
 
   it('rejects when timeout is hit', async function () {
     this.timeout('10 * 1000');

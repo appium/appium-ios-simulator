@@ -18,58 +18,58 @@ let simulatorClasses = {
 };
 
 for (let [name, simClass] of _.toPairs(simulatorClasses)) {
-  describe(`common methods - ${name}`, () => {
+  describe(`common methods - ${name}`, function () {
     let sim;
-    beforeEach(() => {
+    beforeEach(function () {
       sim = new simClass('123', '6.0.0');
     });
 
-    it('should exist', () => {
+    it('should exist', function () {
       simClass.should.exist;
     });
 
-    it('should return a path for getDir()', () => {
+    it('should return a path for getDir()', function () {
       sim.getDir().should.exist;
     });
 
-    it('should return an array for getAppDirs()', async () => {
-      sinon.stub(sim, 'getAppDir').returns(Promise.resolve(['/App/Path/']));
+    it('should return an array for getAppDirs()', async function () {
+      let stub = sinon.stub(sim, 'getAppDir').returns(Promise.resolve(['/App/Path/']));
       sim._platformVersion = 9.1;
       let dirs = await sim.getAppDirs('test');
       dirs.should.have.length(2);
       dirs.should.be.a('array');
-      sinon.restore();
+      stub.restore();
     });
 
-    describe('cleanCustomApp', () => {
+    describe('cleanCustomApp', function () {
       let sandbox;
       let appBundleId = 'com.some.app';
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox = sinon.sandbox.create();
         sandbox.spy(fs, 'rimraf');
       });
-      afterEach(() => {
+      afterEach(function () {
         sandbox.restore();
       });
-      it('should not delete anything if no directories are found', async () => {
+      it('should not delete anything if no directories are found', async function () {
         sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
         sandbox.stub(sim, 'getAppDir').returns(Promise.resolve());
         await sim.cleanCustomApp('someApp', 'com.some.app');
         sinon.assert.notCalled(fs.rimraf);
       });
-      it('should delete app directories', async () => {
+      it('should delete app directories', async function () {
         sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
         sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', 'com.some.app');
         sinon.assert.called(fs.rimraf);
       });
-      it('should delete plist file for iOS8+', async () => {
+      it('should delete plist file for iOS8+', async function () {
         sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(9));
         sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', appBundleId);
         sinon.assert.calledWithMatch(fs.rimraf, /plist/);
       });
-      it('should not delete plist file for iOS7.1', async () => {
+      it('should not delete plist file for iOS7.1', async function () {
         sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
         sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', appBundleId);
@@ -77,7 +77,7 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
       });
     });
 
-    it('should return a path for getLogDir', () => {
+    it('should return a path for getLogDir', function () {
       const home = process.env.HOME;
       process.env.HOME = __dirname;
       let logDir = sim.getLogDir();
@@ -85,20 +85,20 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
       process.env.HOME = home;
     });
 
-    describe('getPlatformVersion', () => {
+    describe('getPlatformVersion', function () {
       let statStub;
       let platformVersion = 8.9;
-      beforeEach(() => {
+      beforeEach(function () {
         statStub = sinon.stub(sim, 'stat').returns({sdk: platformVersion});
       });
-      afterEach(() => {
+      afterEach(function () {
         statStub.restore();
       });
-      it('should get the correct platform version', async () => {
+      it('should get the correct platform version', async function () {
         let pv = await sim.getPlatformVersion();
         pv.should.equal(platformVersion);
       });
-      it('should only call stat once', async () => {
+      it('should only call stat once', async function () {
         let pv = await sim.getPlatformVersion();
         pv.should.equal(platformVersion);
         statStub.calledOnce.should.be.true;

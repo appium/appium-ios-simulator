@@ -20,13 +20,13 @@ let trustStore;
 let testUUID;
 let tempDirectory;
 
-describe('when using TrustStore class', () => {
+describe('when using TrustStore class', function () {
 
   function getUUID () {
     return uuid.v4().replace(/\-/g, '');
   }
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
     await fs.rimraf(keychainsDir);
     copySync(keychainsDirOriginal, keychainsDir);
@@ -34,20 +34,20 @@ describe('when using TrustStore class', () => {
     testUUID = getUUID();
   });
 
-  it('can add a record to the TrustStore tsettings', async () => {
+  it('can add a record to the TrustStore tsettings', async function () {
     expect(await trustStore.hasRecords(testUUID)).to.be.false;
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
     expect(await trustStore.hasRecords(testUUID)).to.be.true;
   });
 
-  it('can add and remove records to in TrustStore tsettings', async () => {
+  it('can add and remove records to in TrustStore tsettings', async function () {
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
     expect(await trustStore.hasRecords(testUUID)).to.be.true;
     await trustStore.removeRecord(testUUID);
     expect(await trustStore.hasRecords(testUUID)).to.be.false;
   });
 
-  it('can update a record in the TrustStore tsettings', async () => {
+  it('can update a record in the TrustStore tsettings', async function () {
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '0123');
     await trustStore.addRecord(getUUID(), 'tset', testUUID, '4567');
 
@@ -55,59 +55,59 @@ describe('when using TrustStore class', () => {
   });
 });
 
-describe('when using TrustStore class when the keychains directory doesn\'t exist', () => {
-  beforeEach(async () => {
+describe('when using TrustStore class when the keychains directory doesn\'t exist', function () {
+  beforeEach(async function () {
     tempDirectory = `${assetsDir}/temp`;
     await fs.rimraf(tempDirectory);
     await fs.mkdir(tempDirectory);
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await fs.rimraf(tempDirectory);
   });
 
-  it('will create a new keychains directory with a SQLite DB', async () => {
+  it('will create a new keychains directory with a SQLite DB', async function () {
     let newTrustStore = new TrustStore(tempDirectory);
     await newTrustStore.addRecord('0123', 'test', 'test', '0123');
     expect(await newTrustStore.hasRecords('test')).to.be.true;
   });
 });
 
-describe('when using Certificate class', () => {
+describe('when using Certificate class', function () {
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     certificate = await new Certificate(`${assetsDir}/test-pem.pem`);
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await certificate.remove(assetsDir);
   });
 
-  it('can translate PEM certificate to DER format', async () => {
+  it('can translate PEM certificate to DER format', async function () {
     let derData = await certificate.getDerData();
     let testData = await fs.readFile(`${assetsDir}/Library/certificates/test-data.txt`);
     expect(testData.equals(derData));
   });
 
-  it('can get a fingerprint from a PEM certificate', async () => {
+  it('can get a fingerprint from a PEM certificate', async function () {
     let fingerprint = await certificate.getFingerPrint();
     let testFingerprint = await fs.readFile(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
     expect(fingerprint.equals(testFingerprint));
   });
 
-  it('can get a subject from a PEM certificate', async () => {
+  it('can get a subject from a PEM certificate', async function () {
     let subject = await certificate.getSubject(`${assetsDir}/test-pem.pem`);
     let testSubject = await fs.readFile(`${assetsDir}/Library/certificates/test-subj.txt`, 'utf-8');
     expect(subject).to.equal(testSubject);
   });
 
-  it('can add a certificate to a sqlite store', async () => {
+  it('can add a certificate to a sqlite store', async function () {
     await certificate.has(assetsDir).should.eventually.be.false;
     await certificate.add(assetsDir);
     await certificate.has(assetsDir).should.eventually.be.true;
   });
 
-  it('can add and remove a certificate to a sqlite store', async () => {
+  it('can add and remove a certificate to a sqlite store', async function () {
     await certificate.add(assetsDir);
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
@@ -116,7 +116,7 @@ describe('when using Certificate class', () => {
     expect(!hasCert);
   });
 
-  it('can add a certificate and then remove the same certificate later', async () => {
+  it('can add a certificate and then remove the same certificate later', async function () {
     await certificate.add(assetsDir);
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);

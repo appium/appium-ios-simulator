@@ -44,25 +44,25 @@ const XCODE_VERSION_6 = {
 
 let assetsDir = `${process.cwd()}/test/assets`;
 
-describe('util', () => {
+describe('util', function () {
   let execStub;
   let xcodeMock;
   let getDevicesStub;
 
-  beforeEach(() => {
+  beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
-  afterEach(() => {
+  afterEach(function () {
     execStub.restore();
     xcodeMock.restore();
     nodeSimctl.getDevices.restore();
   });
 
-  describe('killAllSimulators', () => {
-    it('should call exec thrice if pgrep does not find any running Simulator with Xcode9', async () => {
+  describe('killAllSimulators', function () {
+    it('should call exec thrice if pgrep does not find any running Simulator with Xcode9', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_9));
       execStub.withArgs('xcrun').returns();
       execStub.withArgs('osascript').returns('');
@@ -71,7 +71,7 @@ describe('util', () => {
       await killAllSimulators();
       execStub.calledThrice.should.be.true;
     });
-    it('should call exec thrice if pgrep does not find any running Simulator with Xcode8', async () => {
+    it('should call exec thrice if pgrep does not find any running Simulator with Xcode8', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
       execStub.withArgs('xcrun').returns();
       execStub.withArgs('osascript').throws();
@@ -80,7 +80,7 @@ describe('util', () => {
       await killAllSimulators();
       execStub.calledThrice.should.be.true;
     });
-    it('should call exec 4 times if pgrep does find running Simulator with Xcode6 and shutdown fails', async () => {
+    it('should call exec 4 times if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
       execStub.withArgs('pgrep').returns('0');
       execStub.withArgs('osascript').returns('0');
@@ -94,12 +94,12 @@ describe('util', () => {
     });
   });
 
-  describe('endAllSimulatorDaemons', () => {
-    it('should call exec five times to stop and remove each service', async () => {
+  describe('endAllSimulatorDaemons', function () {
+    it('should call exec five times to stop and remove each service', async function () {
       await endAllSimulatorDaemons();
       execStub.callCount.should.equal(5);
     });
-    it('should ignore all errors', async () => {
+    it('should ignore all errors', async function () {
       execStub.throws();
       await endAllSimulatorDaemons().should.not.be.rejected;
       execStub.callCount.should.equal(5);
@@ -107,8 +107,8 @@ describe('util', () => {
     });
   });
 
-  describe('simExists', () => {
-    it('returns true if device is found', async () => {
+  describe('simExists', function () {
+    it('returns true if device is found', async function () {
       let existence = [
         simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
         simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
@@ -123,7 +123,7 @@ describe('util', () => {
       }
     });
 
-    it('returns false if device is not found', async () => {
+    it('returns false if device is not found', async function () {
       let existence = [];
       existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
       existence.push(simExists('asdf'));
@@ -139,10 +139,10 @@ describe('util', () => {
 
 });
 
-describe('installSSLCert and uninstallSSLCert', () => {
+describe('installSSLCert and uninstallSSLCert', function () {
 
-  it('should install and uninstall certs in keychain directories', async () => {
-    let simulatorGetDirStub = sinon.stub(Simulator.prototype, 'getDir', function () {
+  it('should install and uninstall certs in keychain directories', async function () {
+    let simulatorGetDirStub = sinon.stub(Simulator.prototype, 'getDir').callsFake(function () {
       return path.resolve(assetsDir);
     });
     let testPem = await fs.readFile(path.resolve(assetsDir, 'test-pem.pem'));
@@ -155,20 +155,20 @@ describe('installSSLCert and uninstallSSLCert', () => {
     simulatorGetDirStub.restore();
   });
 
-  it('should throw exception if openssl is unavailable', async () => {
-    let whichStub = sinon.stub(fs, 'which', () => {
-      throw 'no openssl';
+  it('should throw exception if openssl is unavailable', async function () {
+    let whichStub = sinon.stub(fs, 'which').callsFake(function () {
+      throw new Error('no openssl');
     });
     await installSSLCert(`doesn't matter`, `doesn't matter`).should.be.rejected;
     whichStub.calledOnce.should.be.true;
     whichStub.restore();
   });
 
-  it('should throw exception on installSSLCert if udid is invalid', async () => {
+  it('should throw exception on installSSLCert if udid is invalid', async function () {
     await installSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 
-  it('should throw exception on uninstallSSLCert if udid is invalid', async () => {
+  it('should throw exception on uninstallSSLCert if udid is invalid', async function () {
     await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 

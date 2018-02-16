@@ -17,9 +17,9 @@ chai.should();
 let expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe('settings', () => {
+describe('settings', function () {
   let sim;
-  before(() => {
+  before(function () {
     // create a simulator object that returns our fixture directory
     sim = new SimulatorXcode6();
     sim.xcodeVersion = {
@@ -32,23 +32,23 @@ describe('settings', () => {
     sinon.stub(sim, 'getDir').returns(SIM_DIRECTORY);
   });
 
-  describe('general plist handling', () => {
+  describe('general plist handling', function () {
     const plist = path.resolve('test/assets/sample.plist');
     const expectedField = 'com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework';
     let tmpPlist;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       let temp = await tempDir.path();
       tmpPlist = path.resolve(temp, 'sample.plist');
       await fs.copyFile(plist, tmpPlist);
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(tmpPlist);
     });
 
-    it('should update a plist', async () => {
+    it('should update a plist', async function () {
       let originalData = await read(tmpPlist);
       originalData[expectedField]
         .Whitelisted = true;
@@ -61,14 +61,14 @@ describe('settings', () => {
       originalData.should.eql(updatedData);
     });
 
-    it('should read a plist', async () => {
+    it('should read a plist', async function () {
       let data = await read(tmpPlist);
       data[expectedField]
         .should.be.an.instanceof(Object);
     });
   });
 
-  describe('location services', () => {
+  describe('location services', function () {
     const clientFixtureFile = path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'clients-fixture.plist');
     const clientFile = path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'clients.plist');
     const cacheFixtureFiles = [
@@ -79,7 +79,7 @@ describe('settings', () => {
       path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'cache.plist'),
       path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', 'com.apple.locationd.plist')
     ];
-    beforeEach(async () => {
+    beforeEach(async function () {
       // make a copy of the clients plist
       await fs.copyFile(clientFixtureFile, clientFile);
 
@@ -88,7 +88,7 @@ describe('settings', () => {
         await fs.copyFile(cacheFixtureFiles[i], cacheFiles[i]);
       }
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(clientFile);
       for (let file of cacheFiles) {
@@ -96,17 +96,17 @@ describe('settings', () => {
       }
     });
 
-    describe('client plist', () => {
+    describe('client plist', function () {
       let data;
       const weirdLocKey = 'com.apple.locationd.bundle-/System/Library/' +
                           'PrivateFrameworks/AOSNotification.framework';
-      beforeEach(async () => {
+      beforeEach(async function () {
         data = await read(clientFile);
         expect(data['com.apple.mobilesafari']).to.not.exist;
         expect(data[weirdLocKey]).to.not.exist;
       });
 
-      it('should update', async () => {
+      it('should update', async function () {
         await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await read(clientFile);
@@ -115,7 +115,7 @@ describe('settings', () => {
         finalData['com.apple.mobilesafari'].Authorized.should.be.true;
       });
 
-      it('should update an already existing bundle without changing anything but Authorized', async () => {
+      it('should update an already existing bundle without changing anything but Authorized', async function () {
         await updateLocationSettings(sim, 'io.appium.test', true);
 
         let finalData = await read(clientFile);
@@ -129,7 +129,7 @@ describe('settings', () => {
         updatedRecord.Authorized.should.not.equal(originalRecord.Authorized);
       });
 
-      it('should update with weird location key', async () => {
+      it('should update with weird location key', async function () {
         await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await read(clientFile);
@@ -138,8 +138,8 @@ describe('settings', () => {
       });
     });
 
-    describe('cache plists', () => {
-      it('should update both files', async () => {
+    describe('cache plists', function () {
+      it('should update both files', async function () {
         await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         for (let file of cacheFiles) {
@@ -152,19 +152,19 @@ describe('settings', () => {
     });
   });
 
-  describe('updateLocale', () => {
+  describe('updateLocale', function () {
     const globalPlistFixtureFile = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences-fixture.plist');
     const globalPlistFile = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences.plist');
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       await fs.copyFile(globalPlistFixtureFile, globalPlistFile);
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(globalPlistFile);
     });
 
-    it('should update language', async () => {
+    it('should update language', async function () {
       let originalData = await read(globalPlistFile);
 
       await updateLocale(sim, 'rr');
@@ -173,14 +173,14 @@ describe('settings', () => {
       finalData.AppleLanguages.should.include('rr');
     });
 
-    it('should not do anything when language is already present', async () => {
+    it('should not do anything when language is already present', async function () {
       let originalData = await read(globalPlistFile);
 
       await updateLocale(sim, 'en');
       (await read(globalPlistFile)).should.eql(originalData);
     });
 
-    it('should update locale', async () => {
+    it('should update locale', async function () {
       let originalData = await read(globalPlistFile);
 
       await updateLocale(sim, undefined, 'fr_US');
@@ -190,7 +190,7 @@ describe('settings', () => {
       finalData.AppleLocale.should.include('fr_US');
     });
 
-    it('should update calendarFormat', async () => {
+    it('should update calendarFormat', async function () {
       let originalData = await read(globalPlistFile);
 
       await updateLocale(sim, undefined, undefined, 'something');
@@ -200,7 +200,7 @@ describe('settings', () => {
       finalData.AppleLocale.should.include('@calendar=something');
     });
 
-    it('should preserve the calendarFormat when updating locale alone', async () => {
+    it('should preserve the calendarFormat when updating locale alone', async function () {
       let originalData = await read(globalPlistFile);
 
       // get a calendar format into the plist
@@ -219,7 +219,7 @@ describe('settings', () => {
     });
   });
 
-  describe('updateSafariUserSettings', () => {
+  describe('updateSafariUserSettings', function () {
     const fixtureFiles = [
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'EffectiveUserSettings-fixture.plist'),
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'UserSettings-fixture.plist'),
@@ -231,13 +231,13 @@ describe('settings', () => {
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'PublicInfo', 'PublicEffectiveUserSettings.plist')
     ];
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       // make a copy of the fixture
       for (let i = 0; i < fixtureFiles.length; i++) {
         await fs.copyFile(fixtureFiles[i], realFiles[i]);
       }
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plists we made
       for (let file of realFiles) {
         await fs.unlink(file);
@@ -250,7 +250,7 @@ describe('settings', () => {
       }, true);
     }
 
-    it ('should update all the files', async () => {
+    it ('should update all the files', async function () {
       let originalData = await getData();
 
       let settingSet = {
