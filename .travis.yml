@@ -1,25 +1,26 @@
 sudo: required
 os: osx
 language: node_js
+node_js: "6"
 matrix:
   include:
     - osx_image: xcode7.3
-      node_js: "6"
       env: DEVICE=9.3
 
     - osx_image: xcode8.3
-      node_js: "6"
       env: DEVICE=9.3
     - osx_image: xcode8.3
-      node_js: "6"
       env: DEVICE=10.3
 
-    - osx_image: xcode9
-      node_js: "6"
+    - osx_image: xcode9.2
       env: DEVICE=10.3
-    - osx_image: xcode9
-      node_js: "6"
-      env: DEVICE=11.0
+    - osx_image: xcode9.2
+      env: DEVICE=11.2
+
+    - osx_image: xcode9.3beta
+      env: DEVICE=10.3
+    - osx_image: xcode9.3beta
+      env: DEVICE=11.3
 
 script:
   - npm test && _FORCE_LOGS=1 npm run mocha -- -R spec build/test/**/*-e2e-specs.js
