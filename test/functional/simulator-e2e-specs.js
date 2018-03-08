@@ -17,6 +17,22 @@ const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
 chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+async function deleteSimulator (udid, version) {
+  // only want to get rid of the device if it is present
+  let devices = await simctl.getDevices();
+  if (!devices[version]) {
+    return;
+  }
+  let devicePresent = devices[version]
+    .filter((device) => {
+      return device.udid === udid;
+    }).length > 0;
+  if (devicePresent) {
+    await simctl.deleteDevice(udid);
+  }
+}
 
 function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
@@ -42,14 +58,7 @@ function runTests (deviceType) {
     });
     afterEach(async function () {
       await killAllSimulators();
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(udid);
-      }
+      await deleteSimulator(udid, deviceType.version);
     });
 
     async function installApp (sim, app) {
@@ -301,14 +310,7 @@ function runTests (deviceType) {
     });
     after(async function () {
       await killAllSimulators();
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === sim.udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(sim.udid);
-      }
+      await deleteSimulator(sim.udid, deviceType.version);
     });
 
     it('should start a sim using the "run" method', async function () {
@@ -339,14 +341,7 @@ function runTests (deviceType) {
     });
     after(async function () {
       await killAllSimulators();
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === sim.udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(sim.udid);
-      }
+      await deleteSimulator(sim.udid, deviceType.version);
     });
 
     // FIXME: Remove this test after Appium's parent process has accessibility permissions
@@ -398,14 +393,7 @@ function runTests (deviceType) {
     });
     after(async function () {
       await killAllSimulators();
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === sim.udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(sim.udid);
-      }
+      await deleteSimulator(sim.udid, deviceType.version);
     });
 
     it('should properly backup and restore Simulator keychains', async function () {
@@ -454,6 +442,78 @@ function runTests (deviceType) {
       await B.map(simulators, (sim) => verifyStates(sim, false, true));
     });
   });
+
+  describe('getWebInspectorSocket', function () {
+    this.timeout(LONG_TIMEOUT);
+    let sim;
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+      });
+    });
+    after(async function () {
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
+    });
+    it('should get a socket when appropriate', async function () {
+      let socket = await sim.getWebInspectorSocket();
+
+      if (parseFloat(deviceType.version) < 11.3) {
+        expect(socket).to.be.null;
+      } else {
+        socket.should.include('/private/tmp/com.apple.launchd');
+        socket.should.include('com.apple.webinspectord_sim.socket');
+      }
+    });
+    describe('two simulators', function () {
+      let sim2;
+
+      before(async function () {
+        if (parseFloat(deviceType.version) < 11.3) {
+          // no need to do this below 11.3, since there will not be a socket
+          return this.skip();
+        }
+
+        let udid = await simctl.createDevice('ios-simulator testing',
+                                         deviceType.device,
+                                         deviceType.version);
+        sim2 = await getSimulator(udid);
+        await sim2.run({
+          startupTimeout: LONG_TIMEOUT,
+        });
+      });
+      after(async function () {
+        await killAllSimulators();
+        if (sim2) {
+          await deleteSimulator(sim2.udid, deviceType.version);
+        }
+      });
+      it('should not confuse two different simulators', async function () {
+        let socket = await sim.getWebInspectorSocket();
+        socket.should.exist;
+
+        let socket2 = await sim2.getWebInspectorSocket();
+        socket2.should.exist;
+
+        socket.should.not.eql(socket2);
+      });
+      it('should always get the same socket', async function () {
+        let socket = await sim.getWebInspectorSocket();
+        for (let i = 0; i < 10; i++) {
+          sim.webInspectorSocket = null;
+          let socket2 = await sim.getWebInspectorSocket();
+          socket.should.eql(socket2);
+          socket = socket2;
+        }
+      });
+    });
+  });
 }
 
 
@@ -478,13 +538,17 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
       device: 'iPhone 6s'
     },
     {
-      version: '10.2',
+      version: '10.3',
       device: 'iPhone 6s'
     },
     {
       version: '11.0',
       device: 'iPhone 6s'
     },
+    {
+      version: '11.3',
+      device: 'iPhone 6s'
+    }
   ];
 } else {
   // on travis, we want to just do what we specify
