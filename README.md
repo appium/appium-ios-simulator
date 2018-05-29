@@ -6,7 +6,8 @@
 [![devDependency Status](https://david-dm.org/appium/appium-ios-simulator/master/dev-status.svg)](https://david-dm.org/appium/appium-ios-simulator/master#info=devDependencies)
 
 [![Build Status](https://api.travis-ci.org/appium/appium-ios-simulator.png?branch=master)](https://travis-ci.org/appium/appium-ios-simulator)
-[![Coverage Status](https://coveralls.io/repos/appium/appium-ios-simulator/badge.svg?branch=master)](https://coveralls.io/r/appium/appium-ios-simulator?branch=master) [![Greenkeeper badge](https://badges.greenkeeper.io/appium/appium-ios-simulator.svg)](https://greenkeeper.io/)
+[![Coverage Status](https://coveralls.io/repos/appium/appium-ios-simulator/badge.svg?branch=master)](https://coveralls.io/r/appium/appium-ios-simulator?branch=master)
+[![Greenkeeper badge](https://badges.greenkeeper.io/appium/appium-ios-simulator.svg)](https://greenkeeper.io/)
 
 Appium API for dealing with iOS simulators. Allows the user to find locations of directories and applications, gives access to settings in order to read from and write to simulator plists, and allows control over starting and stopping simulators.
 
