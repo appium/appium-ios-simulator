@@ -45,7 +45,7 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
       let sandbox;
       let appBundleId = 'com.some.app';
       beforeEach(function () {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         sandbox.spy(fs, 'rimraf');
       });
       afterEach(function () {
