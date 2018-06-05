@@ -325,7 +325,7 @@ function runTests (deviceType) {
     });
   });
 
-  describe('touch ID enrollment', async function () {
+  describe('biometric (touch Id, face Id) enrollment', async function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
@@ -343,37 +343,40 @@ function runTests (deviceType) {
       await killAllSimulators();
       await deleteSimulator(sim.udid, deviceType.version);
     });
+    const biometrics = ['touchId', 'faceId'];
 
-    // FIXME: Remove this test after Appium's parent process has accessibility permissions
-    // on Travis
-    it('should fail if cannot enroll Touch ID', async function () {
-      if (!process.env.TRAVIS) {
-        this.skip();
-      }
-      const errorPattern = /is present in System Preferences/;
-      await sim.enrollTouchID().should.eventually.be.rejectedWith(errorPattern);
-      await sim.isTouchIDEnrolled().should.eventually.be.rejectedWith(errorPattern);
-    });
-
-    it('should properly enroll Touch ID to enabled state', async function () {
-      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+    for (let biometric of biometrics) {
+      // FIXME: Remove this test after Appium's parent process has accessibility permissions
       // on Travis
-      if (process.env.TRAVIS) {
-        this.skip();
-      }
-      await sim.enrollTouchID();
-      (await sim.isTouchIDEnrolled()).should.be.true;
-    });
+      it(`should fail if cannot enroll ${biometric}`, async function () {
+        if (!process.env.TRAVIS) {
+          this.skip();
+        }
+        const errorPattern = /is present in System Preferences/;
+        await sim.enrollBiometric(true, biometric).should.eventually.be.rejectedWith(errorPattern);
+        await sim.isBiometricEnrolled(biometric).should.eventually.be.rejectedWith(errorPattern);
+      });
 
-    it('should properly enroll Touch ID to disabled state', async function () {
-      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
-      // on Travis
-      if (process.env.TRAVIS) {
-        this.skip();
-      }
-      await sim.enrollTouchID(false);
-      (await sim.isTouchIDEnrolled()).should.be.false;
-    });
+      it(`should properly enroll ${biometric} to enabled state`, async function () {
+        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+        // on Travis
+        if (process.env.TRAVIS) {
+          this.skip();
+        }
+        await sim.enrollBiometric(true, biometric);
+        (await sim.isBiometricEnrolled(biometric)).should.be.true;
+      });
+
+      it(`should properly enroll ${biometric} to disabled state`, async function () {
+        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+        // on Travis
+        if (process.env.TRAVIS) {
+          this.skip();
+        }
+        await sim.enrollBiometric(false, biometric);
+        (await sim.isBiometricEnrolled(biometric)).should.be.false;
+      });
+    }
   });
 
 
@@ -521,7 +524,7 @@ let deviceTypes;
 if (!process.env.TRAVIS && !process.env.DEVICE) {
   console.log('Not on TRAVIS, testing all versions'); // eslint-disable-line no-console
   deviceTypes = [
-    {
+    /*{
       version: '9.2',
       device: 'iPhone 6s'
     },
@@ -548,6 +551,10 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
     {
       version: '11.3',
       device: 'iPhone 6s'
+    },*/
+    {
+      version: '11.4',
+      device: 'iPhone X'
     }
   ];
 } else {
