@@ -532,7 +532,7 @@ let deviceTypes;
 if (!process.env.TRAVIS && !process.env.DEVICE) {
   console.log('Not on TRAVIS, testing all versions'); // eslint-disable-line no-console
   deviceTypes = [
-    /*{
+    {
       version: '9.2',
       device: 'iPhone 6s'
     },
@@ -559,7 +559,7 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
     {
       version: '11.3',
       device: 'iPhone 6s'
-    },*/
+    },
     {
       version: '11.4',
       device: 'iPhone X'
