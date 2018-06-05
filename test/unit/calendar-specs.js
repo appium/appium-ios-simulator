@@ -18,13 +18,12 @@ let tccDirOriginal = `${assetsDir}/Library/TCC-Original`;
 let bundleID = 'com.fake.bundleid';
 
 describe('Calendar.js', function () {
-
   let calendar;
 
   beforeEach(async function () {
     await fs.rimraf(tccDir);
     copySync(tccDirOriginal, tccDir);
-    calendar = new Calendar(assetsDir);
+    calendar = new Calendar({major: 9}, assetsDir);
   });
 
   after(async function () {
