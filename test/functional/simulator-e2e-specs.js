@@ -363,8 +363,12 @@ function runTests (deviceType) {
         if (process.env.TRAVIS) {
           this.skip();
         }
-        await sim.enrollBiometric(true, biometric);
-        (await sim.isBiometricEnrolled(biometric)).should.be.true;
+        try {
+          await sim.enrollBiometric(true, biometric);
+          (await sim.isBiometricEnrolled(biometric)).should.be.true;
+        } catch (e) {
+          e.message.should.match(/not supported/);
+        }
       });
 
       it(`should properly enroll ${biometric} to disabled state`, async function () {
@@ -373,8 +377,12 @@ function runTests (deviceType) {
         if (process.env.TRAVIS) {
           this.skip();
         }
-        await sim.enrollBiometric(false, biometric);
-        (await sim.isBiometricEnrolled(biometric)).should.be.false;
+        try {
+          await sim.enrollBiometric(false, biometric);
+          (await sim.isBiometricEnrolled(biometric)).should.be.false;
+        } catch (e) {
+          e.message.should.match(/not supported/);
+        }
       });
     }
   });
