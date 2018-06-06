@@ -56,13 +56,6 @@ describe('simulator', function () {
       await getSimulator(UDID).should.eventually.be.rejectedWith('version');
     });
 
-    it('should throw an error if xcode version above 10', async function () {
-      let xcodeVersion = {major: 11, versionString: '11.0.0'};
-      xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
-
-      await getSimulator(UDID).should.eventually.be.rejectedWith('not yet');
-    });
-
     it('should throw an error if udid does not exist', async function () {
       await getSimulator('123').should.be.rejectedWith('No sim found');
     });
