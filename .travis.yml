@@ -12,16 +12,16 @@ matrix:
     - osx_image: xcode8.3
       env: DEVICE=10.3
 
-    - osx_image: xcode9.2
+    - osx_image: xcode9.3
       env: DEVICE=10.3
-    - osx_image: xcode9.2
-      env: DEVICE=11.2
-
-    - osx_image: xcode9.3beta
-      env: DEVICE=10.3
-    - osx_image: xcode9.3beta
+    - osx_image: xcode9.3
       env: DEVICE=11.3
 
+    # TODO: uncomment once Travis 9.4 VMs have iOS 11.3 SDK installed
+    # - osx_image: xcode9.4
+    #   env: DEVICE=11.3
+    - osx_image: xcode9.4
+      env: DEVICE=11.4
 script:
   - npm test && _FORCE_LOGS=1 npm run mocha -- -R spec build/test/**/*-e2e-specs.js
 after_success:
