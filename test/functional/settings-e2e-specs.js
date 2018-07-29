@@ -25,13 +25,14 @@ describe(`check simulator accesibility settings`, function () {
     console.log('\n\n'); // eslint-disable-line no-console
   });
 
-  afterEach(async function () {
+  after(async function () {
     // only want to get rid of the device if it is present
     let devicePresent = (await simctl.getDevices())[deviceType.version]
       .filter((device) => {
         return device.udid === udid;
       }).length > 0;
     if (devicePresent) {
+      await killAllSimulators();
       await simctl.deleteDevice(udid);
     }
   });
@@ -50,6 +51,5 @@ describe(`check simulator accesibility settings`, function () {
       let settings = fileSettings[file];
       settings.ReduceMotionEnabled.should.eql(0);
     }
-    await killAllSimulators();
   });
 });
