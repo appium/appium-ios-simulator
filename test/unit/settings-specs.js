@@ -3,7 +3,7 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { update, read, updateLocationSettings, updateLocale,
-         updateSafariUserSettings } from '../../lib/settings';
+        updateSafariUserSettings } from '../../lib/settings';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import path from 'path';
 import { tempDir, fs } from 'appium-support';
@@ -268,6 +268,40 @@ describe('settings', () => {
         finalData[i].restrictedBool.safariAllowPopups.value.should.be.false;
         finalData[i].restrictedBool.safariForceFraudWarning.value.should.be.true;
       }
+    });
+  });
+
+  describe('reduceMotion', () => {
+    let sim, sandbox;
+    before(async () => {
+      sim = new SimulatorXcode6();
+      sandbox = sinon.sandbox.create();
+      sinon.stub(sim.settings, 'reduceMotion');
+    });
+
+    afterEach(async () => {
+      sandbox.restore();
+    });
+
+    it('should kill simulator before setting reduce motion', async () => {
+      sandbox.stub(sim, 'isRunning').returns(true);
+      sandbox.stub(sim, 'endSimulatorDaemon');
+      await sim.reduceMotion(true);
+      sim.endSimulatorDaemon.calledOnce.should.eql(true);
+    });
+
+    it('should launch simulator if not fresh before setting reduce motion', async () => {
+      sandbox.stub(sim, 'isRunning').returns(false);
+      sandbox.stub(sim, 'isFresh').returns(true);
+      sandbox.stub(sim, 'launchAndQuit');
+      await sim.reduceMotion(true);
+      sim.launchAndQuit.calledOnce.should.eql(true);
+    });
+
+    it('should just set reduce motion', async () => {
+      sandbox.stub(sim, 'isRunning').returns(false);
+      sandbox.stub(sim, 'isFresh').returns(false);
+      await sim.reduceMotion(true);
     });
   });
 });
