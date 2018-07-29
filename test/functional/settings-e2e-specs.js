@@ -1,8 +1,10 @@
 import * as simctl from 'node-simctl';
 import { getSimulator, killAllSimulators } from '../..';
+import { readSettings } from '../../lib/settings';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { LONG_TIMEOUT } from './helpers';
+import _ from 'lodash';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -40,15 +42,13 @@ describe(`check simulator accesibility settings`, function () {
   it("check accesibility reduce motion settings", async function () {
     let sim = await getSimulator(udid);
     await sim.reduceMotion(true);
-    let fileSettings = await sim.readSettings('accesibilitySettings');
-    for (let file in fileSettings) {
-      let settings = fileSettings[file];
+    let fileSettings = await readSettings(sim, 'accessibilitySettings');
+    for (let [, settings] of _.toPairs(fileSettings)) {
       settings.ReduceMotionEnabled.should.eql(1);
     }
     await sim.reduceMotion(false);
-    fileSettings = await sim.readSettings('accesibilitySettings');
-    for (let file in fileSettings) {
-      let settings = fileSettings[file];
+    fileSettings = await readSettings(sim, 'accessibilitySettings');
+    for (let [, settings] of _.toPairs(fileSettings)) {
       settings.ReduceMotionEnabled.should.eql(0);
     }
   });
