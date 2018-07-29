@@ -13,18 +13,18 @@ chai.should();
 chai.use(chaiAsPromised);
 
 
-describe('isolate sims', () => {
+describe('isolate sims', function () {
   let getDevicesStub;
 
-  beforeEach(() => {
+  beforeEach(function () {
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
     getDevicesStub.returns(Promise.resolve(devices));
   });
-  afterEach(() => {
+  afterEach(function () {
     nodeSimctl.getDevices.restore();
   });
 
-  it('getAllUdids', async () => {
+  it('getAllUdids', async function () {
     let udids = await getAllUdids();
     for (let udid in udids) {
       udid.should.be.a('string');

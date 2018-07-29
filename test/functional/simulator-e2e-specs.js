@@ -10,19 +10,28 @@ import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
-import { LONG_TIMEOUT } from './helpers';
+import { LONG_TIMEOUT, verifyStates } from './helpers';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
 
 chai.should();
 chai.use(chaiAsPromised);
+const expect = chai.expect;
 
-async function verifyStates (sim, shouldServerRun, shouldClientRun) {
-  const isServerRunning = await sim.isRunning();
-  isServerRunning.should.eql(shouldServerRun);
-  const isClientRunning = await sim.isUIClientRunning();
-  isClientRunning.should.eql(shouldClientRun);
+async function deleteSimulator (udid, version) {
+  // only want to get rid of the device if it is present
+  let devices = await simctl.getDevices();
+  if (!devices[version]) {
+    return;
+  }
+  let devicePresent = devices[version]
+    .filter((device) => {
+      return device.udid === udid;
+    }).length > 0;
+  if (devicePresent) {
+    await simctl.deleteDevice(udid);
+  }
 }
 
 function runTests (deviceType) {
@@ -36,10 +45,10 @@ function runTests (deviceType) {
       if (!exists) {
         app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
-      await killAllSimulators();
     });
 
     beforeEach(async function () {
+      await killAllSimulators();
       udid = await simctl.createDevice('ios-simulator testing',
                                        deviceType.device,
                                        deviceType.version,
@@ -48,15 +57,8 @@ function runTests (deviceType) {
       console.log('\n\n'); // eslint-disable-line no-console
     });
     afterEach(async function () {
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === udid;
-        }).length > 0;
-      if (devicePresent) {
-        await killAllSimulators();
-        await simctl.deleteDevice(udid);
-      }
+      await killAllSimulators();
+      await deleteSimulator(udid, deviceType.version);
     });
 
     async function installApp (sim, app) {
@@ -307,14 +309,8 @@ function runTests (deviceType) {
       await B.delay(4000);
     });
     after(async function () {
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === sim.udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(sim.udid);
-      }
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
     });
 
     it('should start a sim using the "run" method', async function () {
@@ -329,7 +325,7 @@ function runTests (deviceType) {
     });
   });
 
-  describe('touch ID enrollment', async function () {
+  describe('biometric (touch Id, face Id) enrollment', async function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
@@ -345,45 +341,75 @@ function runTests (deviceType) {
     });
     after(async function () {
       await killAllSimulators();
-      // only want to get rid of the device if it is present
-      let devicePresent = (await simctl.getDevices())[deviceType.version]
-        .filter((device) => {
-          return device.udid === sim.udid;
-        }).length > 0;
-      if (devicePresent) {
-        await simctl.deleteDevice(sim.udid);
-      }
+      await deleteSimulator(sim.udid, deviceType.version);
     });
+    const biometrics = ['touchId', 'faceId'];
 
-    // FIXME: Remove this test after Appium's parent process has accessibility permissions
-    // on Travis
-    it('should fail if cannot enroll Touch ID', async function () {
-      if (!process.env.TRAVIS) {
-        this.skip();
-      }
-      const errorPattern = /is present in System Preferences/;
-      await sim.enrollTouchID().should.eventually.be.rejectedWith(errorPattern);
-      await sim.isTouchIDEnrolled().should.eventually.be.rejectedWith(errorPattern);
-    });
-
-    it('should properly enroll Touch ID to enabled state', async function () {
-      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+    for (let biometric of biometrics) {
+      // FIXME: Remove this test after Appium's parent process has accessibility permissions
       // on Travis
-      if (process.env.TRAVIS) {
-        this.skip();
-      }
-      await sim.enrollTouchID();
-      (await sim.isTouchIDEnrolled()).should.be.true;
+      it(`should fail if cannot enroll ${biometric}`, async function () {
+        if (!process.env.TRAVIS) {
+          this.skip();
+        }
+        const errorPattern = /is present in System Preferences/;
+        await sim.enrollBiometric(true, biometric).should.eventually.be.rejectedWith(errorPattern);
+        await sim.isBiometricEnrolled(biometric).should.eventually.be.rejectedWith(errorPattern);
+      });
+
+      it(`should properly enroll ${biometric} to enabled state`, async function () {
+        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+        // on Travis
+        if (process.env.TRAVIS) {
+          this.skip();
+        }
+        try {
+          await sim.enrollBiometric(true, biometric);
+          (await sim.isBiometricEnrolled(biometric)).should.be.true;
+        } catch (e) {
+          e.message.should.match(/not supported/);
+        }
+      });
+
+      it(`should properly enroll ${biometric} to disabled state`, async function () {
+        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
+        // on Travis
+        if (process.env.TRAVIS) {
+          this.skip();
+        }
+        try {
+          await sim.enrollBiometric(false, biometric);
+          (await sim.isBiometricEnrolled(biometric)).should.be.false;
+        } catch (e) {
+          e.message.should.match(/not supported/);
+        }
+      });
+    }
+  });
+
+
+  describe('keychains backup', async function () {
+    let sim;
+    this.timeout(LONG_TIMEOUT);
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                           deviceType.device,
+                                           deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+      });
+    });
+    after(async function () {
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
     });
 
-    it('should properly enroll Touch ID to disabled state', async function () {
-      // FIXME: Remove this condition after Appium's parent process has accessibility permissions
-      // on Travis
-      if (process.env.TRAVIS) {
-        this.skip();
-      }
-      await sim.enrollTouchID(false);
-      (await sim.isTouchIDEnrolled()).should.be.false;
+    it('should properly backup and restore Simulator keychains', async function () {
+      (await sim.backupKeychains()).should.be.true;
+      (await sim.restoreKeychains('*.db*')).should.be.true;
     });
   });
 
@@ -427,6 +453,78 @@ function runTests (deviceType) {
       await B.map(simulators, (sim) => verifyStates(sim, false, true));
     });
   });
+
+  describe('getWebInspectorSocket', function () {
+    this.timeout(LONG_TIMEOUT);
+    let sim;
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+      });
+    });
+    after(async function () {
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
+    });
+    it('should get a socket when appropriate', async function () {
+      let socket = await sim.getWebInspectorSocket();
+
+      if (parseFloat(deviceType.version) < 11.3) {
+        expect(socket).to.be.null;
+      } else {
+        socket.should.include('/private/tmp/com.apple.launchd');
+        socket.should.include('com.apple.webinspectord_sim.socket');
+      }
+    });
+    describe('two simulators', function () {
+      let sim2;
+
+      before(async function () {
+        if (parseFloat(deviceType.version) < 11.3) {
+          // no need to do this below 11.3, since there will not be a socket
+          return this.skip();
+        }
+
+        let udid = await simctl.createDevice('ios-simulator testing',
+                                         deviceType.device,
+                                         deviceType.version);
+        sim2 = await getSimulator(udid);
+        await sim2.run({
+          startupTimeout: LONG_TIMEOUT,
+        });
+      });
+      after(async function () {
+        await killAllSimulators();
+        if (sim2) {
+          await deleteSimulator(sim2.udid, deviceType.version);
+        }
+      });
+      it('should not confuse two different simulators', async function () {
+        let socket = await sim.getWebInspectorSocket();
+        socket.should.exist;
+
+        let socket2 = await sim2.getWebInspectorSocket();
+        socket2.should.exist;
+
+        socket.should.not.eql(socket2);
+      });
+      it('should always get the same socket', async function () {
+        let socket = await sim.getWebInspectorSocket();
+        for (let i = 0; i < 10; i++) {
+          sim.webInspectorSocket = null;
+          let socket2 = await sim.getWebInspectorSocket();
+          socket.should.eql(socket2);
+          socket = socket2;
+        }
+      });
+    });
+  });
 }
 
 
@@ -451,13 +549,21 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
       device: 'iPhone 6s'
     },
     {
-      version: '10.2',
+      version: '10.3',
       device: 'iPhone 6s'
     },
     {
       version: '11.0',
       device: 'iPhone 6s'
     },
+    {
+      version: '11.3',
+      device: 'iPhone 6s'
+    },
+    {
+      version: '11.4',
+      device: 'iPhone X'
+    }
   ];
 } else {
   // on travis, we want to just do what we specify

@@ -17,23 +17,22 @@ let tccDir = `${assetsDir}/Library/TCC`;
 let tccDirOriginal = `${assetsDir}/Library/TCC-Original`;
 let bundleID = 'com.fake.bundleid';
 
-describe('Calendar.js', () => {
-
+describe('Calendar.js', function () {
   let calendar;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     await fs.rimraf(tccDir);
     copySync(tccDirOriginal, tccDir);
-    calendar = new Calendar(assetsDir);
+    calendar = new Calendar({major: 9}, assetsDir);
   });
 
-  after(async () => {
+  after(async function () {
     await fs.rimraf(tccDir);
   });
 
-  describe('getDB()', () => {
+  describe('getDB()', function () {
 
-    it('creates a new DB with a table named "access" if none existed in the first place', async () => {
+    it('creates a new DB with a table named "access" if none existed in the first place', async function () {
       await fs.rimraf(tccDir);
       expect(await fs.exists(tccDir)).to.be.false;
       await calendar.getDB(); // Lazily creates the .db
@@ -41,7 +40,7 @@ describe('Calendar.js', () => {
       (await calendar.getCalendarRowCount(bundleID)).should.equal(0);
     });
 
-    it('doesn\'t overwrite DB if one already exists', async () => {
+    it('doesn\'t overwrite DB if one already exists', async function () {
       let db = await calendar.getDB();
       let res = await execSQLiteQuery(db, `SELECT count(*) FROM access WHERE service='kTCCServiceCalendar'`);
       let count = parseInt(res.stdout.split('=')[1].trim(), 10);
@@ -50,14 +49,14 @@ describe('Calendar.js', () => {
 
   });
 
-  describe('enableCalendarAccess()', () => {
-    it('adds an item to the "access" table called "kTCCServiceCalendar"', async () => {
+  describe('enableCalendarAccess()', function () {
+    it('adds an item to the "access" table called "kTCCServiceCalendar"', async function () {
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(0);
       await calendar.enableCalendarAccess(bundleID);
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(1);
     });
 
-    it('will not fail and will only creates one entry if we call enableCalendarAccess() twice', async () => {
+    it('will not fail and will only creates one entry if we call enableCalendarAccess() twice', async function () {
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(0);
       await calendar.enableCalendarAccess(bundleID);
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(1);
@@ -65,7 +64,7 @@ describe('Calendar.js', () => {
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(1);
     });
 
-    it('overwrites any previous entries', async () => {
+    it('overwrites any previous entries', async function () {
       let db = await calendar.getDB();
 
       // Insert a entry into calendar with 'allowed = 0'
@@ -83,9 +82,9 @@ describe('Calendar.js', () => {
     });
   });
 
-  describe('disableCalendarAccess()', () => {
+  describe('disableCalendarAccess()', function () {
 
-    it('can enable and then disable', async () => {
+    it('can enable and then disable', async function () {
       await calendar.hasCalendarAccess(bundleID).should.eventually.be.false;
       await calendar.enableCalendarAccess(bundleID);
       await calendar.hasCalendarAccess(bundleID).should.eventually.be.true;
@@ -93,7 +92,7 @@ describe('Calendar.js', () => {
       await calendar.hasCalendarAccess(bundleID).should.eventually.be.false;
     });
 
-    it('does nothing if disableCalendarAccess called without calendar access being enabled', async () => {
+    it('does nothing if disableCalendarAccess called without calendar access being enabled', async function () {
       await calendar.disableCalendarAccess(bundleID).should.not.be.rejected;
     });
 

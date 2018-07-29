@@ -16,9 +16,9 @@ chai.should();
 let expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe('settings', () => {
+describe('settings', function () {
   let sim;
-  before(() => {
+  before(function () {
     // create a simulator object that returns our fixture directory
     sim = new SimulatorXcode6();
     sim.xcodeVersion = {
@@ -31,18 +31,18 @@ describe('settings', () => {
     sinon.stub(sim, 'getDir').returns(SIM_DIRECTORY);
   });
 
-  describe('general plist handling', () => {
+  describe('general plist handling', function () {
     const plist = path.resolve('test/assets/sample.plist');
     const expectedField = 'com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework';
     let tmpPlist;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       let temp = await tempDir.path();
       tmpPlist = path.resolve(temp, 'sample.plist');
       await fs.copyFile(plist, tmpPlist);
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(tmpPlist);
     });
@@ -67,7 +67,7 @@ describe('settings', () => {
     });
   });
 
-  describe('location services', () => {
+  describe('location services', function () {
     const clientFixtureFile = path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'clients-fixture.plist');
     const clientFile = path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'clients.plist');
     const cacheFixtureFiles = [
@@ -78,7 +78,7 @@ describe('settings', () => {
       path.resolve(SIM_DIRECTORY, 'Library', 'Caches', 'locationd', 'cache.plist'),
       path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', 'com.apple.locationd.plist')
     ];
-    beforeEach(async () => {
+    beforeEach(async function () {
       // make a copy of the clients plist
       await fs.copyFile(clientFixtureFile, clientFile);
 
@@ -87,7 +87,7 @@ describe('settings', () => {
         await fs.copyFile(cacheFixtureFiles[i], cacheFiles[i]);
       }
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(clientFile);
       for (let file of cacheFiles) {
@@ -95,7 +95,7 @@ describe('settings', () => {
       }
     });
 
-    describe('client plist', () => {
+    describe('client plist', function () {
       let data;
       const weirdLocKey = 'com.apple.locationd.bundle-/System/Library/' +
                           'PrivateFrameworks/AOSNotification.framework';
@@ -151,14 +151,14 @@ describe('settings', () => {
     });
   });
 
-  describe('updateLocale', () => {
+  describe('updateLocale', function () {
     const globalPlistFixtureFile = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences-fixture.plist');
     const globalPlistFile = path.resolve(SIM_DIRECTORY, 'Library', 'Preferences', '.GlobalPreferences.plist');
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       await fs.copyFile(globalPlistFixtureFile, globalPlistFile);
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plist we made
       await fs.unlink(globalPlistFile);
     });
@@ -218,7 +218,7 @@ describe('settings', () => {
     });
   });
 
-  describe('updateSafariUserSettings', () => {
+  describe('updateSafariUserSettings', function () {
     const fixtureFiles = [
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'EffectiveUserSettings-fixture.plist'),
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'UserSettings-fixture.plist'),
@@ -230,13 +230,13 @@ describe('settings', () => {
       path.resolve(SIM_DIRECTORY, 'Library', 'ConfigurationProfiles', 'PublicInfo', 'PublicEffectiveUserSettings.plist')
     ];
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       // make a copy of the fixture
       for (let i = 0; i < fixtureFiles.length; i++) {
         await fs.copyFile(fixtureFiles[i], realFiles[i]);
       }
     });
-    afterEach(async () => {
+    afterEach(async function () {
       // get rid of the temporary plists we made
       for (let file of realFiles) {
         await fs.unlink(file);
@@ -249,7 +249,7 @@ describe('settings', () => {
       }, true);
     }
 
-    it ('should update all the files', async () => {
+    it ('should update all the files', async function () {
       let originalData = await getData();
 
       let settingSet = {
