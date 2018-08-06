@@ -32,7 +32,7 @@ describe('settings', function () {
   });
 
   describe('general plist handling', function () {
-    const plist = path.resolve('test/assets/sample.plist');
+    const plist = path.resolve('test', 'assets', 'sample.plist');
     const expectedField = 'com.apple.locationd.bundle-/System/Library/PrivateFrameworks/Parsec.framework';
     let tmpPlist;
 
@@ -51,11 +51,24 @@ describe('settings', function () {
       let originalData = await settings.read(tmpPlist);
       originalData[expectedField]
         .Whitelisted = true;
-      await settings.update(tmpPlist, originalData);
-      let updatedData = await settings.read(tmpPlist);
+      let updated = await update(tmpPlist, originalData);
+      updated.should.be.true;
+      let updatedData = await read(tmpPlist);
 
       updatedData[expectedField]
         .Whitelisted.should.be.true;
+
+      originalData.should.eql(updatedData);
+    });
+
+    it('should return false when no changes are made', async function () {
+      let originalData = await read(tmpPlist);
+      let updated = await update(tmpPlist, originalData);
+      updated.should.be.false;
+      let updatedData = await read(tmpPlist);
+
+      updatedData[expectedField]
+        .Whitelisted.should.be.false;
 
       originalData.should.eql(updatedData);
     });
