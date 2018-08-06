@@ -46,12 +46,12 @@ describe(`check simulator accesibility settings`, function () {
 
   it("check accesibility reduce motion settings", async function () {
     let sim = await getSimulator(udid);
-    await sim.reduceMotion(true);
+    await sim.setReduceMotion(true);
     let fileSettings = await readSettings(sim, 'accessibilitySettings');
     for (let [, settings] of _.toPairs(fileSettings)) {
       settings.ReduceMotionEnabled.should.eql(1);
     }
-    await sim.reduceMotion(false);
+    await sim.setReduceMotion(false);
     fileSettings = await readSettings(sim, 'accessibilitySettings');
     for (let [, settings] of _.toPairs(fileSettings)) {
       settings.ReduceMotionEnabled.should.eql(0);
