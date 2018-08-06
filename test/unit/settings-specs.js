@@ -47,7 +47,7 @@ describe('settings', function () {
       await fs.unlink(tmpPlist);
     });
 
-    it('should update a plist', async () => {
+    it('should update a plist', async function () {
       let originalData = await settings.read(tmpPlist);
       originalData[expectedField]
         .Whitelisted = true;
@@ -60,7 +60,7 @@ describe('settings', function () {
       originalData.should.eql(updatedData);
     });
 
-    it('should read a plist', async () => {
+    it('should read a plist', async function () {
       let data = await settings.read(tmpPlist);
       data[expectedField]
         .should.be.an.instanceof(Object);
@@ -99,13 +99,13 @@ describe('settings', function () {
       let data;
       const weirdLocKey = 'com.apple.locationd.bundle-/System/Library/' +
                           'PrivateFrameworks/AOSNotification.framework';
-      beforeEach(async () => {
+      beforeEach(async function () {
         data = await settings.read(clientFile);
         expect(data['com.apple.mobilesafari']).to.not.exist;
         expect(data[weirdLocKey]).to.not.exist;
       });
 
-      it('should update', async () => {
+      it('should update', async function () {
         await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await settings.read(clientFile);
@@ -114,7 +114,7 @@ describe('settings', function () {
         finalData['com.apple.mobilesafari'].Authorized.should.be.true;
       });
 
-      it('should update an already existing bundle without changing anything but Authorized', async () => {
+      it('should update an already existing bundle without changing anything but Authorized', async function () {
         await settings.updateLocationSettings(sim, 'io.appium.test', true);
 
         let finalData = await settings.read(clientFile);
@@ -128,7 +128,7 @@ describe('settings', function () {
         updatedRecord.Authorized.should.not.equal(originalRecord.Authorized);
       });
 
-      it('should update with weird location key', async () => {
+      it('should update with weird location key', async function () {
         await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         let finalData = await settings.read(clientFile);
@@ -137,8 +137,8 @@ describe('settings', function () {
       });
     });
 
-    describe('cache plists', () => {
-      it('should update both files', async () => {
+    describe('cache plists', function () {
+      it('should update both files', async function () {
         await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         for (let file of cacheFiles) {
@@ -163,7 +163,7 @@ describe('settings', function () {
       await fs.unlink(globalPlistFile);
     });
 
-    it('should update language', async () => {
+    it('should update language', async function () {
       let originalData = await settings.read(globalPlistFile);
 
       await settings.updateLocale(sim, 'rr');
@@ -172,14 +172,14 @@ describe('settings', function () {
       finalData.AppleLanguages.should.include('rr');
     });
 
-    it('should not do anything when language is already present', async () => {
+    it('should not do anything when language is already present', async function () {
       let originalData = await settings.read(globalPlistFile);
 
       await settings.updateLocale(sim, 'en');
       (await settings.read(globalPlistFile)).should.eql(originalData);
     });
 
-    it('should update locale', async () => {
+    it('should update locale', async function () {
       let originalData = await settings.read(globalPlistFile);
 
       await settings.updateLocale(sim, undefined, 'fr_US');
@@ -189,7 +189,7 @@ describe('settings', function () {
       finalData.AppleLocale.should.include('fr_US');
     });
 
-    it('should update calendarFormat', async () => {
+    it('should update calendarFormat', async function () {
       let originalData = await settings.read(globalPlistFile);
 
       await settings.updateLocale(sim, undefined, undefined, 'something');
@@ -199,7 +199,7 @@ describe('settings', function () {
       finalData.AppleLocale.should.include('@calendar=something');
     });
 
-    it('should preserve the calendarFormat when updating locale alone', async () => {
+    it('should preserve the calendarFormat when updating locale alone', async function () {
       let originalData = await settings.read(globalPlistFile);
 
       // get a calendar format into the plist
@@ -270,37 +270,30 @@ describe('settings', function () {
     });
   });
 
-  describe('reduceMotion', () => {
-    let sim, sandbox;
-    before(async () => {
+  describe('setReduceMotion', function () {
+    let sim;
+    before(async function ()  {
       sim = new SimulatorXcode6();
-      sandbox = sinon.sandbox.create();
-      sinon.stub(settings, 'reduceMotion');
+      sinon.stub(settings, 'setReduceMotion');
     });
 
-    afterEach(async () => {
-      sandbox.restore();
+    afterEach(async function () {
+      sinon.restore();
+      sinon.stub(settings, 'setReduceMotion');
     });
 
-    it('should kill simulator before setting reduce motion', async () => {
-      sandbox.stub(sim, 'isRunning').returns(true);
-      sandbox.stub(sim, 'endSimulatorDaemon');
-      await sim.reduceMotion(true);
-      sim.endSimulatorDaemon.calledOnce.should.eql(true);
-    });
-
-    it('should launch simulator if not fresh before setting reduce motion', async () => {
-      sandbox.stub(sim, 'isRunning').returns(false);
-      sandbox.stub(sim, 'isFresh').returns(true);
-      sandbox.stub(sim, 'launchAndQuit');
-      await sim.reduceMotion(true);
+    it('should launch simulator if not fresh before setting reduce motion', async function () {
+      sinon.stub(sim, 'isFresh').returns(true);
+      sinon.stub(sim, 'launchAndQuit');
+      await sim.setReduceMotion(true);
       sim.launchAndQuit.calledOnce.should.eql(true);
+      settings.setReduceMotion.calledOnce.should.eql(true);
     });
 
-    it('should just set reduce motion', async () => {
-      sandbox.stub(sim, 'isRunning').returns(false);
-      sandbox.stub(sim, 'isFresh').returns(false);
-      await sim.reduceMotion(true);
+    it('should just set reduce motion', async function () {
+      sinon.stub(sim, 'isFresh').returns(false);
+      await sim.setReduceMotion(true);
+      settings.setReduceMotion.calledOnce.should.eql(true);
     });
   });
 });
