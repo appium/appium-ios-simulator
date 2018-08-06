@@ -12,9 +12,14 @@ chai.use(chaiAsPromised);
 
 describe(`check simulator accesibility settings`, function () {
   this.timeout(LONG_TIMEOUT);
-  let udid;
+  let udid, version;
+  if (!process.env.TRAVIS && !process.env.DEVICE) {
+    version = "11.3";
+  } else {
+    version = (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') ? '10.0' : process.env.DEVICE;
+  }
   let deviceType = {
-    version: "11.3",
+    version,
     device: "iPhone 6s"
   };
 
