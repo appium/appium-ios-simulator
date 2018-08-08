@@ -2,8 +2,7 @@
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { update, read, updateLocationSettings, updateLocale,
-         updateSafariUserSettings } from '../../lib/settings';
+import * as settings from '../../lib/settings';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import path from 'path';
 import { tempDir, fs } from 'appium-support';
@@ -49,11 +48,11 @@ describe('settings', function () {
     });
 
     it('should update a plist', async function () {
-      let originalData = await read(tmpPlist);
+      let originalData = await settings.read(tmpPlist);
       originalData[expectedField]
         .Whitelisted = true;
-      await update(tmpPlist, originalData);
-      let updatedData = await read(tmpPlist);
+      await settings.update(tmpPlist, originalData);
+      let updatedData = await settings.read(tmpPlist);
 
       updatedData[expectedField]
         .Whitelisted.should.be.true;
@@ -62,7 +61,7 @@ describe('settings', function () {
     });
 
     it('should read a plist', async function () {
-      let data = await read(tmpPlist);
+      let data = await settings.read(tmpPlist);
       data[expectedField]
         .should.be.an.instanceof(Object);
     });
@@ -101,24 +100,24 @@ describe('settings', function () {
       const weirdLocKey = 'com.apple.locationd.bundle-/System/Library/' +
                           'PrivateFrameworks/AOSNotification.framework';
       beforeEach(async function () {
-        data = await read(clientFile);
+        data = await settings.read(clientFile);
         expect(data['com.apple.mobilesafari']).to.not.exist;
         expect(data[weirdLocKey]).to.not.exist;
       });
 
       it('should update', async function () {
-        await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
+        await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
-        let finalData = await read(clientFile);
+        let finalData = await settings.read(clientFile);
         finalData.should.not.eql(data);
         finalData['com.apple.mobilesafari'].should.exist;
         finalData['com.apple.mobilesafari'].Authorized.should.be.true;
       });
 
       it('should update an already existing bundle without changing anything but Authorized', async function () {
-        await updateLocationSettings(sim, 'io.appium.test', true);
+        await settings.updateLocationSettings(sim, 'io.appium.test', true);
 
-        let finalData = await read(clientFile);
+        let finalData = await settings.read(clientFile);
         finalData.should.not.eql(data);
 
         let originalRecord = data['io.appium.test'];
@@ -130,9 +129,9 @@ describe('settings', function () {
       });
 
       it('should update with weird location key', async function () {
-        await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
+        await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
-        let finalData = await read(clientFile);
+        let finalData = await settings.read(clientFile);
         finalData.should.not.eql(data);
         finalData[weirdLocKey].should.exist;
       });
@@ -140,10 +139,10 @@ describe('settings', function () {
 
     describe('cache plists', function () {
       it('should update both files', async function () {
-        await updateLocationSettings(sim, 'com.apple.mobilesafari', true);
+        await settings.updateLocationSettings(sim, 'com.apple.mobilesafari', true);
 
         for (let file of cacheFiles) {
-          let finalData = await read(file);
+          let finalData = await settings.read(file);
           finalData['com.apple.mobilesafari'].should.exist;
           finalData['com.apple.mobilesafari'].LastFenceActivityTimestamp.should.equal(412122103.232983);
           finalData['com.apple.mobilesafari'].CleanShutdown.should.be.true;
@@ -165,54 +164,54 @@ describe('settings', function () {
     });
 
     it('should update language', async function () {
-      let originalData = await read(globalPlistFile);
+      let originalData = await settings.read(globalPlistFile);
 
-      await updateLocale(sim, 'rr');
-      let finalData = await read(globalPlistFile);
+      await settings.updateLocale(sim, 'rr');
+      let finalData = await settings.read(globalPlistFile);
       finalData.should.not.eql(originalData);
       finalData.AppleLanguages.should.include('rr');
     });
 
     it('should not do anything when language is already present', async function () {
-      let originalData = await read(globalPlistFile);
+      let originalData = await settings.read(globalPlistFile);
 
-      await updateLocale(sim, 'en');
-      (await read(globalPlistFile)).should.eql(originalData);
+      await settings.updateLocale(sim, 'en');
+      (await settings.read(globalPlistFile)).should.eql(originalData);
     });
 
     it('should update locale', async function () {
-      let originalData = await read(globalPlistFile);
+      let originalData = await settings.read(globalPlistFile);
 
-      await updateLocale(sim, undefined, 'fr_US');
-      let finalData = await read(globalPlistFile);
+      await settings.updateLocale(sim, undefined, 'fr_US');
+      let finalData = await settings.read(globalPlistFile);
       finalData.should.not.eql(originalData);
       finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
       finalData.AppleLocale.should.include('fr_US');
     });
 
     it('should update calendarFormat', async function () {
-      let originalData = await read(globalPlistFile);
+      let originalData = await settings.read(globalPlistFile);
 
-      await updateLocale(sim, undefined, undefined, 'something');
-      let finalData = await read(globalPlistFile);
+      await settings.updateLocale(sim, undefined, undefined, 'something');
+      let finalData = await settings.read(globalPlistFile);
       finalData.should.not.eql(originalData);
       finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
       finalData.AppleLocale.should.include('@calendar=something');
     });
 
     it('should preserve the calendarFormat when updating locale alone', async function () {
-      let originalData = await read(globalPlistFile);
+      let originalData = await settings.read(globalPlistFile);
 
       // get a calendar format into the plist
-      await updateLocale(sim, undefined, undefined, 'something');
-      let intermediateData = await read(globalPlistFile);
+      await settings.updateLocale(sim, undefined, undefined, 'something');
+      let intermediateData = await settings.read(globalPlistFile);
       intermediateData.should.not.eql(originalData);
       intermediateData.AppleLanguages.should.eql(originalData.AppleLanguages);
       intermediateData.AppleLocale.should.include('@calendar=something');
 
       // udpate with a new locale
-      await updateLocale(sim, undefined, 'fr_US');
-      let finalData = await read(globalPlistFile);
+      await settings.updateLocale(sim, undefined, 'fr_US');
+      let finalData = await settings.read(globalPlistFile);
       finalData.should.not.eql(intermediateData);
       finalData.AppleLanguages.should.eql(originalData.AppleLanguages);
       finalData.AppleLocale.should.eql('fr_US@calendar=something');
@@ -246,7 +245,7 @@ describe('settings', function () {
 
     async function getData () {
       return asyncmap(realFiles, (file) => {
-        return read(file);
+        return settings.read(file);
       }, true);
     }
 
@@ -258,7 +257,7 @@ describe('settings', function () {
         WebKitJavaScriptCanOpenWindowsAutomatically: false,
         WarnAboutFraudulentWebsites: false
       };
-      await updateSafariUserSettings(sim, settingSet);
+      await settings.updateSafariUserSettings(sim, settingSet);
 
       // check the update
       let finalData = await getData();
@@ -268,6 +267,33 @@ describe('settings', function () {
         finalData[i].restrictedBool.safariAllowPopups.value.should.be.false;
         finalData[i].restrictedBool.safariForceFraudWarning.value.should.be.true;
       }
+    });
+  });
+
+  describe('setReduceMotion', function () {
+    let sim;
+    before(async function ()  {
+      sim = new SimulatorXcode6();
+      sinon.stub(settings, 'setReduceMotion');
+    });
+
+    afterEach(async function () {
+      sinon.restore();
+      sinon.stub(settings, 'setReduceMotion');
+    });
+
+    it('should launch simulator if fresh before setting reduce motion', async function () {
+      sinon.stub(sim, 'isFresh').returns(true);
+      sinon.stub(sim, 'launchAndQuit');
+      await sim.setReduceMotion(true);
+      sim.launchAndQuit.calledOnce.should.eql(true);
+      settings.setReduceMotion.calledOnce.should.eql(true);
+    });
+
+    it('should just set reduce motion', async function () {
+      sinon.stub(sim, 'isFresh').returns(false);
+      await sim.setReduceMotion(true);
+      settings.setReduceMotion.calledOnce.should.eql(true);
     });
   });
 });
