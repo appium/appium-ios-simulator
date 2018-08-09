@@ -51,9 +51,9 @@ describe('settings', function () {
       let originalData = await settings.read(tmpPlist);
       originalData[expectedField]
         .Whitelisted = true;
-      let updated = await update(tmpPlist, originalData);
+      let updated = await settings.update(tmpPlist, originalData);
       updated.should.be.true;
-      let updatedData = await read(tmpPlist);
+      let updatedData = await settings.read(tmpPlist);
 
       updatedData[expectedField]
         .Whitelisted.should.be.true;
@@ -62,10 +62,10 @@ describe('settings', function () {
     });
 
     it('should return false when no changes are made', async function () {
-      let originalData = await read(tmpPlist);
-      let updated = await update(tmpPlist, originalData);
+      let originalData = await settings.read(tmpPlist);
+      let updated = await settings.update(tmpPlist, originalData);
       updated.should.be.false;
-      let updatedData = await read(tmpPlist);
+      let updatedData = await settings.read(tmpPlist);
 
       updatedData[expectedField]
         .Whitelisted.should.be.false;
