@@ -22,6 +22,9 @@ matrix:
     #   env: DEVICE=11.3
     - osx_image: xcode9.4
       env: DEVICE=11.4
+
+    - osx_image: xcode10
+      env: DEVICE=12.0
 script:
   - npm test && _FORCE_LOGS=1 npm run mocha -- -R spec build/test/**/*-e2e-specs.js
 after_success:
