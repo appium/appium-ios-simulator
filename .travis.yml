@@ -1,7 +1,7 @@
 sudo: required
 os: osx
 language: node_js
-node_js: "6"
+node_js: "8"
 matrix:
   include:
     - osx_image: xcode7.3

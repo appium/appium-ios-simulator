@@ -185,7 +185,7 @@ function runTests (deviceType) {
       let sim = await getSimulator(udid);
       await sim.delete();
       let numDevicesAfter = (await simctl.getDevices())[deviceType.version].length;
-      numDevicesAfter.should.equal(numDevices-1);
+      numDevicesAfter.should.equal(numDevices - 1);
     });
 
     let itText = 'should match a bundleId to its app directory on a used sim';
@@ -325,7 +325,7 @@ function runTests (deviceType) {
     });
   });
 
-  describe('biometric (touch Id, face Id) enrollment', async function () {
+  describe('biometric (touch Id, face Id) enrollment', function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
@@ -388,7 +388,7 @@ function runTests (deviceType) {
   });
 
 
-  describe('keychains backup', async function () {
+  describe('keychains backup', function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 

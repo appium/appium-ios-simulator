@@ -1,4 +1,4 @@
- // transpile:mocha
+// transpile:mocha
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
