@@ -257,7 +257,7 @@ describe('settings', function () {
     });
 
     async function getData () {
-      return asyncmap(realFiles, (file) => {
+      return await asyncmap(realFiles, (file) => {
         return settings.read(file);
       }, true);
     }
@@ -285,12 +285,12 @@ describe('settings', function () {
 
   describe('setReduceMotion', function () {
     let sim;
-    before(async function ()  {
+    before(function () {
       sim = new SimulatorXcode6();
       sinon.stub(settings, 'setReduceMotion');
     });
 
-    afterEach(async function () {
+    afterEach(function () {
       sinon.restore();
       sinon.stub(settings, 'setReduceMotion');
     });

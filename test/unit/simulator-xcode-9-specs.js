@@ -23,11 +23,11 @@ describe('SimulatorXcode9', function () {
   });
 
   describe('getBiometric', function () {
-    it('return touch id object', async function () {
+    it('return touch id object', function () {
       simulatorXcode9.getBiometric('touchId').should.eql({ menuName: 'Touch Id' });
     });
 
-    it('raise an error since the argument does not exist in biometric', async function () {
+    it('raise an error since the argument does not exist in biometric', function () {
       (function () {
         simulatorXcode9.getBiometric('no-touchId');
       }).should.throw(Error, 'no-touchId is not a valid biometric. Use one of: ["touchId","faceId"]');

@@ -12,7 +12,7 @@ const pem = B.promisifyAll(require('pem'));
 
   // Create an HTTPS server with a randomly generated certificate
   let key = await pem.createPrivateKeyAsync();
-  let keys = await pem.createCertificateAsync({days:1, selfSigned: true, serviceKey: key.key});
+  let keys = await pem.createCertificateAsync({days: 1, selfSigned: true, serviceKey: key.key});
 
   let server = https.createServer({key: keys.serviceKey, cert: keys.certificate}, function (req, res) {
     res.end('If you are seeing this the certificate has been installed');

@@ -235,7 +235,7 @@ describe('Device preferences verification', function () {
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = ['',  null, 'portrait', 'bla', -1];
+      const invalidValues = ['', null, 'portrait', 'bla', -1];
       for (const invalidValue of invalidValues) {
         (() => sim.verifyDevicePreferences({
           SimulatorWindowOrientation: invalidValue
@@ -257,14 +257,12 @@ describe('Device preferences verification', function () {
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = ['',  null, 'bla', '0'];
+      const invalidValues = ['', null, 'bla', '0'];
       for (const invalidValue of invalidValues) {
         (() => sim.verifyDevicePreferences({
           SimulatorWindowRotationAngle: invalidValue
         })).should.throw(Error, /is expected to be a valid number/);
       }
     });
-
   });
-
 });

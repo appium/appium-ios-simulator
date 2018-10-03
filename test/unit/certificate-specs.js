@@ -23,7 +23,7 @@ let tempDirectory;
 describe('when using TrustStore class', function () {
 
   function getUUID () {
-    return uuid.v4().replace(/\-/g, '');
+    return uuid.v4().replace(/-/g, '');
   }
 
   beforeEach(async function () {
