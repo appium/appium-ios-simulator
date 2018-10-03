@@ -11,6 +11,7 @@ import { devices } from '../assets/deviceList';
 import B from 'bluebird';
 import xcode from 'appium-xcode';
 
+
 chai.should();
 chai.use(chaiAsPromised);
 

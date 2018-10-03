@@ -1,8 +1,13 @@
 // transpile:main
 
-import { getSimulator, getDeviceString } from './lib/simulator';
-import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert, hasSSLCert } from './lib/utils';
-import { BOOT_COMPLETED_EVENT } from './lib/simulator-xcode-6';
+import * as sim from './lib/simulator';
+import * as utils from './lib/utils';
+import * as sim6 from './lib/simulator-xcode-6';
+
+
+const { getSimulator, getDeviceString } = sim;
+const { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert, hasSSLCert } = utils;
+const { BOOT_COMPLETED_EVENT } = sim6;
 
 export {
   getSimulator,
