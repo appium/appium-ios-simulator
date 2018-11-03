@@ -343,48 +343,22 @@ function runTests (deviceType) {
       await killAllSimulators();
       await deleteSimulator(sim.udid, deviceType.version);
     });
-    const biometrics = ['touchId', 'faceId'];
 
-    for (let biometric of biometrics) {
-      // FIXME: Remove this test after Appium's parent process has accessibility permissions
-      // on Travis
-      it(`should fail if cannot enroll ${biometric}`, async function () {
-        if (!process.env.TRAVIS) {
-          this.skip();
-        }
-        const errorPattern = /is present in System Preferences/;
-        await sim.enrollBiometric(true, biometric).should.eventually.be.rejectedWith(errorPattern);
-        await sim.isBiometricEnrolled(biometric).should.eventually.be.rejectedWith(errorPattern);
-      });
+    it(`should properly enroll biometric to enabled state`, async function () {
+      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
+        return this.skip();
+      }
+      await sim.enrollBiometric(true);
+      (await sim.isBiometricEnrolled()).should.be.true;
+    });
 
-      it(`should properly enroll ${biometric} to enabled state`, async function () {
-        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
-        // on Travis
-        if (process.env.TRAVIS) {
-          this.skip();
-        }
-        try {
-          await sim.enrollBiometric(true, biometric);
-          (await sim.isBiometricEnrolled(biometric)).should.be.true;
-        } catch (e) {
-          e.message.should.match(/not supported/);
-        }
-      });
-
-      it(`should properly enroll ${biometric} to disabled state`, async function () {
-        // FIXME: Remove this condition after Appium's parent process has accessibility permissions
-        // on Travis
-        if (process.env.TRAVIS) {
-          this.skip();
-        }
-        try {
-          await sim.enrollBiometric(false, biometric);
-          (await sim.isBiometricEnrolled(biometric)).should.be.false;
-        } catch (e) {
-          e.message.should.match(/not supported/);
-        }
-      });
-    }
+    it(`should properly enroll biometric to disabled state`, async function () {
+      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
+        return this.skip();
+      }
+      await sim.enrollBiometric(false);
+      (await sim.isBiometricEnrolled()).should.be.false;
+    });
   });
 
 

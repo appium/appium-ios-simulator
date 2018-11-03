@@ -8,6 +8,7 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as nodeSimctl from 'node-simctl';
 import { killAllSimulators, endAllSimulatorDaemons, simExists, installSSLCert, uninstallSSLCert } from '../..';
+import { toBiometricDomainComponent } from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
@@ -263,6 +264,21 @@ describe('Device preferences verification', function () {
           SimulatorWindowRotationAngle: invalidValue
         })).should.throw(Error, /is expected to be a valid number/);
       }
+    });
+  });
+
+  describe('toBiometricDomainComponent', function () {
+    it('return touch id object', function () {
+      toBiometricDomainComponent('touchId').should.eql('fingerTouch');
+    });
+    it('return face id object', function () {
+      toBiometricDomainComponent('faceId').should.eql('pearl');
+    });
+
+    it('raise an error since the argument does not exist in biometric', function () {
+      (function () {
+        toBiometricDomainComponent('no-touchId');
+      }).should.throw();
     });
   });
 });
