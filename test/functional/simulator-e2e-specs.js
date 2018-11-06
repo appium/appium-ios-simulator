@@ -362,7 +362,7 @@ function runTests (deviceType) {
   });
 
 
-  describe('keychains backup', function () {
+  describe('keychains', function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
@@ -384,6 +384,10 @@ function runTests (deviceType) {
     it('should properly backup and restore Simulator keychains', async function () {
       (await sim.backupKeychains()).should.be.true;
       (await sim.restoreKeychains('*.db*')).should.be.true;
+    });
+
+    it('should clear Simulator keychains while it is running', async function () {
+      await sim.clearKeychains().should.eventually.be.fulfilled;
     });
   });
 
