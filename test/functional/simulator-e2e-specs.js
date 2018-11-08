@@ -361,6 +361,33 @@ function runTests (deviceType) {
     });
   });
 
+  describe('permssions', function () {
+    let sim;
+    this.timeout(LONG_TIMEOUT);
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                           deviceType.device,
+                                           deviceType.version);
+      sim = await getSimulator(udid);
+      await sim.run({
+        startupTimeout: LONG_TIMEOUT,
+      });
+    });
+    after(async function () {
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
+    });
+
+    it(`should properly set and get permissions`, async function () {
+      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 10) {
+        return this.skip();
+      }
+      await sim.setPermission('com.apple.Preferences', 'calendar', 'yes');
+      (await sim.getPermission('com.apple.Preferences', 'calendar')).should.be.eql('yes');
+    });
+  });
 
   describe('keychains', function () {
     let sim;
