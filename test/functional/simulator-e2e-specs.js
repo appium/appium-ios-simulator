@@ -325,7 +325,7 @@ function runTests (deviceType) {
     });
   });
 
-  describe('biometric (touch Id, face Id) enrollment', function () {
+  describe('advanced features', function () {
     let sim;
     this.timeout(LONG_TIMEOUT);
 
@@ -344,50 +344,43 @@ function runTests (deviceType) {
       await deleteSimulator(sim.udid, deviceType.version);
     });
 
-    it(`should properly enroll biometric to enabled state`, async function () {
-      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
-        return this.skip();
-      }
-      await sim.enrollBiometric(true);
-      (await sim.isBiometricEnrolled()).should.be.true;
-    });
+    describe('biometric (touch Id/face Id enrollment)', function () {
+      it(`should properly enroll biometric to enabled state`, async function () {
+        if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
+          return this.skip();
+        }
+        await sim.enrollBiometric(true);
+        (await sim.isBiometricEnrolled()).should.be.true;
+      });
 
-    it(`should properly enroll biometric to disabled state`, async function () {
-      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
-        return this.skip();
-      }
-      await sim.enrollBiometric(false);
-      (await sim.isBiometricEnrolled()).should.be.false;
-    });
-  });
-
-
-  describe('keychains', function () {
-    let sim;
-    this.timeout(LONG_TIMEOUT);
-
-    before(async function () {
-      await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                           deviceType.device,
-                                           deviceType.version);
-      sim = await getSimulator(udid);
-      await sim.run({
-        startupTimeout: LONG_TIMEOUT,
+      it(`should properly enroll biometric to disabled state`, async function () {
+        if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
+          return this.skip();
+        }
+        await sim.enrollBiometric(false);
+        (await sim.isBiometricEnrolled()).should.be.false;
       });
     });
-    after(async function () {
-      await killAllSimulators();
-      await deleteSimulator(sim.udid, deviceType.version);
+
+    describe('keychains', function () {
+      it('should properly backup and restore Simulator keychains', async function () {
+        (await sim.backupKeychains()).should.be.true;
+        (await sim.restoreKeychains('*.db*')).should.be.true;
+      });
+
+      it('should clear Simulator keychains while it is running', async function () {
+        await sim.clearKeychains().should.eventually.be.fulfilled;
+      });
     });
 
-    it('should properly backup and restore Simulator keychains', async function () {
-      (await sim.backupKeychains()).should.be.true;
-      (await sim.restoreKeychains('*.db*')).should.be.true;
-    });
-
-    it('should clear Simulator keychains while it is running', async function () {
-      await sim.clearKeychains().should.eventually.be.fulfilled;
+    describe('permissions', function () {
+      it(`should properly set and get permissions`, async function () {
+        if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 10) {
+          return this.skip();
+        }
+        await sim.setPermission('com.apple.Preferences', 'calendar', 'yes');
+        (await sim.getPermission('com.apple.Preferences', 'calendar')).should.be.eql('yes');
+      });
     });
   });
 

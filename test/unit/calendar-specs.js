@@ -35,15 +35,15 @@ describe('Calendar.js', function () {
     it('creates a new DB with a table named "access" if none existed in the first place', async function () {
       await fs.rimraf(tccDir);
       expect(await fs.exists(tccDir)).to.be.false;
-      await calendar.getDB(); // Lazily creates the .db
+      await calendar.tccDb.getDB(); // Lazily creates the .db
       expect(await fs.exists(tccDir)).to.be.true;
       (await calendar.getCalendarRowCount(bundleID)).should.equal(0);
     });
 
     it('doesn\'t overwrite DB if one already exists', async function () {
-      let db = await calendar.getDB();
+      let db = await calendar.tccDb.getDB();
       let res = await execSQLiteQuery(db, `SELECT count(*) FROM access WHERE service='kTCCServiceCalendar'`);
-      let count = parseInt(res.stdout.split('=')[1].trim(), 10);
+      let count = parseInt(res.split('=')[1].trim(), 10);
       expect(count).to.equal(0);
     });
 
@@ -65,18 +65,18 @@ describe('Calendar.js', function () {
     });
 
     it('overwrites any previous entries', async function () {
-      let db = await calendar.getDB();
+      let db = await calendar.tccDb.getDB();
 
       // Insert a entry into calendar with 'allowed = 0'
       await execSQLiteQuery(db, `INSERT INTO 'access' VALUES ('kTCCServiceCalendar', '${bundleID}', 0, 0, 0, 0, 0);`);
       await calendar.getCalendarRowCount(bundleID).should.eventually.equal(1);
-      let out = (await execSQLiteQuery(db, `SELECT allowed FROM 'access' WHERE client='${bundleID}' AND service='kTCCServiceCalendar'`)).stdout;
+      let out = await execSQLiteQuery(db, `SELECT allowed FROM 'access' WHERE client='${bundleID}' AND service='kTCCServiceCalendar'`);
       let allowed = parseInt(out.split('=')[1], 10);
       allowed.should.equal(0);
 
       // Now enable the calendar access and check that 'allowed = 1'
       await calendar.enableCalendarAccess(bundleID);
-      out = (await execSQLiteQuery(db, `SELECT allowed FROM 'access' WHERE client='${bundleID}' AND service='kTCCServiceCalendar'`)).stdout;
+      out = await execSQLiteQuery(db, `SELECT allowed FROM 'access' WHERE client='${bundleID}' AND service='kTCCServiceCalendar'`);
       allowed = parseInt(out.split('=')[1], 10);
       expect(allowed).to.equal(1);
     });
