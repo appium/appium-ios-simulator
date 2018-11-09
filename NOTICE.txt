@@ -1,0 +1,5 @@
+This product uses [applesimutils](https://github.com/wix/AppleSimulatorUtils) software written by
+Copyright 2017 Wix Engineering <https://wix.com> under MIT license
+
+This product uses [fbsimctl](https://github.com/facebook/FBSimulatorControl/tree/master/fbsimctl) software written by
+Copyright (c) 2015-present, Facebook, Inc. <https://facebook.com> under BSD License
