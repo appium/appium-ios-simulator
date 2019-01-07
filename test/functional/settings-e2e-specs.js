@@ -14,13 +14,13 @@ describe(`check simulator accesibility settings`, function () {
   this.timeout(LONG_TIMEOUT);
   let udid, version;
   if (!process.env.TRAVIS && !process.env.DEVICE) {
-    version = "11.3";
+    version = '11.3';
   } else {
     version = (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') ? '10.0' : process.env.DEVICE;
   }
   let deviceType = {
     version,
-    device: "iPhone 6s"
+    device: 'iPhone 6s'
   };
 
   beforeEach(async function () {
@@ -44,7 +44,7 @@ describe(`check simulator accesibility settings`, function () {
     }
   });
 
-  it("check accesibility reduce motion settings", async function () {
+  it('check accesibility reduce motion settings', async function () {
     let sim = await getSimulator(udid);
     await sim.setReduceMotion(true);
     let fileSettings = await readSettings(sim, 'accessibilitySettings');
