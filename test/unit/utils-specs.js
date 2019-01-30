@@ -69,7 +69,7 @@ describe('util', function () {
       execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
-      execStub.callCount.should.equal(3);
+      execStub.callCount.should.equal(2);
     });
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
