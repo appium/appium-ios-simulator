@@ -63,35 +63,32 @@ describe('util', function () {
   });
 
   describe('killAllSimulators', function () {
-    it('should call exec thrice if pgrep does not find any running Simulator with Xcode9', async function () {
+    it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_9));
       execStub.withArgs('xcrun').returns();
-      execStub.withArgs('osascript').returns('');
       execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
-      execStub.calledThrice.should.be.true;
+      execStub.callCount.should.equal(2);
     });
-    it('should call exec thrice if pgrep does not find any running Simulator with Xcode8', async function () {
+    it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
       execStub.withArgs('xcrun').returns();
-      execStub.withArgs('osascript').throws();
       execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
-      execStub.calledThrice.should.be.true;
+      execStub.callCount.should.equal(2);
     });
-    it('should call exec 4 times if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
+    it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
       execStub.withArgs('pgrep').returns('0');
-      execStub.withArgs('osascript').returns('0');
       execStub.withArgs('xcrun').throws();
       execStub.withArgs('pkill').returns();
 
       try {
         await killAllSimulators(500);
       } catch (e) {}
-      execStub.callCount.should.equal(4);
+      execStub.callCount.should.equal(3);
     });
   });
 
