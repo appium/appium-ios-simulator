@@ -9,13 +9,13 @@ import { execSQLiteQuery } from '../../lib/utils';
 
 chai.should();
 chai.use(chaiAsPromised);
-let expect = chai.expect;
+const expect = chai.expect;
 
-let cwd = process.cwd();
-let assetsDir = `${cwd}/test/assets`;
-let tccDir = `${assetsDir}/Library/TCC`;
-let tccDirOriginal = `${assetsDir}/Library/TCC-Original`;
-let bundleID = 'com.fake.bundleid';
+const cwd = process.cwd();
+const assetsDir = `${cwd}/test/assets`;
+const tccDir = `${assetsDir}/Library/TCC`;
+const tccDirOriginal = `${assetsDir}/Library/TCC-Original`;
+const bundleID = 'com.fake.bundleid';
 
 describe('Calendar.js', function () {
   let calendar;

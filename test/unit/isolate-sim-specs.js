@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import * as nodeSimctl from 'node-simctl';
 import { devices } from '../assets/deviceList';
 import { getAllUdids } from '../../lib/extensions/isolate-sim.js';
-import Promise from 'bluebird';
+import B from 'bluebird';
 
 
 chai.should();
@@ -18,7 +18,7 @@ describe('isolate sims', function () {
 
   beforeEach(function () {
     getDevicesStub = sinon.stub(nodeSimctl, 'getDevices');
-    getDevicesStub.returns(Promise.resolve(devices));
+    getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     nodeSimctl.getDevices.restore();
