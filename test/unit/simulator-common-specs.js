@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import _ from 'lodash';
 import sinon from 'sinon';
 import { fs } from 'appium-support';
-import Promise from 'bluebird';
+import B from 'bluebird';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -33,7 +33,7 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
     });
 
     it('should return an array for getAppDirs()', async function () {
-      let stub = sinon.stub(sim, 'getAppDir').returns(Promise.resolve(['/App/Path/']));
+      let stub = sinon.stub(sim, 'getAppDir').returns(B.resolve(['/App/Path/']));
       sim._platformVersion = 9.1;
       let dirs = await sim.getAppDirs('test');
       dirs.should.have.length(2);
@@ -52,26 +52,26 @@ for (let [name, simClass] of _.toPairs(simulatorClasses)) {
         sandbox.restore();
       });
       it('should not delete anything if no directories are found', async function () {
-        sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
-        sandbox.stub(sim, 'getAppDir').returns(Promise.resolve());
+        sandbox.stub(sim, 'getPlatformVersion').returns(B.resolve(7.1));
+        sandbox.stub(sim, 'getAppDir').returns(B.resolve());
         await sim.cleanCustomApp('someApp', 'com.some.app');
         sinon.assert.notCalled(fs.rimraf);
       });
       it('should delete app directories', async function () {
-        sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
-        sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
+        sandbox.stub(sim, 'getPlatformVersion').returns(B.resolve(7.1));
+        sandbox.stub(sim, 'getAppDirs').returns(B.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', 'com.some.app');
         sinon.assert.called(fs.rimraf);
       });
       it('should delete plist file for iOS8+', async function () {
-        sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(9));
-        sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
+        sandbox.stub(sim, 'getPlatformVersion').returns(B.resolve(9));
+        sandbox.stub(sim, 'getAppDirs').returns(B.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', appBundleId);
         sinon.assert.calledWithMatch(fs.rimraf, /plist/);
       });
       it('should not delete plist file for iOS7.1', async function () {
-        sandbox.stub(sim, 'getPlatformVersion').returns(Promise.resolve(7.1));
-        sandbox.stub(sim, 'getAppDirs').returns(Promise.resolve(['/some/path', '/another/path']));
+        sandbox.stub(sim, 'getPlatformVersion').returns(B.resolve(7.1));
+        sandbox.stub(sim, 'getAppDirs').returns(B.resolve(['/some/path', '/another/path']));
         await sim.cleanCustomApp('someApp', appBundleId);
         sinon.assert.neverCalledWithMatch(fs.rimraf, /plist/);
       });

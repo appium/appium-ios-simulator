@@ -9,11 +9,11 @@ import uuid from 'uuid';
 
 chai.should();
 chai.use(chaiAsPromised);
-let expect = chai.expect;
+const expect = chai.expect;
 
-let cwd = process.cwd();
-let assetsDir = `${cwd}/test/assets`;
-let keychainsDir = `${assetsDir}/Library/Keychains`;
+const cwd = process.cwd();
+const assetsDir = `${cwd}/test/assets`;
+const keychainsDir = `${assetsDir}/Library/Keychains`;
 let keychainsDirOriginal;
 let certificate;
 let trustStore;
