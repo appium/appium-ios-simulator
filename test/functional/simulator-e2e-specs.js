@@ -34,9 +34,13 @@ async function deleteSimulator (udid, version) {
   }
 }
 
+let xcodeVersion;
+
 function runTests (deviceType) {
   describe(`simulator ${deviceType.version}`, function () {
     this.timeout(LONG_TIMEOUT);
+    this.retries(2);
+
     let udid;
 
     let app = testAppPath.iphonesimulator;
@@ -45,6 +49,8 @@ function runTests (deviceType) {
       if (!exists) {
         app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
+
+      xcodeVersion = await xcode.getVersion(true);
     });
 
     beforeEach(async function () {
@@ -270,7 +276,6 @@ function runTests (deviceType) {
     });
 
     it('should properly start simulator in headless mode on Xcode9+', async function () {
-      const xcodeVersion = await xcode.getVersion(true);
       if (xcodeVersion.major < 9) {
         return this.skip();
       }
@@ -297,6 +302,8 @@ function runTests (deviceType) {
 
   describe(`reuse an already-created already-run simulator ${deviceType.version}`, function () {
     this.timeout(LONG_TIMEOUT);
+    this.retries(2);
+
     let sim;
     before(async function () {
       await killAllSimulators();
@@ -391,7 +398,6 @@ function runTests (deviceType) {
     const DEVICES_COUNT = 2;
 
     beforeEach(async function () {
-      const xcodeVersion = await xcode.getVersion(true);
       if (xcodeVersion.major < 9) {
         return this.skip();
       }
@@ -414,7 +420,7 @@ function runTests (deviceType) {
       }
     });
 
-    it('should start multiple simulators in "default" mode', async function () {
+    it(`should start multiple simulators in 'default' mode`, async function () {
       const simulators = Array.from(simulatorsMapping.values());
       await B.map(simulators, (sim) => verifyStates(sim, false, false));
 

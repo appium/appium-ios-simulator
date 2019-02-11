@@ -1,4 +1,4 @@
-const LONG_TIMEOUT = 480 * 1000;
+const LONG_TIMEOUT = (480 * 1000) * (process.env.CI ? 2 : 1);
 
 async function verifyStates (sim, shouldServerRun, shouldClientRun) {
   const isServerRunning = await sim.isRunning();
