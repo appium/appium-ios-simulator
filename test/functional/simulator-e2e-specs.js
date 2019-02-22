@@ -437,17 +437,23 @@ function runTests (deviceType) {
       const simulators = _.values(simulatorsMapping);
 
       // they all should be off
-      await B.map(simulators, (sim) => verifyStates(sim, false, false));
+      await retryInterval(30, 1000, async function () {
+        await B.map(simulators, (sim) => verifyStates(sim, false, false));
+      });
 
       for (const sim of _.values(simulatorsMapping)) {
         await sim.run({startupTimeout: LONG_TIMEOUT});
       }
-      await B.map(simulators, (sim) => verifyStates(sim, true, true));
+      await retryInterval(30, 1000, async function () {
+        await B.map(simulators, (sim) => verifyStates(sim, true, true));
+      });
 
       for (const sim of _.values(simulatorsMapping)) {
         await sim.shutdown();
       }
-      await B.map(simulators, (sim) => verifyStates(sim, false, true));
+      await retryInterval(30, 1000, async function () {
+        await B.map(simulators, (sim) => verifyStates(sim, false, true));
+      });
     });
   });
 
