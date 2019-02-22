@@ -399,7 +399,7 @@ function runTests (deviceType) {
     let simulatorsMapping = {};
     const DEVICES_COUNT = 2;
 
-    beforeEach(async function () {
+    before(async function () {
       if (_.isEmpty(xcodeVersion)) {
         xcodeVersion = await xcode.getVersion(true);
       }
@@ -416,7 +416,7 @@ function runTests (deviceType) {
         simulatorsMapping[udid] = await getSimulator(udid);
       }
     });
-    afterEach(async function () {
+    after(async function () {
       try {
         await killAllSimulators();
         for (const udid of _.keys(simulatorsMapping)) {
@@ -430,6 +430,8 @@ function runTests (deviceType) {
         simulatorsMapping = {};
       }
     });
+    beforeEach(killAllSimulators);
+    afterEach(killAllSimulators);
 
     it(`should start multiple simulators in 'default' mode`, async function () {
       const simulators = _.values(simulatorsMapping);
@@ -437,10 +439,14 @@ function runTests (deviceType) {
       // they all should be off
       await B.map(simulators, (sim) => verifyStates(sim, false, false));
 
-      await B.map(simulators, (sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
+      for (const sim of _.values(simulatorsMapping)) {
+        await sim.run({startupTimeout: LONG_TIMEOUT});
+      }
       await B.map(simulators, (sim) => verifyStates(sim, true, true));
 
-      await B.map(simulators, (sim) => sim.shutdown());
+      for (const sim of _.values(simulatorsMapping)) {
+        await sim.shutdown();
+      }
       await B.map(simulators, (sim) => verifyStates(sim, false, true));
     });
   });
