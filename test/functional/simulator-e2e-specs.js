@@ -393,35 +393,48 @@ function runTests (deviceType) {
   });
 
   describe(`multiple instances of ${deviceType.version} simulator on Xcode9+`, function () {
-    this.timeout(LONG_TIMEOUT);
-    const simulatorsMapping = new Map();
+    this.timeout(LONG_TIMEOUT * 2);
+    this.retries(2);
+
+    let simulatorsMapping = {};
     const DEVICES_COUNT = 2;
 
     beforeEach(async function () {
+      if (_.isEmpty(xcodeVersion)) {
+        xcodeVersion = await xcode.getVersion(true);
+      }
       if (xcodeVersion.major < 9) {
         return this.skip();
       }
 
       await killAllSimulators();
-      const udids = await B.map(_.range(1, DEVICES_COUNT + 1),
-                                (deviceIdx) => simctl.createDevice(`ios-simulator_${deviceIdx}_testing`,
-                                                                   deviceType.device,
-                                                                   deviceType.version));
-      const simulators = await B.map(udids, (udid) => getSimulator(udid));
-      _.zip(udids, simulators).map(([udid, sim]) => simulatorsMapping.set(udid, sim));
+
+      for (let i = 0; i < DEVICES_COUNT; i++) {
+        const udid = await simctl.createDevice(`ios-simulator_${i}_testing`,
+                                               deviceType.device,
+                                               deviceType.version);
+        simulatorsMapping[udid] = await getSimulator(udid);
+      }
     });
     afterEach(async function () {
       try {
         await killAllSimulators();
-        const existingUdids = ((await simctl.getDevices())[deviceType.version] || []).map((dev) => dev.udid);
-        await B.map(existingUdids.filter((udid) => simulatorsMapping.has(udid)), (udid) => simctl.deleteDevice(udid));
+        for (const udid of _.keys(simulatorsMapping)) {
+          try {
+            await simctl.deleteDevice(udid);
+          } catch (err) {
+            console.log(`Error deleting simulator '${udid}': ${err.message}`); // eslint-disable-line
+          }
+        }
       } finally {
-        simulatorsMapping.clear();
+        simulatorsMapping = {};
       }
     });
 
     it(`should start multiple simulators in 'default' mode`, async function () {
-      const simulators = Array.from(simulatorsMapping.values());
+      const simulators = _.values(simulatorsMapping);
+
+      // they all should be off
       await B.map(simulators, (sim) => verifyStates(sim, false, false));
 
       await B.map(simulators, (sim) => sim.run({startupTimeout: LONG_TIMEOUT}));
