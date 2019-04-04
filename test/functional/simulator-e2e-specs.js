@@ -58,7 +58,7 @@ function runTests (deviceType) {
       udid = await simctl.createDevice('ios-simulator testing',
                                        deviceType.device,
                                        deviceType.version,
-                                       20000);
+                                       {timeout: 20000});
       // just need a little more space in the logs
       console.log('\n\n'); // eslint-disable-line no-console
     });

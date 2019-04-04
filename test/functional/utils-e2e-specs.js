@@ -20,7 +20,7 @@ describe('killAllSimulators', function () {
     let udid = await simctl.createDevice('ios-simulator testing',
                                          'iPhone 6s',
                                          deviceVersion,
-                                         20000);
+                                         {timeout: 20000});
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
   });
