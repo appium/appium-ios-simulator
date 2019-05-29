@@ -370,6 +370,8 @@ function runTests (deviceType) {
     });
 
     describe('keychains', function () {
+      this.retries(2);
+
       it('should properly backup and restore Simulator keychains', async function () {
         (await sim.backupKeychains()).should.be.true;
         (await sim.restoreKeychains('*.db*')).should.be.true;
