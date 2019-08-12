@@ -24,7 +24,16 @@ matrix:
 
     - osx_image: xcode10.2
       env: DEVICE=12.2
+
+    - osx_image: xcode11
+      env: DEVICE=13.0
+install:
+  - npm install
+  - if [ ${TRAVIS_OSX_IMAGE} != "xcode7.3" ]; then
+      brew tap wix/brew;
+      brew install applesimutils;
+    fi
 script:
-  - npm test && _FORCE_LOGS=1 npm run mocha -- -R spec build/test/**/*-e2e-specs.js --exit
+  - npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit
 after_success:
   - npm run coverage

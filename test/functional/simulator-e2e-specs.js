@@ -385,7 +385,7 @@ function runTests (deviceType) {
     describe('permissions', function () {
       it(`should properly set and get permissions`, async function () {
         // This test requires WIX simulator utils to be installed
-        if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 10 || process.env.CI) {
+        if (parseFloat(deviceType.version) < 10) {
           return this.skip();
         }
         await sim.setPermission('com.apple.Preferences', 'calendar', 'yes');
