@@ -6,11 +6,11 @@ import chaiAsPromised from 'chai-as-promised';
 import { LONG_TIMEOUT } from './helpers';
 import _ from 'lodash';
 
+
 chai.should();
 chai.use(chaiAsPromised);
 
-
-describe(`check simulator accesibility settings`, function () {
+describe('settings', function () {
   this.timeout(LONG_TIMEOUT);
   let udid, version;
   if (!process.env.TRAVIS && !process.env.DEVICE) {
@@ -20,10 +20,10 @@ describe(`check simulator accesibility settings`, function () {
   }
   let deviceType = {
     version,
-    device: 'iPhone 6s'
+    device: process.env.DEVICE_NAME || 'iPhone 6s'
   };
 
-  beforeEach(async function () {
+  before(async function () {
     udid = await simctl.createDevice('ios-simulator testing',
                                       deviceType.device,
                                       deviceType.version,
@@ -44,17 +44,43 @@ describe(`check simulator accesibility settings`, function () {
     }
   });
 
-  it('check accesibility reduce motion settings', async function () {
-    let sim = await getSimulator(udid);
-    await sim.setReduceMotion(true);
-    let fileSettings = await readSettings(sim, 'accessibilitySettings');
-    for (let [, settings] of _.toPairs(fileSettings)) {
-      settings.ReduceMotionEnabled.should.eql(1);
-    }
-    await sim.setReduceMotion(false);
-    fileSettings = await readSettings(sim, 'accessibilitySettings');
-    for (let [, settings] of _.toPairs(fileSettings)) {
-      settings.ReduceMotionEnabled.should.eql(0);
-    }
+  describe(`check simulator accessibility settings`, function () {
+    it('check accessibility reduce motion settings', async function () {
+      const sim = await getSimulator(udid);
+      await sim.setReduceMotion(true);
+      let fileSettings = await readSettings(sim, 'accessibilitySettings');
+      for (const [, settings] of _.toPairs(fileSettings)) {
+        settings.ReduceMotionEnabled.should.eql(1);
+      }
+
+      await sim.setReduceMotion(false);
+      fileSettings = await readSettings(sim, 'accessibilitySettings');
+      for (const [, settings] of _.toPairs(fileSettings)) {
+        settings.ReduceMotionEnabled.should.eql(0);
+      }
+    });
+  });
+
+  describe('updateSafariGlobalSettings', function () {
+    it('should set an arbitrary preference on the global Safari plist', async function () {
+      const sim = await getSimulator(udid);
+      await sim.updateSafariGlobalSettings({
+        DidImportBuiltinBookmarks: true,
+      });
+      let setSettings = await readSettings(sim, 'globalMobileSafari');
+      for (const [file, settings] of _.toPairs(setSettings)) {
+        file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
+        settings.DidImportBuiltinBookmarks.should.eql(true);
+      }
+
+      await sim.updateSafariGlobalSettings({
+        DidImportBuiltinBookmarks: false,
+      });
+      setSettings = await readSettings(sim, 'globalMobileSafari');
+      for (const [file, settings] of _.toPairs(setSettings)) {
+        file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
+        settings.DidImportBuiltinBookmarks.should.eql(false);
+      }
+    });
   });
 });

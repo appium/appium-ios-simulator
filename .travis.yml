@@ -26,7 +26,9 @@ matrix:
       env: DEVICE=12.2
 
     - osx_image: xcode11
-      env: DEVICE=13.0
+      env:
+        - DEVICE=13.0
+        - DEVICE_NAME="iPhone X"
 install:
   - npm install
   - if [ ${TRAVIS_OSX_IMAGE} != "xcode7.3" ]; then
