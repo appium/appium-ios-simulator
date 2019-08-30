@@ -552,15 +552,16 @@ function runTests (deviceType) {
     });
     it('get bundle ids', async function () {
       let app = testAppPath.iphonesimulator;
-      const exists = await fs.exists(app);
-      if (!exists) {
+      if (!await fs.exists(app)) {
         app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
       }
       await sim.run({ startupTimeout: LONG_TIMEOUT });
       await sim.installApp(app);
 
       const bundleIds = [];
+      // Xcode 10-
       bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UICatalog'));
+      // Xcode 11+ env
       bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog'));
       bundleIds.length.should.above(0);
     });
