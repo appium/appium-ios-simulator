@@ -530,6 +530,41 @@ function runTests (deviceType) {
       });
     });
   });
+
+  describe('getUserInstalledBundleIdsByBundleName', function () {
+    this.timeout(LONG_TIMEOUT);
+    let sim;
+
+    before(async function () {
+      await killAllSimulators();
+      let udid = await simctl.createDevice('ios-simulator testing',
+                                       deviceType.device,
+                                       deviceType.version);
+      sim = await getSimulator(udid);
+
+    });
+    after(async function () {
+      await killAllSimulators();
+      await deleteSimulator(sim.udid, deviceType.version);
+    });
+    it('get no bundle id before launching simulator', async function () {
+      await sim.getUserInstalledBundleIdsByBundleName('UICatalog').eventually.should.eql([]);
+    });
+    it('get bundle ids', async function () {
+      let app = testAppPath.iphonesimulator;
+      const exists = await fs.exists(app);
+      if (!exists) {
+        app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
+      }
+      await sim.run({ startupTimeout: LONG_TIMEOUT });
+      await sim.installApp(app);
+
+      const bundleIds = [];
+      bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UICatalog'));
+      bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog'));
+      bundleIds.length.should.above(0);
+    });
+  });
 }
 
 
