@@ -535,15 +535,14 @@ function runTests (deviceType) {
     this.timeout(LONG_TIMEOUT);
     let sim;
 
-    before(async function () {
+    beforeEach(async function () {
       await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
+      const udid = await simctl.createDevice(
+        'ios-simulator testing', deviceType.device, deviceType.version);
       sim = await getSimulator(udid);
-
     });
-    after(async function () {
+
+    afterEach(async function () {
       await killAllSimulators();
       await deleteSimulator(sim.udid, deviceType.version);
     });
