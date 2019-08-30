@@ -121,6 +121,11 @@ function runTests (deviceType) {
       dirs.should.have.length(2);
       dirs[0].should.contain('/Data/');
       dirs[1].should.contain('/Bundle/');
+
+      const bundleIds = [];
+      bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UICatalog')); // Xcode 10-
+      bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')); // Xcode 11+
+      bundleIds.should.be.above(0);
     });
 
     it('should be able to delete an app', async function () {
@@ -443,6 +448,9 @@ function runTests (deviceType) {
         await B.map(simulators, (sim) => verifyStates(sim, false, false));
       });
 
+      // Should be called before launching simulator
+      await simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog').eventually.should.eql([]);
+
       for (const sim of _.values(simulatorsMapping)) {
         await sim.run({startupTimeout: LONG_TIMEOUT});
       }
@@ -528,41 +536,6 @@ function runTests (deviceType) {
           socket = socket2;
         }
       });
-    });
-  });
-
-  describe('getUserInstalledBundleIdsByBundleName', function () {
-    this.timeout(LONG_TIMEOUT);
-    let sim;
-
-    beforeEach(async function () {
-      await killAllSimulators();
-      const udid = await simctl.createDevice(
-        'ios-simulator testing', deviceType.device, deviceType.version);
-      sim = await getSimulator(udid);
-    });
-
-    afterEach(async function () {
-      await killAllSimulators();
-      await deleteSimulator(sim.udid, deviceType.version);
-    });
-    it('get no bundle id before launching simulator', async function () {
-      await sim.getUserInstalledBundleIdsByBundleName('UICatalog').eventually.should.eql([]);
-    });
-    it('get bundle ids', async function () {
-      let app = testAppPath.iphonesimulator;
-      if (!await fs.exists(app)) {
-        app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
-      }
-      await sim.run({ startupTimeout: LONG_TIMEOUT });
-      await sim.installApp(app);
-
-      const bundleIds = [];
-      // Xcode 10-
-      bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UICatalog'));
-      // Xcode 11+ env
-      bundleIds.push(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog'));
-      bundleIds.length.should.above(0);
     });
   });
 }
