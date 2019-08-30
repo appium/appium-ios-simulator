@@ -11,6 +11,7 @@ import { retryInterval } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
+import { readSettings } from '../../lib/settings';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -392,6 +393,44 @@ function runTests (deviceType) {
         (await sim.getPermission('com.apple.Preferences', 'calendar')).should.be.eql('yes');
       });
     });
+
+    describe(`setReduceMotion`, function () {
+      it('should check accessibility reduce motion settings', async function () {
+        await sim.setReduceMotion(true);
+        let fileSettings = await readSettings(sim, 'accessibilitySettings');
+        for (const [, settings] of _.toPairs(fileSettings)) {
+          settings.ReduceMotionEnabled.should.eql(1);
+        }
+
+        await sim.setReduceMotion(false);
+        fileSettings = await readSettings(sim, 'accessibilitySettings');
+        for (const [, settings] of _.toPairs(fileSettings)) {
+          settings.ReduceMotionEnabled.should.eql(0);
+        }
+      });
+    });
+
+    describe('updateSafariGlobalSettings', function () {
+      it('should set an arbitrary preference on the global Safari plist', async function () {
+        await sim.updateSafariGlobalSettings({
+          DidImportBuiltinBookmarks: true,
+        });
+        let setSettings = await readSettings(sim, 'globalMobileSafari');
+        for (const [file, settings] of _.toPairs(setSettings)) {
+          file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
+          settings.DidImportBuiltinBookmarks.should.eql(true);
+        }
+
+        await sim.updateSafariGlobalSettings({
+          DidImportBuiltinBookmarks: false,
+        });
+        setSettings = await readSettings(sim, 'globalMobileSafari');
+        for (const [file, settings] of _.toPairs(setSettings)) {
+          file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
+          settings.DidImportBuiltinBookmarks.should.eql(false);
+        }
+      });
+    });
   });
 
   describe(`multiple instances of ${deviceType.version} simulator on Xcode9+`, function () {
@@ -574,7 +613,7 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
   // on travis, we want to just do what we specify
   // travis also cannot at the moment create 9.0 and 9.1 sims
   // so only do these if testing somewhere else
-  let version = (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') ? '10.0' : process.env.DEVICE;
+  const version = (process.env.DEVICE === '10' || process.env.DEVICE === '10.0') ? '10.0' : process.env.DEVICE;
   deviceTypes = [
     {
       version,
@@ -583,6 +622,6 @@ if (!process.env.TRAVIS && !process.env.DEVICE) {
   ];
 }
 
-for (let deviceType of deviceTypes) {
+for (const deviceType of deviceTypes) {
   runTests(deviceType);
 }
