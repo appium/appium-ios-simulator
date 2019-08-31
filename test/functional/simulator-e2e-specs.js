@@ -446,7 +446,7 @@ function runTests (deviceType) {
       });
 
       // Should be called before launching simulator
-      await simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog').eventually.should.eql([]);
+      await simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog').should.eventually.eql([]);
 
       for (const sim of _.values(simulatorsMapping)) {
         await sim.run({startupTimeout: LONG_TIMEOUT});
