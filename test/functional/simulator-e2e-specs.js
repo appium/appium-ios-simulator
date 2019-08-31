@@ -122,10 +122,7 @@ function runTests (deviceType) {
       dirs[0].should.contain('/Data/');
       dirs[1].should.contain('/Bundle/');
 
-      const bundleIds = [];
-      bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UICatalog')); // Xcode 10-
-      bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')); // Xcode 11+
-      bundleIds.length.should.be.above(0);
+      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty();
     });
 
     it('should be able to delete an app', async function () {
