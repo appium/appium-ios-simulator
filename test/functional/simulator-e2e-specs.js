@@ -122,7 +122,7 @@ function runTests (deviceType) {
       dirs[0].should.contain('/Data/');
       dirs[1].should.contain('/Bundle/');
 
-      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty();
+      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty;
     });
 
     it('should be able to delete an app', async function () {
