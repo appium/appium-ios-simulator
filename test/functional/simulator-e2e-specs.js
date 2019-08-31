@@ -125,7 +125,7 @@ function runTests (deviceType) {
       const bundleIds = [];
       bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UICatalog')); // Xcode 10-
       bundleIds.concat(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')); // Xcode 11+
-      bundleIds.should.be.above(0);
+      bundleIds.length.should.be.above(0);
     });
 
     it('should be able to delete an app', async function () {
