@@ -122,6 +122,8 @@ function runTests (deviceType) {
       dirs.should.have.length(2);
       dirs[0].should.contain('/Data/');
       dirs[1].should.contain('/Bundle/');
+
+      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty;
     });
 
     it('should be able to delete an app', async function () {
@@ -481,6 +483,9 @@ function runTests (deviceType) {
       await retryInterval(30, 1000, async function () {
         await B.map(simulators, (sim) => verifyStates(sim, false, false));
       });
+
+      // Should be called before launching simulator
+      await simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog').should.eventually.eql([]);
 
       for (const sim of _.values(simulatorsMapping)) {
         await sim.run({startupTimeout: LONG_TIMEOUT});
