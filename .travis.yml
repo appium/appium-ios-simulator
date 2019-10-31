@@ -29,12 +29,17 @@ matrix:
       env:
         - DEVICE=13.0
         - DEVICE_NAME="iPhone X"
-install:
-  - npm install
+before_install:
+  # brew update is not necessary on new brew versions, but some Travis
+  # images have v1.x, which does not auto-update
   - if [ ${TRAVIS_OSX_IMAGE} != "xcode7.3" ]; then
+      brew update;
+      brew --version;
       brew tap wix/brew;
       brew install applesimutils;
     fi
+install:
+  - npm install
 script:
   - npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit
 after_success:
