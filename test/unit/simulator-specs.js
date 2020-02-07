@@ -3,7 +3,7 @@
 import { getSimulator, getDeviceString } from '../..';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import SimulatorXcode7 from '../../lib/simulator-xcode-7';
-import * as simctl from 'node-simctl';
+import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
@@ -23,12 +23,12 @@ describe('simulator', function () {
 
   beforeEach(function () {
     xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(simctl, 'getDevices');
+    getDevicesStub = sinon.stub(Simctl.prototype, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     xcodeMock.restore();
-    simctl.getDevices.restore();
+    Simctl.prototype.getDevices.restore();
   });
 
   describe('getSimulator', function () {

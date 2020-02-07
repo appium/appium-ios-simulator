@@ -1,7 +1,7 @@
 // transpile:mocha
 import _ from 'lodash';
 import { getSimulator, killAllSimulators } from '../..';
-import * as simctl from 'node-simctl';
+import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
@@ -22,6 +22,7 @@ const expect = chai.expect;
 
 async function deleteSimulator (udid, version) {
   // only want to get rid of the device if it is present
+  const simctl = new Simctl();
   let devices = await simctl.getDevices();
   if (!devices[version]) {
     return;
@@ -31,7 +32,8 @@ async function deleteSimulator (udid, version) {
       return device.udid === udid;
     }).length > 0;
   if (devicePresent) {
-    await simctl.deleteDevice(udid);
+    simctl.udid = udid;
+    await simctl.deleteDevice();
   }
 }
 
@@ -42,7 +44,7 @@ function runTests (deviceType) {
     this.timeout(LONG_TIMEOUT);
     this.retries(2);
 
-    let udid;
+    let simctl;
 
     let app = testAppPath.iphonesimulator;
     before(async function () {
@@ -56,16 +58,17 @@ function runTests (deviceType) {
 
     beforeEach(async function () {
       await killAllSimulators();
-      udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version,
-                                       {timeout: 20000});
+      simctl = new Simctl();
+      simctl.udid = await simctl.createDevice('ios-simulator testing',
+        deviceType.device,
+        deviceType.version,
+        {timeout: 20000});
       // just need a little more space in the logs
       console.log('\n\n'); // eslint-disable-line no-console
     });
     afterEach(async function () {
       await killAllSimulators();
-      await deleteSimulator(udid, deviceType.version);
+      await deleteSimulator(simctl.udid, deviceType.version);
     });
 
     async function installApp (sim, app) {
@@ -76,27 +79,27 @@ function runTests (deviceType) {
     }
 
     it('should detect whether a simulator has been run before', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.isFresh().should.eventually.equal(true);
       await sim.launchAndQuit(false, LONG_TIMEOUT);
       await sim.isFresh().should.eventually.equal(false);
     });
 
     it('should launch and shutdown a sim', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.launchAndQuit(false, LONG_TIMEOUT);
       (await sim.stat()).state.should.equal('Shutdown');
     });
 
     it('should launch and shutdown a sim, also starting safari', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.launchAndQuit(true, LONG_TIMEOUT);
       (await sim.stat()).state.should.equal('Shutdown');
     });
 
 
     it('should clean a sim', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.isFresh().should.eventually.equal(true);
       await sim.launchAndQuit(false, LONG_TIMEOUT);
       await sim.isFresh().should.eventually.equal(false);
@@ -105,18 +108,18 @@ function runTests (deviceType) {
     });
 
     it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
       dirs.should.have.length(0);
     });
 
     it('should find both a data and bundle directory for TestApp', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.run({startupTimeout: LONG_TIMEOUT});
 
       // install & launch test app
       await installApp(sim, app);
-      await simctl.launch(udid, BUNDLE_ID);
+      await simctl.launchApp(BUNDLE_ID);
 
       let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
       dirs.should.have.length(2);
@@ -130,7 +133,7 @@ function runTests (deviceType) {
       // TODO: figure out why this times out in Travis
       if (process.env.TRAVIS) return this.skip(); // eslint-disable-line curly
 
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.run({startupTimeout: LONG_TIMEOUT});
 
       let error = /The operation couldn’t be completed/;
@@ -149,7 +152,7 @@ function runTests (deviceType) {
 
       // this remains somewhat flakey
       await retryInterval(5, 1000, async () => {
-        await simctl.launch(udid, BUNDLE_ID, 1);
+        await simctl.launchApp(BUNDLE_ID, 1);
       });
 
       console.log('Application launched'); // eslint-disable-line no-console
@@ -157,7 +160,7 @@ function runTests (deviceType) {
       await sim.removeApp(BUNDLE_ID);
 
       // should not be able to launch anymore
-      await simctl.launch(udid, BUNDLE_ID, 1)
+      await simctl.launchApp(BUNDLE_ID, 1)
         .should.eventually.be.rejectedWith(error);
 
       (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
@@ -166,7 +169,7 @@ function runTests (deviceType) {
     });
 
     it('should delete custom app data', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.run({startupTimeout: LONG_TIMEOUT});
 
       // install & launch test app
@@ -174,7 +177,7 @@ function runTests (deviceType) {
 
       // this remains somewhat flakey
       await retryInterval(5, 1000, async () => {
-        await simctl.launch(udid, BUNDLE_ID, 1);
+        await simctl.launchApp(BUNDLE_ID, 1);
       });
 
       // delete app directories
@@ -191,7 +194,7 @@ function runTests (deviceType) {
       let numDevices = (await simctl.getDevices())[deviceType.version].length;
       numDevices.should.be.above(0);
 
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.delete();
       let numDevicesAfter = (await simctl.getDevices())[deviceType.version].length;
       numDevicesAfter.should.equal(numDevices - 1);
@@ -204,7 +207,7 @@ function runTests (deviceType) {
       bundleId = 'MobileSafari';
     }
     it(itText, async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.launchAndQuit(false, LONG_TIMEOUT);
 
       let path = await sim.getAppDir(bundleId);
@@ -218,13 +221,13 @@ function runTests (deviceType) {
       bundleId = 'MobileSafari';
     }
     it(itText, async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       let path = await sim.getAppDir(bundleId);
       chai.should().equal(path, undefined);
     });
 
     it('should start a sim using the "run" method', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
 
       await sim.run({startupTimeout: LONG_TIMEOUT});
 
@@ -237,7 +240,7 @@ function runTests (deviceType) {
     });
 
     it('should be able to start safari', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
 
       await sim.run({startupTimeout: LONG_TIMEOUT});
       await sim.openUrl('http://apple.com');
@@ -247,7 +250,7 @@ function runTests (deviceType) {
     });
 
     it('should detect if a sim is running', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       let running = await sim.isRunning();
       running.should.be.false;
 
@@ -261,7 +264,7 @@ function runTests (deviceType) {
     });
 
     it('should isolate sim', async function () {
-      let sim = await getSimulator(udid);
+      let sim = await getSimulator(simctl.udid);
       await sim.isolateSim();
 
       let numDevices = (await simctl.getDevices())[deviceType.version].length;
@@ -283,7 +286,7 @@ function runTests (deviceType) {
         return this.skip();
       }
 
-      const sim = await getSimulator(udid);
+      const sim = await getSimulator(simctl.udid);
       await verifyStates(sim, false, false);
 
       await sim.run({
@@ -308,11 +311,13 @@ function runTests (deviceType) {
     this.retries(2);
 
     let sim;
+
     before(async function () {
       await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
+      const udid = await new Simctl().createDevice(
+        'ios-simulator testing',
+        deviceType.device,
+        deviceType.version);
       sim = await getSimulator(udid);
       await sim.run({startupTimeout: LONG_TIMEOUT});
       await sim.shutdown();
@@ -341,9 +346,10 @@ function runTests (deviceType) {
 
     before(async function () {
       await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                           deviceType.device,
-                                           deviceType.version);
+      const udid = await new Simctl().createDevice(
+        'ios-simulator testing',
+        deviceType.device,
+        deviceType.version);
       sim = await getSimulator(udid);
       await sim.run({
         startupTimeout: LONG_TIMEOUT,
@@ -452,19 +458,23 @@ function runTests (deviceType) {
 
       await killAllSimulators();
 
+      const simctl = new Simctl();
       for (let i = 0; i < DEVICES_COUNT; i++) {
-        const udid = await simctl.createDevice(`ios-simulator_${i}_testing`,
-                                               deviceType.device,
-                                               deviceType.version);
+        const udid = await simctl.createDevice(
+          `ios-simulator_${i}_testing`,
+          deviceType.device,
+          deviceType.version);
         simulatorsMapping[udid] = await getSimulator(udid);
       }
     });
     after(async function () {
       try {
         await killAllSimulators();
+        const simctl = new Simctl();
         for (const udid of _.keys(simulatorsMapping)) {
           try {
-            await simctl.deleteDevice(udid);
+            simctl.udid = udid;
+            await simctl.deleteDevice();
           } catch (err) {
             console.log(`Error deleting simulator '${udid}': ${err.message}`); // eslint-disable-line
           }
@@ -509,9 +519,10 @@ function runTests (deviceType) {
 
     before(async function () {
       await killAllSimulators();
-      let udid = await simctl.createDevice('ios-simulator testing',
-                                       deviceType.device,
-                                       deviceType.version);
+      const udid = await new Simctl().createDevice(
+        'ios-simulator testing',
+        deviceType.device,
+        deviceType.version);
       sim = await getSimulator(udid);
       await sim.run({
         startupTimeout: LONG_TIMEOUT,
@@ -540,9 +551,10 @@ function runTests (deviceType) {
           return this.skip();
         }
 
-        let udid = await simctl.createDevice('ios-simulator testing',
-                                         deviceType.device,
-                                         deviceType.version);
+        const udid = await new Simctl().createDevice(
+          'ios-simulator testing',
+          deviceType.device,
+          deviceType.version);
         sim2 = await getSimulator(udid);
         await sim2.run({
           startupTimeout: LONG_TIMEOUT,
