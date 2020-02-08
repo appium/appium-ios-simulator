@@ -1,6 +1,6 @@
 // transpile:mocha
 import { getSimulator, killAllSimulators } from '../..';
-import * as simctl from 'node-simctl';
+import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
@@ -17,17 +17,18 @@ describe('killAllSimulators', function () {
   let sim;
   beforeEach(async function () {
     await killAllSimulators();
-    let udid = await simctl.createDevice('ios-simulator testing',
-                                         'iPhone 6s',
-                                         deviceVersion,
-                                         {timeout: 20000});
+    let udid = await new Simctl().createDevice(
+      'ios-simulator testing',
+      'iPhone 6s',
+      deviceVersion,
+      {timeout: 20000});
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
   });
   afterEach(async function () {
     await killAllSimulators();
     try {
-      await simctl.deleteDevice(sim.udid);
+      await sim.simctl.deleteDevice();
     } catch (ign) {}
   });
   it('should be able to kill the simulators', async function () {
