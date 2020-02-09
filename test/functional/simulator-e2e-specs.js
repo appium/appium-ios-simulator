@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { fs } from 'appium-support';
 import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
-import { retryInterval } from 'asyncbox';
+import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
@@ -156,6 +156,13 @@ function runTests (deviceType) {
       });
 
       console.log('Application launched'); // eslint-disable-line no-console
+
+      // Wait for application process
+      await waitForCondition(
+        async () => (await this.ps()).some(({name}) => name === BUNDLE_ID), {
+          waitMs: 10000,
+          intervalMs: 500,
+        });
 
       await sim.removeApp(BUNDLE_ID);
 
