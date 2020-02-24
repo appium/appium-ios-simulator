@@ -5,7 +5,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { Certificate, TrustStore } from '../../lib/certificate';
 import { fs } from 'appium-support';
 import { copySync } from 'fs-extra';
-import uuid from 'uuid';
+import { v4 as uuidV4 } from 'uuid';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -23,7 +23,7 @@ let tempDirectory;
 describe('when using TrustStore class', function () {
 
   function getUUID () {
-    return uuid.v4().replace(/-/g, '');
+    return uuidV4().replace(/-/g, '');
   }
 
   beforeEach(async function () {
