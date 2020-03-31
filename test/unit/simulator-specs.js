@@ -70,10 +70,9 @@ describe('simulator', function () {
         getSimulator('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
       ];
 
-      let stats = sims.map((simProm) => {
-        return simProm.then((sim) => { // eslint-disable-line promise/prefer-await-to-then
-          return sim.stat();
-        });
+      let stats = sims.map(function (simProm) {
+        // eslint-disable-next-line promise/prefer-await-to-then
+        return simProm.then((sim) => sim.stat());
       });
 
       stats = await B.all(stats);

@@ -27,10 +27,9 @@ async function deleteSimulator (udid, version) {
   if (!devices[version]) {
     return;
   }
-  let devicePresent = devices[version]
-    .filter((device) => {
-      return device.udid === udid;
-    }).length > 0;
+  const devicePresent = devices[version]
+    .filter((device) => device.udid === udid)
+    .length > 0;
   if (devicePresent) {
     simctl.udid = udid;
     await simctl.deleteDevice();
