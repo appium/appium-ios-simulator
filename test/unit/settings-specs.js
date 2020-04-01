@@ -257,7 +257,7 @@ describe('settings', function () {
     });
 
     async function getData () {
-      return await asyncmap(realFiles, (file) => {
+      return await asyncmap(realFiles, function (file) {
         return settings.read(file);
       }, true);
     }
