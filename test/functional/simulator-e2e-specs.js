@@ -388,23 +388,13 @@ function runTests (deviceType) {
       this.retries(2);
 
       it('should properly backup and restore Simulator keychains', async function () {
-        (await sim.backupKeychains()).should.be.true;
-        (await sim.restoreKeychains('*.db*')).should.be.true;
+        if (await sim.backupKeychains()) {
+          (await sim.restoreKeychains('*.db*')).should.be.true;
+        }
       });
 
       it('should clear Simulator keychains while it is running', async function () {
         await sim.clearKeychains().should.eventually.be.fulfilled;
-      });
-    });
-
-    describe('permissions', function () {
-      it(`should properly set and get permissions`, async function () {
-        // This test requires WIX simulator utils to be installed
-        if (parseFloat(deviceType.version) < 10) {
-          return this.skip();
-        }
-        await sim.setPermission('com.apple.Preferences', 'calendar', 'yes');
-        (await sim.getPermission('com.apple.Preferences', 'calendar')).should.be.eql('yes');
       });
     });
 
