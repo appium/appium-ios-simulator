@@ -62,7 +62,6 @@
     "precommit-test"
   ],
   "devDependencies": {
-    "ajv": "^6.5.3",
     "appium-gulp-plugins": "^5.0.0",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
