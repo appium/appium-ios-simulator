@@ -42,5 +42,3 @@ install:
   - npm install
 script:
   - npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit
-after_success:
-  - npm run coverage
