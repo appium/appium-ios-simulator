@@ -1,8 +1,6 @@
 // transpile:mocha
 
 import { getSimulator, getDeviceString } from '../..';
-import SimulatorXcode6 from '../../lib/simulator-xcode-6';
-import SimulatorXcode7 from '../../lib/simulator-xcode-7';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -10,6 +8,14 @@ import sinon from 'sinon';
 import { devices } from '../assets/deviceList';
 import B from 'bluebird';
 import xcode from 'appium-xcode';
+import SimulatorXcode6 from '../../lib/simulator-xcode-6';
+import SimulatorXcode7 from '../../lib/simulator-xcode-7';
+import SimulatorXcode8 from '../../lib/simulator-xcode-8';
+import SimulatorXcode9 from '../../lib/simulator-xcode-9';
+import SimulatorXcode93 from '../../lib/simulator-xcode-9.3';
+import SimulatorXcode10 from '../../lib/simulator-xcode-10';
+import SimulatorXcode11 from '../../lib/simulator-xcode-11';
+import SimulatorXcode11_4 from '../../lib/simulator-xcode-11.4';
 
 
 chai.should();
@@ -41,19 +47,31 @@ describe('simulator', function () {
       sim.should.be.an.instanceof(SimulatorXcode6);
     });
 
-    it('should create an xcode 7 simulator with xcode version 7', async function () {
-      let xcodeVersion = {major: 7, versionString: '7.0.0'};
-      xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
+    const xcodeVersions = [
+      [6, 0, '6.0.0', SimulatorXcode6],
+      [7, 0, '7.0.0', SimulatorXcode7],
+      [8, 0, '8.0.0', SimulatorXcode8],
+      [9, 0, '9.0.0', SimulatorXcode9],
+      [9, 3, '9.3.0', SimulatorXcode93],
+      [10, 0, '10.0.0', SimulatorXcode10],
+      [11, 0, '11.0.0', SimulatorXcode11],
+      [11, 4, '11.4.0', SimulatorXcode11_4],
+      [Infinity, 0, '100000000.0.0', SimulatorXcode11_4],
+    ];
 
-      let sim = await getSimulator(UDID);
-      sim.xcodeVersion.should.equal(xcodeVersion);
-      sim.should.be.an.instanceof(SimulatorXcode7);
-    });
+    for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {
+      it(`should create an xcode ${major} simulator with xcode version ${versionString}`, async function () {
+        let xcodeVersion = {major, minor, versionString};
+        xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
+        let sim = await getSimulator(UDID);
+        sim.xcodeVersion.should.equal(xcodeVersion);
+        sim.should.be.an.instanceof(expectedXcodeClass);
+      });
+    }
 
     it('should throw an error if xcode version less than 6', async function () {
       let xcodeVersion = {major: 5, versionString: '5.4.0'};
       xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
-
       await getSimulator(UDID).should.eventually.be.rejectedWith('version');
     });
 
