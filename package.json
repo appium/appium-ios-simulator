@@ -35,7 +35,6 @@
     "async-lock": "^1.0.0",
     "asyncbox": "^2.3.1",
     "bluebird": "^3.5.1",
-    "fkill": "^7.0.0",
     "lodash": "^4.2.1",
     "node-simctl": "^6.3.0",
     "openssl-wrapper": "^0.3.4",
