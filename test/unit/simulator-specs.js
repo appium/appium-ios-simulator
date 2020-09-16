@@ -56,7 +56,7 @@ describe('simulator', function () {
       [10, 0, '10.0.0', SimulatorXcode10],
       [11, 0, '11.0.0', SimulatorXcode11],
       [11, 4, '11.4.0', SimulatorXcode11_4],
-      [Infinity, 0, '100000000.0.0', SimulatorXcode11_4],
+      [Number.MAX_VALUE, 0, `${Number.MAX_VALUE}.0.0`, SimulatorXcode11_4],
     ];
 
     for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {
