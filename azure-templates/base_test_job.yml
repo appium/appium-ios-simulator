@@ -1,0 +1,27 @@
+parameters:
+    name: ''
+    iosVersion: ''
+    xcodeVersion: ''
+    iosDeviceName: ''
+    vmImage: ''
+
+
+jobs:
+  - job: ${{ parameters.name }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+      DEVICE: ${{ parameters.iosVersion }}
+      DEVICE_NAME: ${{ parameters.iosDeviceName }}
+      XCODE_VERSION: ${{ parameters.xcodeVersion }}
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: "$(DEFAULT_NODE_VERSION)"
+    - script: |
+        sudo xcode-select --switch "/Applications/Xcode_$(XCODE_VERSION).app/Contents/Developer"
+        brew update
+        brew tap wix/brew
+        brew install applesimutils
+    - script: npm install
+    - script: npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit

@@ -1,0 +1,46 @@
+# https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/macos/
+variables:
+  DEFAULT_NODE_VERSION: "12.x"
+
+
+pool:
+  vmImage: "macOS-10.15"
+
+
+parameters:
+- name: testJobs
+  type: object
+  default:
+  - iosVersion: 11
+    xcodeVersion: 100
+    iosDeviceName: iPhone X
+    vmImage: macOS-10.14
+  - iosVersion: 12.3
+    xcodeVersion: 10.3
+    iosDeviceName: iPhone X
+    vmImage: macOS-10.14
+  - iosVersion: 13
+    xcodeVersion: 11
+    iosDeviceName: iPhone X
+    vmImage: macOS-10.15
+  - iosVersion: 13.7
+    xcodeVersion: 11.7
+    iosDeviceName: iPhone X
+    vmImage: macOS-10.15
+  - iosVersion: 14
+    xcodeVersion: 12
+    iosDeviceName: iPhone 11
+    vmImage: macOS-10.15
+
+
+stages:
+- stage: Tests
+  jobs:
+  - ${{ each job in parameters.testJobs }}:
+    - template: ./azure-templates/base_test_job.yml
+      parameters:
+        name: Xcode_${{ job.xcodeVersion }}_iOS_${{ job.iosVersion }}
+        iosVersion: ${{ job.iosVersion }}
+        xcodeVersion: ${{ job.xcodeVersion }}
+        iosDeviceName: ${{ job.iosDeviceName }}
+        vmImage: ${{ job.vmImage }}
