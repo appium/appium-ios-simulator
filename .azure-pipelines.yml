@@ -12,7 +12,7 @@ parameters:
   type: object
   default:
   - iosVersion: 11
-    xcodeVersion: 100
+    xcodeVersion: 10
     iosDeviceName: iPhone X
     vmImage: macOS-10.14
   - iosVersion: 12.3
