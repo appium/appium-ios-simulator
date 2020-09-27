@@ -16,7 +16,7 @@ parameters:
     iosDeviceName: iPhone 6
     vmImage: macOS-10.14
   - iosVersion: 12.4
-    xcodeVersion: 10.4
+    xcodeVersion: 10.3
     iosDeviceName: iPhone X
     vmImage: macOS-10.14
   - iosVersion: 13
