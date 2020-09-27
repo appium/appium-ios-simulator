@@ -11,8 +11,8 @@ jobs:
     pool:
       vmImage: ${{ parameters.vmImage }}
     variables:
-      DEVICE: ${{ parameters.iosVersion }}
-      DEVICE_NAME: ${{ parameters.iosDeviceName }}
+      MOBILE_OS_VERSION: ${{ parameters.iosVersion }}
+      MOBILE_DEVICE_NAME: ${{ parameters.iosDeviceName }}
       XCODE_VERSION: ${{ parameters.xcodeVersion }}
     steps:
     - task: NodeTool@0
