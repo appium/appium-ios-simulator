@@ -130,9 +130,6 @@ describe(`simulator ${OS_VERSION}`, function () {
   });
 
   it('should be able to delete an app', async function () {
-    // TODO: figure out why this times out in Travis
-    if (process.env.TRAVIS) return this.skip(); // eslint-disable-line curly
-
     let sim = await getSimulator(simctl.udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
@@ -159,7 +156,7 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     // Wait for application process
     await waitForCondition(
-      async () => (await this.ps()).some(({name}) => name === BUNDLE_ID), {
+      async () => (await sim.ps()).some(({name}) => name === BUNDLE_ID), {
         waitMs: 10000,
         intervalMs: 500,
       });
@@ -198,13 +195,9 @@ describe(`simulator ${OS_VERSION}`, function () {
   });
 
   it('should delete a sim', async function () {
-    let numDevices = (await simctl.getDevices())[OS_VERSION].length;
-    numDevices.should.be.above(0);
-
     let sim = await getSimulator(simctl.udid);
     await sim.delete();
-    let numDevicesAfter = (await simctl.getDevices())[OS_VERSION].length;
-    numDevicesAfter.should.equal(numDevices - 1);
+    await getSimulator(simctl.udid).should.eventually.be.rejected;
   });
 
   let itText = 'should match a bundleId to its app directory on a used sim';
@@ -273,15 +266,10 @@ describe(`simulator ${OS_VERSION}`, function () {
   it('should isolate sim', async function () {
     let sim = await getSimulator(simctl.udid);
     await sim.isolateSim();
-
-    let numDevices = (await simctl.getDevices())[OS_VERSION].length;
-
-    numDevices.should.equal(1);
   });
 
   it('should apply calendar access to simulator', async function () {
-    let arbitraryUDID = (await simctl.getDevices())[OS_VERSION][0].udid;
-    let sim = await getSimulator(arbitraryUDID);
+    let sim = await getSimulator(simctl.udid);
     await sim.enableCalendarAccess(BUNDLE_ID);
     (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
     await sim.disableCalendarAccess(BUNDLE_ID);

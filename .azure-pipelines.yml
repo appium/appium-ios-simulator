@@ -13,19 +13,19 @@ parameters:
   default:
   - iosVersion: 11
     xcodeVersion: 10
-    iosDeviceName: iPhone X
+    iosDeviceName: iPhone 6
     vmImage: macOS-10.14
-  - iosVersion: 12.3
-    xcodeVersion: 10.3
+  - iosVersion: 12.4
+    xcodeVersion: 10.4
     iosDeviceName: iPhone X
     vmImage: macOS-10.14
   - iosVersion: 13
     xcodeVersion: 11
-    iosDeviceName: iPhone X
+    iosDeviceName: iPhone 11
     vmImage: macOS-10.15
   - iosVersion: 13.7
     xcodeVersion: 11.7
-    iosDeviceName: iPhone X
+    iosDeviceName: iPhone 11
     vmImage: macOS-10.15
   - iosVersion: 14
     xcodeVersion: 12
