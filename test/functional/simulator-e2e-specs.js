@@ -270,10 +270,17 @@ describe(`simulator ${OS_VERSION}`, function () {
 
   it('should apply calendar access to simulator', async function () {
     let sim = await getSimulator(simctl.udid);
-    await sim.enableCalendarAccess(BUNDLE_ID);
-    (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
-    await sim.disableCalendarAccess(BUNDLE_ID);
-    (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
+
+    if ((xcodeVersion.major === 11 && xcodeVersion.minor >= 4) || xcodeVersion.major >= 12) {
+      await sim.run({startupTimeout: LONG_TIMEOUT});
+      await sim.enableCalendarAccess(BUNDLE_ID);
+      await sim.disableCalendarAccess(BUNDLE_ID);
+    } else {
+      await sim.enableCalendarAccess(BUNDLE_ID);
+      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
+      await sim.disableCalendarAccess(BUNDLE_ID);
+      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
+    }
   });
 
   it('should properly start simulator in headless mode on Xcode9+', async function () {
