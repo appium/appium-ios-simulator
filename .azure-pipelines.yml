@@ -34,7 +34,7 @@ parameters:
 
 
 stages:
-- stage: Tests
+- stage: Test
   jobs:
   - ${{ each job in parameters.testJobs }}:
     - template: ./azure-templates/base_test_job.yml

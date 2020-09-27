@@ -23,5 +23,9 @@ jobs:
         brew update
         brew tap wix/brew
         brew install applesimutils
+      displayName: Prepare Env
+    - script: xcrun simctl list
+      displayName: List Simulators
     - script: npm install
+      displayName: Install Package From NPM
     - script: npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit
