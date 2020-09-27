@@ -39,7 +39,7 @@ stages:
   - ${{ each job in parameters.testJobs }}:
     - template: ./azure-templates/base_test_job.yml
       parameters:
-        name: Xcode_${{ job.xcodeVersion }}_iOS_${{ job.iosVersion }}
+        name: Xcode_${{ replace(job.xcodeVersion, '.', '_') }}_iOS_${{ replace(job.iosVersion, '.', '_') }}
         iosVersion: ${{ job.iosVersion }}
         xcodeVersion: ${{ job.xcodeVersion }}
         iosDeviceName: ${{ job.iosDeviceName }}
