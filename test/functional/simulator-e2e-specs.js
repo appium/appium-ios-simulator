@@ -133,13 +133,6 @@ describe(`simulator ${OS_VERSION}`, function () {
     let sim = await getSimulator(simctl.udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    let error = /The operation couldn’t be completed/;
-    if (!process.env.TRAVIS) {
-      if ((process.env.DEVICE && parseInt(process.env.DEVICE, 10) >= 10) || (OS_VERSION && parseInt(OS_VERSION, 10) >= 10)) {
-        error = /The request was denied by service delegate/;
-      }
-    }
-
     // install & launch test app
     await installApp(sim, app);
 
@@ -164,12 +157,9 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.removeApp(BUNDLE_ID);
 
     // should not be able to launch anymore
-    await simctl.launchApp(BUNDLE_ID, 1)
-      .should.eventually.be.rejectedWith(error);
+    await simctl.launchApp(BUNDLE_ID, 1).should.eventually.be.rejected;
 
     (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
-
-    console.log('Test case finished'); // eslint-disable-line no-console
   });
 
   it('should delete custom app data', async function () {
