@@ -9,7 +9,8 @@ import { LONG_TIMEOUT, verifyStates } from './helpers';
 chai.should();
 chai.use(chaiAsPromised);
 
-const deviceVersion = process.env.DEVICE ? process.env.DEVICE : '10.3';
+const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
+const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
 
 describe('killAllSimulators', function () {
   this.timeout(LONG_TIMEOUT);
@@ -19,8 +20,8 @@ describe('killAllSimulators', function () {
     await killAllSimulators();
     let udid = await new Simctl().createDevice(
       'ios-simulator testing',
-      'iPhone 6s',
-      deviceVersion,
+      DEVICE_NAME,
+      OS_VERSION,
       {timeout: 20000});
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
