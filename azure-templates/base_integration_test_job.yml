@@ -14,6 +14,7 @@ jobs:
       MOBILE_OS_VERSION: ${{ parameters.iosVersion }}
       MOBILE_DEVICE_NAME: ${{ parameters.iosDeviceName }}
       XCODE_VERSION: ${{ parameters.xcodeVersion }}
+      _FORCE_LOGS: 1
     steps:
     - task: NodeTool@0
       inputs:
@@ -28,4 +29,4 @@ jobs:
       displayName: List Simulators
     - script: npm install
       displayName: Install Package From NPM
-    - script: npm test && _FORCE_LOGS=1 npx mocha -R spec build/test/**/*-e2e-specs.js --exit
+    - script: npx mocha -R spec build/test/**/*-e2e-specs.js --exit

@@ -34,10 +34,19 @@ parameters:
 
 
 stages:
-- stage: Test
+- stage: Unit_Test
   jobs:
   - ${{ each job in parameters.testJobs }}:
-    - template: ./azure-templates/base_test_job.yml
+    - template: ./azure-templates/base_unit_test_job.yml
+      parameters:
+        name: Xcode_${{ replace(job.xcodeVersion, '.', '_') }}_iOS_${{ replace(job.iosVersion, '.', '_') }}
+        xcodeVersion: ${{ job.xcodeVersion }}
+        vmImage: ${{ job.vmImage }}
+
+- stage: Integration_Test
+  jobs:
+  - ${{ each job in parameters.testJobs }}:
+    - template: ./azure-templates/base_integration_test_job.yml
       parameters:
         name: Xcode_${{ replace(job.xcodeVersion, '.', '_') }}_iOS_${{ replace(job.iosVersion, '.', '_') }}
         iosVersion: ${{ job.iosVersion }}
