@@ -1,9 +1,7 @@
 import { toXmlArg, generateUpdateCommandArgs } from '../../lib/defaults-utils';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from 'chai';
 
 chai.should();
-chai.use(chaiAsPromised);
 
 describe('defaults-utils', function () {
 
@@ -28,6 +26,10 @@ describe('defaults-utils', function () {
     it('could properly convert dict value types to a XML representation', function () {
       toXmlArg({k1: true, k2: {k3: 1.1, k4: []}}).should.eql(
         '<dict><key>k1</key><true/><key>k2</key><dict><key>k3</key><real>1.1</real><key>k4</key><array/></dict></dict>');
+    });
+
+    it('fails to convert an unknown value type', function () {
+      expect(() => toXmlArg(null)).to.throw;
     });
 
   });
