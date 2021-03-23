@@ -9,7 +9,7 @@ chai.use(chaiAsPromised);
 describe('tail-until', function () {
 
   it('rejects when timeout is hit', async function () {
-    this.timeout('10 * 1000');
+    this.timeout(10 * 1000);
     await tailUntil(path.resolve('.', 'tail-until-specs.js'), 'foo', 500).should.be.rejectedWith('failed');
   });
 
