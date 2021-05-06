@@ -1,4 +1,4 @@
-import { toXmlArg, generateUpdateCommandArgs } from '../../lib/defaults-utils';
+import { toXmlArg, generateDefaultsCommandArgs } from '../../lib/defaults-utils';
 import chai, { expect } from 'chai';
 
 chai.should();
@@ -34,10 +34,10 @@ describe('defaults-utils', function () {
 
   });
 
-  describe('generateUpdateCommandArgs', function () {
+  describe('generateDefaultsCommandArgs', function () {
 
     it('could properly generate command args for simple value types', function () {
-      generateUpdateCommandArgs({
+      generateDefaultsCommandArgs({
         k1: 1,
         k2: 1.1,
         k3: '1',
@@ -53,7 +53,7 @@ describe('defaults-utils', function () {
     });
 
     it('could properly generate command args for dict value types', function () {
-      generateUpdateCommandArgs({
+      generateDefaultsCommandArgs({
         k1: {
           k2: {
             k3: 1,
@@ -61,6 +61,18 @@ describe('defaults-utils', function () {
         }
       }).should.eql([
         ['k1', '-dict-add', 'k2', '<dict><key>k3</key><integer>1</integer></dict>'],
+      ]);
+    });
+
+    it('could properly generate command args for value types with replacement', function () {
+      generateDefaultsCommandArgs({
+        AppleLanguages: ['en'],
+        AppleLocale: 'en_US@calendar=gregorian',
+        AppleKeyboards: ['en_US@sw=QWERTY']
+      }, true).should.eql([
+        ['AppleLanguages', '<array><string>en</string></array>'],
+        ['AppleLocale', '<string>en_US@calendar=gregorian</string>'],
+        ['AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>'],
       ]);
     });
 

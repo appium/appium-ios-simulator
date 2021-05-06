@@ -370,6 +370,28 @@ describe('advanced features', function () {
     });
   });
 
+  describe('configureLocalization', function () {
+    it(`should properly set locale settings`, async function () {
+      if (!_.isFunction(sim.configureLocalization)) {
+        return this.skip();
+      }
+
+      await sim.configureLocalization({
+        language: {
+          name: 'en'
+        },
+        locale: {
+          name: 'en_US',
+          calendar: 'gregorian',
+        },
+        keyboard: {
+          name: 'en_US',
+          layout: 'QWERTY',
+        }
+      });
+    });
+  });
+
   describe('keychains', function () {
     this.retries(2);
 
