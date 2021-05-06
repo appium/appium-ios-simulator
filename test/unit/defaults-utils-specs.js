@@ -64,6 +64,18 @@ describe('defaults-utils', function () {
       ]);
     });
 
+    it('could properly generate command args for value types with replacement', function () {
+      generateDefaultsCommandArgs({
+        AppleLanguages: ['en'],
+        AppleLocale: 'en_US@calendar=gregorian',
+        AppleKeyboards: ['en_US@sw=QWERTY']
+      }, true).should.eql([
+        ['AppleLanguages', '<array><string>en</string></array>'],
+        ['AppleLocale', '<string>en_US@calendar=gregorian</string>'],
+        ['AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>'],
+      ]);
+    });
+
   });
 
 });
