@@ -1,4 +1,4 @@
-import { toXmlArg, generateUpdateCommandArgs } from '../../lib/defaults-utils';
+import { toXmlArg, generateDefaultsCommandArgs } from '../../lib/defaults-utils';
 import chai, { expect } from 'chai';
 
 chai.should();
@@ -34,10 +34,10 @@ describe('defaults-utils', function () {
 
   });
 
-  describe('generateUpdateCommandArgs', function () {
+  describe('generateDefaultsCommandArgs', function () {
 
     it('could properly generate command args for simple value types', function () {
-      generateUpdateCommandArgs({
+      generateDefaultsCommandArgs({
         k1: 1,
         k2: 1.1,
         k3: '1',
@@ -53,7 +53,7 @@ describe('defaults-utils', function () {
     });
 
     it('could properly generate command args for dict value types', function () {
-      generateUpdateCommandArgs({
+      generateDefaultsCommandArgs({
         k1: {
           k2: {
             k3: 1,
