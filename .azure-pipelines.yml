@@ -11,14 +11,6 @@ parameters:
 - name: testJobs
   type: object
   default:
-  - iosVersion: 12
-    xcodeVersion: 10
-    iosDeviceName: iPhone 6
-    vmImage: macOS-10.14
-  - iosVersion: 12.4
-    xcodeVersion: 10.3
-    iosDeviceName: iPhone X
-    vmImage: macOS-10.14
   - iosVersion: 13.2
     xcodeVersion: 11.2
     iosDeviceName: iPhone 11
@@ -31,7 +23,10 @@ parameters:
     xcodeVersion: 12
     iosDeviceName: iPhone 11
     vmImage: macOS-10.15
-
+  - iosVersion: 14.4
+    xcodeVersion: 12.4
+    iosDeviceName: iPhone 12
+    vmImage: macOS-10.15
 
 stages:
 - stage: Unit_Test
