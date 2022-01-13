@@ -64,7 +64,7 @@
     "appium-gulp-plugins": "^5.4.0",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
-    "colors": "^1.1.2",
+    "@dabh/colors": "^1.4.0",
     "eslint-config-appium": "^4.0.1",
     "fs-extra": "^10.0.0",
     "gulp": "^4.0.0",
