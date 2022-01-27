@@ -3,7 +3,7 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Certificate, TrustStore } from '../../lib/certificate';
-import { fs, util } from 'appium-support';
+import { fs, util } from '@appium/support';
 import { copySync } from 'fs-extra';
 
 chai.should();

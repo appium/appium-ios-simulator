@@ -3,7 +3,7 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import Calendar from '../../lib/calendar';
-import { fs } from 'appium-support';
+import { fs } from '@appium/support';
 import { copySync } from 'fs-extra';
 import { execSQLiteQuery } from '../../lib/utils';
 

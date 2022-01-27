@@ -5,7 +5,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as settings from '../../lib/settings';
 import SimulatorXcode6 from '../../lib/simulator-xcode-6';
 import path from 'path';
-import { tempDir, fs } from 'appium-support';
+import { tempDir, fs } from '@appium/support';
 import sinon from 'sinon';
 import { asyncmap } from 'asyncbox';
 
