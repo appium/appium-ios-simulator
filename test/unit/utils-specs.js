@@ -15,7 +15,7 @@ import { toBiometricDomainComponent } from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import Simulator from '../../lib/simulator-xcode-6';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
-import { fs } from 'appium-support';
+import { fs } from '@appium/support';
 import path from 'path';
 
 

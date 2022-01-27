@@ -4,7 +4,7 @@ import { getSimulator, killAllSimulators } from '../..';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { fs } from 'appium-support';
+import { fs } from '@appium/support';
 import B from 'bluebird';
 import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval, waitForCondition } from 'asyncbox';
