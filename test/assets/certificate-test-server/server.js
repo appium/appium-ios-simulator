@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 import { installSSLCert, uninstallSSLCert } from '../../../lib/utils';
 import { getDevices } from 'node-simctl';
 import B from 'bluebird';
-import 'colors';
+import '@colors/colors';
 
 const pem = B.promisifyAll(require('pem'));
 
