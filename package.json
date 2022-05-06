@@ -61,12 +61,13 @@
     "precommit-test"
   ],
   "devDependencies": {
-    "@appium/gulp-plugins": "^6.0.0",
-    "@appium/eslint-config-appium": "^5.0.0",
+    "@appium/gulp-plugins": "^7.0.0",
+    "@appium/eslint-config-appium": "^6.0.0",
     "@colors/colors": "^1.5.0",
     "@semantic-release/git": "^10.0.1",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
+    "eslint-config-prettier": "^8.5.0",
     "fs-extra": "^10.0.0",
     "gulp": "^4.0.0",
     "ios-test-app": "^3.0.0",
