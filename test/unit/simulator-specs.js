@@ -44,7 +44,7 @@ describe('simulator', function () {
 
       let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
-      sim.should.be.an.instanceof(SimulatorXcode6);
+      sim.constructor.name.should.be.eql(SimulatorXcode6.name);
     });
 
     const xcodeVersions = [
@@ -65,7 +65,7 @@ describe('simulator', function () {
         xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
         let sim = await getSimulator(UDID);
         sim.xcodeVersion.should.equal(xcodeVersion);
-        sim.should.be.an.instanceof(expectedXcodeClass);
+        sim.constructor.name.should.be.eql(expectedXcodeClass.name);
       });
     }
 

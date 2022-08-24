@@ -10,7 +10,7 @@ import sinon from 'sinon';
 import { asyncmap } from 'asyncbox';
 
 
-const SIM_DIRECTORY = path.resolve('test/assets/');
+const SIM_DIRECTORY = path.resolve(__dirname, '..', 'assets');
 
 chai.should();
 let expect = chai.expect;

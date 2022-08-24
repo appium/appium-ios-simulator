@@ -6,15 +6,15 @@ import Calendar from '../../lib/calendar';
 import { fs } from '@appium/support';
 import { copySync } from 'fs-extra';
 import { execSQLiteQuery } from '../../lib/utils';
+import path from 'path';
 
 chai.should();
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-const cwd = process.cwd();
-const assetsDir = `${cwd}/test/assets`;
-const tccDir = `${assetsDir}/Library/TCC`;
-const tccDirOriginal = `${assetsDir}/Library/TCC-Original`;
+const assetsDir = path.resolve(__dirname, '..', 'assets');
+const tccDir = path.resolve(assetsDir, 'Library', 'TCC');
+const tccDirOriginal = path.resolve(assetsDir, 'Library', 'TCC-Original');
 const bundleID = 'com.fake.bundleid';
 
 describe('Calendar.js', function () {
