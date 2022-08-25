@@ -6,7 +6,6 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { fs } from '@appium/support';
 import B from 'bluebird';
-import { absolute as testAppPath } from 'ios-test-app';
 import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
@@ -46,13 +45,8 @@ describe(`simulator ${OS_VERSION}`, function () {
 
   let simctl;
 
-  let app = testAppPath.iphonesimulator;
+  const app = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
   before(async function () {
-    let exists = await fs.exists(app);
-    if (!exists) {
-      app = path.resolve(__dirname, '..', '..', '..', 'test', 'assets', 'TestApp-iphonesimulator.app');
-    }
-
     xcodeVersion = await xcode.getVersion(true);
   });
 

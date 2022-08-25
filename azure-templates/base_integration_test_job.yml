@@ -29,4 +29,4 @@ jobs:
       displayName: List Simulators
     - script: npm install
       displayName: Install Package From NPM
-    - script: npx mocha -R spec build/test/**/*-e2e-specs.js --exit
+    - script: npm run e2e-test

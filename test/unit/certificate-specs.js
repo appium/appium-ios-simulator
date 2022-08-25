@@ -5,14 +5,14 @@ import chaiAsPromised from 'chai-as-promised';
 import { Certificate, TrustStore } from '../../lib/certificate';
 import { fs, util } from '@appium/support';
 import { copySync } from 'fs-extra';
+import path from 'path';
 
 chai.should();
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-const cwd = process.cwd();
-const assetsDir = `${cwd}/test/assets`;
-const keychainsDir = `${assetsDir}/Library/Keychains`;
+const assetsDir = path.resolve(__dirname, '..', 'assets');
+const keychainsDir = path.resolve(assetsDir, 'Library', 'Keychains');
 let keychainsDirOriginal;
 let certificate;
 let trustStore;
@@ -26,7 +26,7 @@ describe('when using TrustStore class', function () {
   }
 
   beforeEach(async function () {
-    keychainsDirOriginal = `${assetsDir}/Library/Keychains-Original`;
+    keychainsDirOriginal = path.resolve(assetsDir, 'Library', 'Keychains-Original');
     await fs.rimraf(keychainsDir);
     copySync(keychainsDirOriginal, keychainsDir);
     trustStore = new TrustStore(assetsDir);
@@ -56,7 +56,7 @@ describe('when using TrustStore class', function () {
 
 describe('when using TrustStore class when the keychains directory doesn\'t exist', function () {
   beforeEach(async function () {
-    tempDirectory = `${assetsDir}/temp`;
+    tempDirectory = path.resolve(assetsDir, 'temp');
     await fs.rimraf(tempDirectory);
     await fs.mkdir(tempDirectory);
   });
@@ -75,7 +75,7 @@ describe('when using TrustStore class when the keychains directory doesn\'t exis
 describe('when using Certificate class', function () {
 
   beforeEach(async function () {
-    certificate = await new Certificate(`${assetsDir}/test-pem.pem`);
+    certificate = await new Certificate(path.resolve(assetsDir, 'test-pem.pem'));
   });
 
   afterEach(async function () {
@@ -84,18 +84,18 @@ describe('when using Certificate class', function () {
 
   it('can translate PEM certificate to DER format', async function () {
     let derData = await certificate.getDerData();
-    let testData = await fs.readFile(`${assetsDir}/Library/certificates/test-data.txt`);
+    let testData = await fs.readFile(path.resolve(assetsDir, 'Library', 'certificates', 'test-data.txt'));
     expect(testData.equals(derData));
   });
 
   it('can get a fingerprint from a PEM certificate', async function () {
     let fingerprint = await certificate.getFingerPrint();
-    let testFingerprint = await fs.readFile(`${assetsDir}/Library/certificates/test-fingerprint.txt`);
+    let testFingerprint = await fs.readFile(path.resolve(assetsDir, 'Library', 'certificates', 'test-fingerprint.txt'));
     expect(fingerprint.equals(testFingerprint));
   });
 
   it('can get a subject from a PEM certificate', async function () {
-    let subject = await certificate.getSubject(`${assetsDir}/test-pem.pem`);
+    let subject = await certificate.getSubject(path.resolve(assetsDir, 'test-pem.pem'));
     expect(subject.length).to.be.greaterThan(0);
   });
 
@@ -119,7 +119,7 @@ describe('when using Certificate class', function () {
     let hasCert = await certificate.has(assetsDir);
     expect(hasCert);
 
-    certificate = new Certificate(`${assetsDir}/test-pem.pem`);
+    certificate = new Certificate(path.resolve(assetsDir, 'test-pem.pem'));
     await certificate.remove(assetsDir);
     hasCert = await certificate.has(assetsDir);
     expect(!hasCert);

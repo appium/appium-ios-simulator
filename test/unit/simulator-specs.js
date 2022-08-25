@@ -44,7 +44,7 @@ describe('simulator', function () {
 
       let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
-      sim.should.be.an.instanceof(SimulatorXcode6);
+      sim.constructor.name.should.be.eql(SimulatorXcode6.name);
     });
 
     const xcodeVersions = [
@@ -56,7 +56,6 @@ describe('simulator', function () {
       [10, 0, '10.0.0', SimulatorXcode10],
       [11, 0, '11.0.0', SimulatorXcode11],
       [11, 4, '11.4.0', SimulatorXcode11_4],
-      [Number.MAX_VALUE, 0, `${Number.MAX_VALUE}.0.0`, SimulatorXcode11_4],
     ];
 
     for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {
@@ -65,7 +64,7 @@ describe('simulator', function () {
         xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
         let sim = await getSimulator(UDID);
         sim.xcodeVersion.should.equal(xcodeVersion);
-        sim.should.be.an.instanceof(expectedXcodeClass);
+        sim.constructor.name.should.be.eql(expectedXcodeClass.name);
       });
     }
 

@@ -13,15 +13,11 @@ import {
 } from '../..';
 import { toBiometricDomainComponent } from '../../lib/utils';
 import { devices } from '../assets/deviceList';
-import Simulator from '../../lib/simulator-xcode-6';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
 import { fs } from '@appium/support';
-import path from 'path';
-
 
 chai.should();
 chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const XCODE_VERSION_9 = {
   versionString: '9.0',
@@ -45,8 +41,6 @@ const XCODE_VERSION_6 = {
   patch: 1
 };
 
-
-let assetsDir = `${process.cwd()}/test/assets`;
 
 describe('util', function () {
   let execStub;
@@ -141,20 +135,6 @@ describe('util', function () {
 });
 
 describe('installSSLCert and uninstallSSLCert', function () {
-
-  it('should install and uninstall certs in keychain directories', async function () {
-    let simulatorGetDirStub = sinon.stub(Simulator.prototype, 'getDir').callsFake(function () {
-      return path.resolve(assetsDir);
-    });
-    let testPem = await fs.readFile(path.resolve(assetsDir, 'test-pem.pem'));
-    let certificate = await installSSLCert(testPem, `using mock, udid doesn't matter`);
-    let certExistsInAssetsDir = await certificate.has(assetsDir);
-    expect(certExistsInAssetsDir).to.be.true;
-    await uninstallSSLCert(testPem, `using mock, udid doesn't matter`);
-    certExistsInAssetsDir = await certificate.has(assetsDir);
-    expect(certExistsInAssetsDir).to.be.false;
-    simulatorGetDirStub.restore();
-  });
 
   it('should throw exception if openssl is unavailable', async function () {
     let whichStub = sinon.stub(fs, 'which').callsFake(function () {
