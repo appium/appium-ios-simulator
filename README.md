@@ -2,8 +2,6 @@
 
 [![NPM version](http://img.shields.io/npm/v/appium-ios-simulator.svg)](https://npmjs.org/package/appium-ios-simulator)
 [![Downloads](http://img.shields.io/npm/dm/appium-ios-simulator.svg)](https://npmjs.org/package/appium-ios-simulator)
-[![Dependency Status](https://david-dm.org/appium/appium-ios-simulator/master.svg)](https://david-dm.org/appium/appium-ios-simulator/master)
-[![devDependency Status](https://david-dm.org/appium/appium-ios-simulator/master/dev-status.svg)](https://david-dm.org/appium/appium-ios-simulator/master#info=devDependencies)
 
 [![Build Status](https://api.travis-ci.org/appium/appium-ios-simulator.png?branch=master)](https://travis-ci.org/appium/appium-ios-simulator)
 
