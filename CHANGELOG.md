@@ -1,3 +1,10 @@
+## [4.1.7](https://github.com/appium/appium-ios-simulator/compare/v4.1.6...v4.1.7) (2022-12-01)
+
+
+### Miscellaneous Chores
+
+* update releaserc ([#341](https://github.com/appium/appium-ios-simulator/issues/341)) ([109b12d](https://github.com/appium/appium-ios-simulator/commit/109b12dae7c6069bc20d35794abb7b500aa0dd6d))
+
 ## [4.1.6](https://github.com/appium/appium-ios-simulator/compare/v4.1.5...v4.1.6) (2022-11-29)
 
 ## [4.1.5](https://github.com/appium/appium-ios-simulator/compare/v4.1.4...v4.1.5) (2022-11-06)
