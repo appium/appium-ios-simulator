@@ -4,7 +4,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Certificate, TrustStore } from '../../lib/certificate';
 import { fs, util } from '@appium/support';
-import { copySync } from 'fs-extra';
+import { copyDir } from '../utils';
 import path from 'path';
 
 chai.should();
@@ -28,7 +28,7 @@ describe('when using TrustStore class', function () {
   beforeEach(async function () {
     keychainsDirOriginal = path.resolve(assetsDir, 'Library', 'Keychains-Original');
     await fs.rimraf(keychainsDir);
-    copySync(keychainsDirOriginal, keychainsDir);
+    await copyDir(keychainsDirOriginal, keychainsDir);
     trustStore = new TrustStore(assetsDir);
     testUUID = getUUID();
   });
