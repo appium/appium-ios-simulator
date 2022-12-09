@@ -1,3 +1,10 @@
+## [4.1.8](https://github.com/appium/appium-ios-simulator/compare/v4.1.7...v4.1.8) (2022-12-09)
+
+
+### Miscellaneous Chores
+
+* Bump fs-extra from 10.1.0 to 11.1.0 ([#340](https://github.com/appium/appium-ios-simulator/issues/340)) ([14b9e4c](https://github.com/appium/appium-ios-simulator/commit/14b9e4c949839b399fbf7b172a6ac98994c73c7b))
+
 ## [4.1.7](https://github.com/appium/appium-ios-simulator/compare/v4.1.6...v4.1.7) (2022-12-01)
 
 
