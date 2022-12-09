@@ -93,7 +93,6 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "lint-staged": "^13.0.3",
-    "fs-extra": "^11.1.0",
     "mocha": "^10.0.0",
     "pem": "^1.8.3",
     "pre-commit": "^1.1.3",

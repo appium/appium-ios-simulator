@@ -4,7 +4,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import Calendar from '../../lib/calendar';
 import { fs } from '@appium/support';
-import { copySync } from 'fs-extra';
+import { copyDir } from '../utils';
 import { execSQLiteQuery } from '../../lib/utils';
 import path from 'path';
 
@@ -22,7 +22,7 @@ describe('Calendar.js', function () {
 
   beforeEach(async function () {
     await fs.rimraf(tccDir);
-    copySync(tccDirOriginal, tccDir);
+    await copyDir(tccDirOriginal, tccDir);
     calendar = new Calendar({major: 9}, assetsDir);
   });
 
