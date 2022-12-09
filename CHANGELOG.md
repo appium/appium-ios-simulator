@@ -1,3 +1,10 @@
+## [4.2.0](https://github.com/appium/appium-ios-simulator/compare/v4.1.8...v4.2.0) (2022-12-09)
+
+
+### Features
+
+* add setReduceTransparency ([#342](https://github.com/appium/appium-ios-simulator/issues/342)) ([ef57f51](https://github.com/appium/appium-ios-simulator/commit/ef57f51570a756b999bf1b0739b8d7149e1a1b0d))
+
 ## [4.1.8](https://github.com/appium/appium-ios-simulator/compare/v4.1.7...v4.1.8) (2022-12-09)
 
 
