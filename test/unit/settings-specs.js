@@ -295,16 +295,7 @@ describe('settings', function () {
       sinon.stub(settings, 'setReduceMotion');
     });
 
-    it('should launch simulator if fresh before setting reduce motion', async function () {
-      sinon.stub(sim, 'isFresh').returns(true);
-      sinon.stub(sim, 'launchAndQuit');
-      await sim.setReduceMotion(true);
-      sim.launchAndQuit.calledOnce.should.eql(true);
-      settings.setReduceMotion.calledOnce.should.eql(true);
-    });
-
-    it('should just set reduce motion', async function () {
-      sinon.stub(sim, 'isFresh').returns(false);
+    it('should set reduce motion', async function () {
       await sim.setReduceMotion(true);
       settings.setReduceMotion.calledOnce.should.eql(true);
     });
