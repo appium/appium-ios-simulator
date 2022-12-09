@@ -416,6 +416,22 @@ describe('advanced features', function () {
     });
   });
 
+  describe(`setReduceTransparency`, function () {
+    it('should check accessibility reduce transparency settings', async function () {
+      await sim.setReduceTransparency(true);
+      let fileSettings = await readSettings(sim, 'accessibilitySettings');
+      for (const [, settings] of _.toPairs(fileSettings)) {
+        settings.EnhancedBackgroundContrastEnabled.should.eql(1);
+      }
+
+      await sim.setReduceTransparency(false);
+      fileSettings = await readSettings(sim, 'accessibilitySettings');
+      for (const [, settings] of _.toPairs(fileSettings)) {
+        settings.EnhancedBackgroundContrastEnabled.should.eql(0);
+      }
+    });
+  });
+
   describe('updateSafariGlobalSettings', function () {
     it('should set an arbitrary preference on the global Safari plist', async function () {
       await sim.updateSafariGlobalSettings({
