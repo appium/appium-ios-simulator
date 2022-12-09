@@ -322,16 +322,7 @@ describe('settings', function () {
       sinon.stub(settings, 'setReduceTransparency');
     });
 
-    it('should launch simulator if fresh before setting reduce transparency', async function () {
-      sinon.stub(sim, 'isFresh').returns(true);
-      sinon.stub(sim, 'launchAndQuit');
-      await sim.setReduceTransparency(true);
-      sim.launchAndQuit.calledOnce.should.eql(true);
-      settings.setReduceTransparency.calledOnce.should.eql(true);
-    });
-
-    it('should just set reduce transparency', async function () {
-      sinon.stub(sim, 'isFresh').returns(false);
+    it('should set reduce transparency', async function () {
       await sim.setReduceTransparency(true);
       settings.setReduceTransparency.calledOnce.should.eql(true);
     });
