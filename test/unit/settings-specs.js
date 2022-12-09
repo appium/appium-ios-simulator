@@ -309,4 +309,31 @@ describe('settings', function () {
       settings.setReduceMotion.calledOnce.should.eql(true);
     });
   });
+
+  describe('setReduceTransparency', function () {
+    let sim;
+    before(function () {
+      sim = new SimulatorXcode6();
+      sinon.stub(settings, 'setReduceTransparency');
+    });
+
+    afterEach(function () {
+      sinon.restore();
+      sinon.stub(settings, 'setReduceTransparency');
+    });
+
+    it('should launch simulator if fresh before setting reduce transparency', async function () {
+      sinon.stub(sim, 'isFresh').returns(true);
+      sinon.stub(sim, 'launchAndQuit');
+      await sim.setReduceTransparency(true);
+      sim.launchAndQuit.calledOnce.should.eql(true);
+      settings.setReduceTransparency.calledOnce.should.eql(true);
+    });
+
+    it('should just set reduce transparency', async function () {
+      sinon.stub(sim, 'isFresh').returns(false);
+      await sim.setReduceTransparency(true);
+      settings.setReduceTransparency.calledOnce.should.eql(true);
+    });
+  });
 });
