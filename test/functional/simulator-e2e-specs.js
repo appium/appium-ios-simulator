@@ -10,7 +10,7 @@ import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
-import { readSettings } from '../../lib/settings';
+import { readSettings, PLIST_IDENTIFIER } from '../../lib/settings';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -403,13 +403,13 @@ describe('advanced features', function () {
   describe(`setReduceMotion`, function () {
     it('should check accessibility reduce motion settings', async function () {
       await sim.setReduceMotion(true);
-      let fileSettings = await readSettings(sim, 'accessibilitySettings');
+      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
       for (const [, settings] of _.toPairs(fileSettings)) {
         settings.ReduceMotionEnabled.should.eql(1);
       }
 
       await sim.setReduceMotion(false);
-      fileSettings = await readSettings(sim, 'accessibilitySettings');
+      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
       for (const [, settings] of _.toPairs(fileSettings)) {
         settings.ReduceMotionEnabled.should.eql(0);
       }
@@ -419,13 +419,13 @@ describe('advanced features', function () {
   describe(`setReduceTransparency`, function () {
     it('should check accessibility reduce transparency settings', async function () {
       await sim.setReduceTransparency(true);
-      let fileSettings = await readSettings(sim, 'accessibilitySettings');
+      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
       for (const [, settings] of _.toPairs(fileSettings)) {
         settings.EnhancedBackgroundContrastEnabled.should.eql(1);
       }
 
       await sim.setReduceTransparency(false);
-      fileSettings = await readSettings(sim, 'accessibilitySettings');
+      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
       for (const [, settings] of _.toPairs(fileSettings)) {
         settings.EnhancedBackgroundContrastEnabled.should.eql(0);
       }
@@ -437,7 +437,7 @@ describe('advanced features', function () {
       await sim.updateSafariGlobalSettings({
         DidImportBuiltinBookmarks: true,
       });
-      let setSettings = await readSettings(sim, 'globalMobileSafari');
+      let setSettings = await readSettings(sim, PLIST_IDENTIFIER.GLOBAL_MOBILE_SAFARI);
       for (const [file, settings] of _.toPairs(setSettings)) {
         file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
         settings.DidImportBuiltinBookmarks.should.eql(true);
@@ -446,7 +446,7 @@ describe('advanced features', function () {
       await sim.updateSafariGlobalSettings({
         DidImportBuiltinBookmarks: false,
       });
-      setSettings = await readSettings(sim, 'globalMobileSafari');
+      setSettings = await readSettings(sim, PLIST_IDENTIFIER.GLOBAL_MOBILE_SAFARI);
       for (const [file, settings] of _.toPairs(setSettings)) {
         file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
         settings.DidImportBuiltinBookmarks.should.eql(false);
