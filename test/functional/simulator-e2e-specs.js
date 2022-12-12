@@ -433,24 +433,11 @@ describe('advanced features', function () {
   });
 
   describe('updateSafariGlobalSettings', function () {
-    it('should set an arbitrary preference on the global Safari plist', async function () {
+    it('should set arbitrary preferences on Safari', async function () {
       await sim.updateSafariGlobalSettings({
-        DidImportBuiltinBookmarks: true,
+        ShowTabBar: 1,
+        DidImportBuiltinBookmarks: 1,
       });
-      let setSettings = await readSettings(sim, PLIST_IDENTIFIER.GLOBAL_MOBILE_SAFARI);
-      for (const [file, settings] of _.toPairs(setSettings)) {
-        file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
-        settings.DidImportBuiltinBookmarks.should.eql(true);
-      }
-
-      await sim.updateSafariGlobalSettings({
-        DidImportBuiltinBookmarks: false,
-      });
-      setSettings = await readSettings(sim, PLIST_IDENTIFIER.GLOBAL_MOBILE_SAFARI);
-      for (const [file, settings] of _.toPairs(setSettings)) {
-        file.endsWith('data/Library/Preferences/com.apple.mobilesafari.plist').should.be.true;
-        settings.DidImportBuiltinBookmarks.should.eql(false);
-      }
     });
   });
 });
