@@ -1,3 +1,17 @@
+## [4.2.1](https://github.com/appium/appium-ios-simulator/compare/v4.2.0...v4.2.1) (2022-12-12)
+
+
+### Bug Fixes
+
+* Update Simulator preferences configuration ([#347](https://github.com/appium/appium-ios-simulator/issues/347)) ([355c5da](https://github.com/appium/appium-ios-simulator/commit/355c5dabea80330952705570cd0e48ef1633a3fc))
+
+
+### Code Refactoring
+
+* do not launch in setReduceMotion ([#343](https://github.com/appium/appium-ios-simulator/issues/343)) ([cc35e3e](https://github.com/appium/appium-ios-simulator/commit/cc35e3e7b10585fd127630c1ca01b6de14a2cf63))
+* Drop usage of fs-extra module ([#344](https://github.com/appium/appium-ios-simulator/issues/344)) ([4c1a63e](https://github.com/appium/appium-ios-simulator/commit/4c1a63e0672534b2f401e416b3face095fec639f))
+* Streamline settings helpers for the simulator ([#346](https://github.com/appium/appium-ios-simulator/issues/346)) ([bcf4753](https://github.com/appium/appium-ios-simulator/commit/bcf475318d707b3ac8531b72dbc0d1db9bff4578))
+
 ## [4.2.0](https://github.com/appium/appium-ios-simulator/compare/v4.1.8...v4.2.0) (2022-12-09)
 
 
