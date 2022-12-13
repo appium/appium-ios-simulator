@@ -10,7 +10,6 @@ import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
-import { readSettings, PLIST_IDENTIFIER } from '../../lib/settings';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
@@ -403,32 +402,14 @@ describe('advanced features', function () {
   describe(`setReduceMotion`, function () {
     it('should check accessibility reduce motion settings', async function () {
       await sim.setReduceMotion(true);
-      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.ReduceMotionEnabled.should.eql(1);
-      }
-
       await sim.setReduceMotion(false);
-      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.ReduceMotionEnabled.should.eql(0);
-      }
     });
   });
 
   describe(`setReduceTransparency`, function () {
     it('should check accessibility reduce transparency settings', async function () {
       await sim.setReduceTransparency(true);
-      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.EnhancedBackgroundContrastEnabled.should.eql(1);
-      }
-
       await sim.setReduceTransparency(false);
-      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.EnhancedBackgroundContrastEnabled.should.eql(0);
-      }
     });
   });
 
