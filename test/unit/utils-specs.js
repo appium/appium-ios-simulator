@@ -8,13 +8,10 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import Simctl from 'node-simctl';
 import {
-  killAllSimulators, endAllSimulatorDaemons, simExists,
-  installSSLCert, uninstallSSLCert
-} from '../..';
-import { toBiometricDomainComponent } from '../../lib/utils';
+  toBiometricDomainComponent, killAllSimulators, endAllSimulatorDaemons, simExists,
+} from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
-import { fs } from '@appium/support';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -130,27 +127,6 @@ describe('util', function () {
         result.should.be.false;
       }
     });
-  });
-
-});
-
-describe('installSSLCert and uninstallSSLCert', function () {
-
-  it('should throw exception if openssl is unavailable', async function () {
-    let whichStub = sinon.stub(fs, 'which').callsFake(function () {
-      throw new Error('no openssl');
-    });
-    await installSSLCert(`doesn't matter`, `doesn't matter`).should.be.rejected;
-    whichStub.calledOnce.should.be.true;
-    whichStub.restore();
-  });
-
-  it('should throw exception on installSSLCert if udid is invalid', async function () {
-    await installSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
-  });
-
-  it('should throw exception on uninstallSSLCert if udid is invalid', async function () {
-    await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 
 });

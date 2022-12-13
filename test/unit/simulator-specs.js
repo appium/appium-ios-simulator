@@ -1,6 +1,6 @@
 // transpile:mocha
 
-import { getSimulator } from '../..';
+import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';

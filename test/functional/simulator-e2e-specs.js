@@ -1,10 +1,9 @@
 // transpile:mocha
 import _ from 'lodash';
-import { getSimulator, killAllSimulators } from '../..';
+import { getSimulator, killAllSimulators } from '../../lib/utils';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { fs } from '@appium/support';
 import B from 'bluebird';
 import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
@@ -100,12 +99,6 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.isFresh().should.eventually.equal(true);
   });
 
-  it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
-    let sim = await getSimulator(simctl.udid);
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(0);
-  });
-
   it('should find both a data and bundle directory for TestApp', async function () {
     let sim = await getSimulator(simctl.udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
@@ -113,11 +106,6 @@ describe(`simulator ${OS_VERSION}`, function () {
     // install & launch test app
     await installApp(sim, app);
     await simctl.launchApp(BUNDLE_ID);
-
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(2);
-    dirs[0].should.contain('/Data/');
-    dirs[1].should.contain('/Bundle/');
 
     await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty;
   });
@@ -155,58 +143,10 @@ describe(`simulator ${OS_VERSION}`, function () {
     (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
   });
 
-  it('should delete custom app data', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.run({startupTimeout: LONG_TIMEOUT});
-
-    // install & launch test app
-    await installApp(sim, app);
-
-    // this remains somewhat flakey
-    await retryInterval(5, 1000, async () => {
-      await simctl.launchApp(BUNDLE_ID, 1);
-    });
-
-    // delete app directories
-    await sim.cleanCustomApp('TestApp', BUNDLE_ID);
-
-    // clear paths to force the simulator to get a new list of directories
-    sim.appDataBundlePaths = {};
-
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(0);
-  });
-
   it('should delete a sim', async function () {
     let sim = await getSimulator(simctl.udid);
     await sim.delete();
     await getSimulator(simctl.udid).should.eventually.be.rejected;
-  });
-
-  let itText = 'should match a bundleId to its app directory on a used sim';
-  let bundleId = 'com.apple.mobilesafari';
-  if (OS_VERSION === '7.1') {
-    itText = 'should match an app to its app directory on a used sim';
-    bundleId = 'MobileSafari';
-  }
-  it(itText, async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-
-    let path = await sim.getAppDir(bundleId);
-    await fs.hasAccess(path).should.eventually.be.true;
-  });
-
-  itText = 'should not match a bundleId to its app directory on a fresh sim';
-  bundleId = 'com.apple.mobilesafari';
-  if (OS_VERSION === '7.1') {
-    itText = 'should not match an app to its app directory on a fresh sim';
-    bundleId = 'MobileSafari';
-  }
-  it(itText, async function () {
-    let sim = await getSimulator(simctl.udid);
-    let path = await sim.getAppDir(bundleId);
-    chai.should().equal(path, undefined);
   });
 
   it('should start a sim using the "run" method', async function () {

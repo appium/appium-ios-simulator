@@ -1,12 +1,7 @@
 // transpile:main
 
-import * as sim from './lib/simulator';
-import * as utils from './lib/utils';
-
-const { getSimulator } = sim;
-const {
-  killAllSimulators, endAllSimulatorDaemons, simExists
-} = utils;
+import { getSimulator } from './lib/simulator';
+import { killAllSimulators, endAllSimulatorDaemons, simExists } from './lib/utils';
 
 export {
   getSimulator,
