@@ -69,6 +69,7 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.isFresh().should.eventually.be.true;
     await sim.run({startupTimeout: LONG_TIMEOUT / 2});
     await sim.isFresh().should.eventually.be.false;
+    await sim.shutdown();
     await sim.clean();
     await sim.isFresh().should.eventually.be.true;
   });
