@@ -65,10 +65,12 @@ describe(`simulator ${OS_VERSION}`, function () {
   });
 
   it('should detect whether a simulator has been run before', async function () {
-    let sim = await getSimulator(simctl.udid);
+    const sim = await getSimulator(simctl.udid);
     await sim.isFresh().should.eventually.be.true;
     await sim.run({startupTimeout: LONG_TIMEOUT / 2});
     await sim.isFresh().should.eventually.be.false;
+    await sim.clean();
+    await sim.isFresh().should.eventually.be.true;
   });
 
   it('should launch and shutdown a sim', async function () {
@@ -76,13 +78,6 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.run({startupTimeout: LONG_TIMEOUT / 2});
     await sim.shutdown();
     (await sim.stat()).state.should.equal('Shutdown');
-  });
-
-  it('should clean a sim', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.isFresh().should.eventually.be.true;
-    await sim.clean();
-    await sim.isFresh().should.eventually.be.true;
   });
 
   it('should be able to delete an app', async function () {
