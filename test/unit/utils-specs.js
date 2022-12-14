@@ -101,14 +101,12 @@ describe('util', function () {
 
   describe('simExists', function () {
     it('returns true if device is found', async function () {
-      let existence = [
-        simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
-        simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
-        simExists('E46EFA59-E2B4-4FF9-B290-B61F3CFECC65'),
-        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410')
-      ];
-
-      let results = await B.all(existence);
+      let results = await B.all([
+        simExists('8F4A3349-3ABF-4597-953A-285C5C0FFD00'),
+        simExists('7DEA409E-159A-4730-B1C6-7C18279F72B8'),
+        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
+        simExists('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
+      ]);
 
       for (let result of results) {
         result.should.be.true;
