@@ -1,6 +1,6 @@
 // transpile:mocha
 import _ from 'lodash';
-import { killAllSimulators } from '../../lib/utils';
+import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
 import chai from 'chai';
@@ -15,6 +15,7 @@ import { LONG_TIMEOUT, verifyStates } from './helpers';
 const BUNDLE_ID = 'io.appium.TestApp';
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
+const CUSTOM_APP = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -44,7 +45,6 @@ describe(`simulator ${OS_VERSION}`, function () {
 
   let simctl;
 
-  const app = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
   before(async function () {
     xcodeVersion = await xcode.getVersion(true);
   });
@@ -64,51 +64,25 @@ describe(`simulator ${OS_VERSION}`, function () {
     await deleteSimulator(simctl.udid, OS_VERSION);
   });
 
-  async function installApp (sim, app) {
-    await sim.installApp(app);
-    if (process.env.TRAVIS) {
-      await B.delay(5000);
-    }
-  }
-
   it('should detect whether a simulator has been run before', async function () {
     let sim = await getSimulator(simctl.udid);
-    await sim.isFresh().should.eventually.equal(true);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-    await sim.isFresh().should.eventually.equal(false);
+    await sim.isFresh().should.eventually.be.true;
+    await sim.run({startupTimeout: LONG_TIMEOUT / 2});
+    await sim.isFresh().should.eventually.be.false;
   });
 
   it('should launch and shutdown a sim', async function () {
     let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
+    await sim.run({startupTimeout: LONG_TIMEOUT / 2});
+    await sim.shutdown();
     (await sim.stat()).state.should.equal('Shutdown');
   });
-
-  it('should launch and shutdown a sim, also starting safari', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(true, LONG_TIMEOUT);
-    (await sim.stat()).state.should.equal('Shutdown');
-  });
-
 
   it('should clean a sim', async function () {
     let sim = await getSimulator(simctl.udid);
-    await sim.isFresh().should.eventually.equal(true);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-    await sim.isFresh().should.eventually.equal(false);
+    await sim.isFresh().should.eventually.be.true;
     await sim.clean();
-    await sim.isFresh().should.eventually.equal(true);
-  });
-
-  it('should find both a data and bundle directory for TestApp', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.run({startupTimeout: LONG_TIMEOUT});
-
-    // install & launch test app
-    await installApp(sim, app);
-    await simctl.launchApp(BUNDLE_ID);
-
-    await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty;
+    await sim.isFresh().should.eventually.be.true;
   });
 
   it('should be able to delete an app', async function () {
@@ -116,15 +90,15 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
     // install & launch test app
-    await installApp(sim, app);
+    await sim.installApp(CUSTOM_APP);
 
     console.log('Application installed'); // eslint-disable-line no-console
 
-    (await sim.isAppInstalled(BUNDLE_ID)).should.be.true;
+    await sim.isAppInstalled(BUNDLE_ID).should.eventually.be.true;
 
     // this remains somewhat flakey
     await retryInterval(5, 1000, async () => {
-      await simctl.launchApp(BUNDLE_ID, 1);
+      await sim.launchApp(BUNDLE_ID, 1);
     });
 
     console.log('Application launched'); // eslint-disable-line no-console
@@ -139,7 +113,7 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.removeApp(BUNDLE_ID);
 
     // should not be able to launch anymore
-    await simctl.launchApp(BUNDLE_ID, 1).should.eventually.be.rejected;
+    await sim.launchApp(BUNDLE_ID, 1).should.eventually.be.rejected;
 
     (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
   });
@@ -155,56 +129,30 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    let stat = await sim.stat();
-    stat.state.should.equal('Booted');
+    await sim.stat().should.eventually.equal('Booted');
 
     await sim.shutdown();
-    stat = await sim.stat();
-    stat.state.should.equal('Shutdown');
+    await sim.stat().should.eventually.equal('Shutdown');
   });
 
   it('should be able to start safari', async function () {
     let sim = await getSimulator(simctl.udid);
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
-    await sim.openUrl('http://apple.com');
+    await sim.openUrl('https://apple.com');
+    await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
     await sim.shutdown();
-
-    // this test to catch errors in openUrl, that arise from bad sims or certain versions of xcode
   });
 
   it('should detect if a sim is running', async function () {
     let sim = await getSimulator(simctl.udid);
-    let running = await sim.isRunning();
-    running.should.be.false;
+    await sim.isRunning().should.eventually.be.false;
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
-    running = await sim.isRunning();
-    running.should.be.true;
+    await sim.isRunning().should.eventually.be.true;
 
     await sim.shutdown();
-    running = await sim.isRunning();
-    running.should.be.false;
-  });
-
-  it('should isolate sim', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.isolateSim();
-  });
-
-  it('should apply calendar access to simulator', async function () {
-    let sim = await getSimulator(simctl.udid);
-
-    if ((xcodeVersion.major === 11 && xcodeVersion.minor >= 4) || xcodeVersion.major >= 12) {
-      await sim.run({startupTimeout: LONG_TIMEOUT});
-      await sim.enableCalendarAccess(BUNDLE_ID);
-      await sim.disableCalendarAccess(BUNDLE_ID);
-    } else {
-      await sim.enableCalendarAccess(BUNDLE_ID);
-      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
-      await sim.disableCalendarAccess(BUNDLE_ID);
-      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
-    }
+    await sim.isRunning().should.eventually.be.false;
   });
 
   it('should properly start simulator in headless mode on Xcode9+', async function () {
@@ -286,6 +234,32 @@ describe('advanced features', function () {
     await deleteSimulator(sim.udid, OS_VERSION);
   });
 
+  describe('custom apps', function () {
+    it('should find bundle id for TestApp', async function () {
+      if (!await sim.isAppInstalled(CUSTOM_APP)) {
+        await sim.installApp(CUSTOM_APP);
+      }
+      if (!await sim.isAppRunning(CUSTOM_APP)) {
+        await sim.launchApp(BUNDLE_ID);
+      }
+
+      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.eql([BUNDLE_ID]);
+    });
+
+    it('should scrub custom app', async function () {
+      if (!await sim.isAppInstalled(CUSTOM_APP)) {
+        await sim.installApp(CUSTOM_APP);
+      }
+      if (!await sim.isAppRunning(CUSTOM_APP)) {
+        await sim.launchApp(BUNDLE_ID);
+      }
+      await sim.scrubApp(BUNDLE_ID);
+      await sim.isAppRunning(BUNDLE_ID).should.eventually.be.false;
+      await sim.launchApp(BUNDLE_ID);
+      await sim.isAppRunning(BUNDLE_ID).should.eventually.be.true;
+    });
+  });
+
   describe('biometric (touch Id/face Id enrollment)', function () {
     it(`should properly enroll biometric to enabled state`, async function () {
       if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
@@ -354,9 +328,17 @@ describe('advanced features', function () {
     });
   });
 
-  describe('updateSafariGlobalSettings', function () {
+  describe('Safari', function () {
+    it('should scrub Safari', async function () {
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID);
+      await sim.scrubSafari();
+      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.false;
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID);
+      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
+    });
+
     it('should set arbitrary preferences on Safari', async function () {
-      await sim.updateSafariGlobalSettings({
+      await sim.updateSafariSettings({
         ShowTabBar: 1,
         DidImportBuiltinBookmarks: 1,
       });
