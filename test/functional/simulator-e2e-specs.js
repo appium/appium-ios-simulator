@@ -129,10 +129,10 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    await sim.stat().should.eventually.equal('Booted');
+    (await sim.stat()).state.should.equal('Booted');
 
     await sim.shutdown();
-    await sim.stat().should.eventually.equal('Shutdown');
+    (await sim.stat()).state.should.equal('Shutdown');
   });
 
   it('should be able to start safari', async function () {
@@ -205,12 +205,10 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
   it('should start a sim using the "run" method', async function () {
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    let stat = await sim.stat();
-    stat.state.should.equal('Booted');
+    (await sim.stat()).state.should.equal('Booted');
 
     await sim.shutdown();
-    stat = await sim.stat();
-    stat.state.should.equal('Shutdown');
+    (await sim.stat()).state.should.equal('Shutdown');
   });
 });
 
