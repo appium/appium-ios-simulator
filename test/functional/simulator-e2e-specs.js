@@ -1,6 +1,6 @@
 // transpile:mocha
 import _ from 'lodash';
-import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID, launchApp } from '../../lib/utils';
+import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
 import chai from 'chai';
@@ -13,8 +13,8 @@ import { LONG_TIMEOUT, verifyStates } from './helpers';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
-const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
-const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
+const OS_VERSION = process.env.MOBILE_OS_VERSION || '16.2';
+const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 14';
 const CUSTOM_APP = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
 
 chai.should();
@@ -324,10 +324,11 @@ describe('advanced features', function () {
 
   describe('Safari', function () {
     it('should scrub Safari', async function () {
-      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID);
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
       await sim.scrubSafari();
       await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.false;
-      await launchApp(MOBILE_SAFARI_BUNDLE_ID);
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
+      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
     });
 
     it('should set arbitrary preferences on Safari', async function () {
