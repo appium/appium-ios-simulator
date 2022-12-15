@@ -8,7 +8,7 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import Simctl from 'node-simctl';
 import {
-  toBiometricDomainComponent, killAllSimulators, endAllSimulatorDaemons, simExists,
+  toBiometricDomainComponent, killAllSimulators, simExists,
 } from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
@@ -83,19 +83,6 @@ describe('util', function () {
         await killAllSimulators(500);
       } catch (e) {}
       execStub.callCount.should.equal(3);
-    });
-  });
-
-  describe('endAllSimulatorDaemons', function () {
-    it('should call exec five times to stop and remove each service', async function () {
-      await endAllSimulatorDaemons();
-      execStub.callCount.should.equal(5);
-    });
-    it('should ignore all errors', async function () {
-      execStub.throws();
-      await endAllSimulatorDaemons().should.not.be.rejected;
-      execStub.callCount.should.equal(5);
-      execStub.threw().should.be.true;
     });
   });
 

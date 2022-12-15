@@ -1,6 +1,6 @@
 // transpile:mocha
 import _ from 'lodash';
-import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
+import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID, launchApp } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
 import chai from 'chai';
@@ -327,8 +327,7 @@ describe('advanced features', function () {
       await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID);
       await sim.scrubSafari();
       await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.false;
-      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID);
-      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
+      await launchApp(MOBILE_SAFARI_BUNDLE_ID);
     });
 
     it('should set arbitrary preferences on Safari', async function () {
