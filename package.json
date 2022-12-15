@@ -34,7 +34,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@appium/support": "^2.55.3",
+    "@appium/support": "^3.0.0",
     "@babel/runtime": "^7.0.0",
     "@xmldom/xmldom": "^0.x",
     "appium-xcode": "^4.0.0",
