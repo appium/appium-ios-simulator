@@ -8,13 +8,10 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import Simctl from 'node-simctl';
 import {
-  killAllSimulators, endAllSimulatorDaemons, simExists,
-  installSSLCert, uninstallSSLCert
-} from '../..';
-import { toBiometricDomainComponent } from '../../lib/utils';
+  toBiometricDomainComponent, killAllSimulators, simExists,
+} from '../../lib/utils';
 import { devices } from '../assets/deviceList';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
-import { fs } from '@appium/support';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -89,29 +86,14 @@ describe('util', function () {
     });
   });
 
-  describe('endAllSimulatorDaemons', function () {
-    it('should call exec five times to stop and remove each service', async function () {
-      await endAllSimulatorDaemons();
-      execStub.callCount.should.equal(5);
-    });
-    it('should ignore all errors', async function () {
-      execStub.throws();
-      await endAllSimulatorDaemons().should.not.be.rejected;
-      execStub.callCount.should.equal(5);
-      execStub.threw().should.be.true;
-    });
-  });
-
   describe('simExists', function () {
     it('returns true if device is found', async function () {
-      let existence = [
-        simExists('C09B34E5-7DCB-442E-B79C-AB6BC0357417'),
-        simExists('FA5C971D-4E05-4AA3-B48B-C9619C7453BE'),
-        simExists('E46EFA59-E2B4-4FF9-B290-B61F3CFECC65'),
-        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410')
-      ];
-
-      let results = await B.all(existence);
+      let results = await B.all([
+        simExists('8F4A3349-3ABF-4597-953A-285C5C0FFD00'),
+        simExists('7DEA409E-159A-4730-B1C6-7C18279F72B8'),
+        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
+        simExists('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
+      ]);
 
       for (let result of results) {
         result.should.be.true;
@@ -130,27 +112,6 @@ describe('util', function () {
         result.should.be.false;
       }
     });
-  });
-
-});
-
-describe('installSSLCert and uninstallSSLCert', function () {
-
-  it('should throw exception if openssl is unavailable', async function () {
-    let whichStub = sinon.stub(fs, 'which').callsFake(function () {
-      throw new Error('no openssl');
-    });
-    await installSSLCert(`doesn't matter`, `doesn't matter`).should.be.rejected;
-    whichStub.calledOnce.should.be.true;
-    whichStub.restore();
-  });
-
-  it('should throw exception on installSSLCert if udid is invalid', async function () {
-    await installSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
-  });
-
-  it('should throw exception on uninstallSSLCert if udid is invalid', async function () {
-    await uninstallSSLCert('pem dummy text', 'invalid UDID').should.be.rejected;
   });
 
 });

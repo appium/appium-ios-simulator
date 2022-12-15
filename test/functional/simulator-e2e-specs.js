@@ -1,21 +1,21 @@
 // transpile:mocha
 import _ from 'lodash';
-import { getSimulator, killAllSimulators } from '../..';
+import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
+import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { fs } from '@appium/support';
 import B from 'bluebird';
 import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
-import { readSettings, PLIST_IDENTIFIER } from '../../lib/settings';
 
 
 const BUNDLE_ID = 'io.appium.TestApp';
-const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
-const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
+const OS_VERSION = process.env.MOBILE_OS_VERSION || '16.2';
+const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 14';
+const CUSTOM_APP = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -45,7 +45,6 @@ describe(`simulator ${OS_VERSION}`, function () {
 
   let simctl;
 
-  const app = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
   before(async function () {
     xcodeVersion = await xcode.getVersion(true);
   });
@@ -65,62 +64,21 @@ describe(`simulator ${OS_VERSION}`, function () {
     await deleteSimulator(simctl.udid, OS_VERSION);
   });
 
-  async function installApp (sim, app) {
-    await sim.installApp(app);
-    if (process.env.TRAVIS) {
-      await B.delay(5000);
-    }
-  }
-
   it('should detect whether a simulator has been run before', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.isFresh().should.eventually.equal(true);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-    await sim.isFresh().should.eventually.equal(false);
+    const sim = await getSimulator(simctl.udid);
+    await sim.isFresh().should.eventually.be.true;
+    await sim.run({startupTimeout: LONG_TIMEOUT / 2});
+    await sim.isFresh().should.eventually.be.false;
+    await sim.shutdown();
+    await sim.clean();
+    await sim.isFresh().should.eventually.be.true;
   });
 
   it('should launch and shutdown a sim', async function () {
     let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
+    await sim.run({startupTimeout: LONG_TIMEOUT / 2});
+    await sim.shutdown();
     (await sim.stat()).state.should.equal('Shutdown');
-  });
-
-  it('should launch and shutdown a sim, also starting safari', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(true, LONG_TIMEOUT);
-    (await sim.stat()).state.should.equal('Shutdown');
-  });
-
-
-  it('should clean a sim', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.isFresh().should.eventually.equal(true);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-    await sim.isFresh().should.eventually.equal(false);
-    await sim.clean();
-    await sim.isFresh().should.eventually.equal(true);
-  });
-
-  it('should not find any TestApp data or bundle directories on a fresh simulator', async function () {
-    let sim = await getSimulator(simctl.udid);
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(0);
-  });
-
-  it('should find both a data and bundle directory for TestApp', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.run({startupTimeout: LONG_TIMEOUT});
-
-    // install & launch test app
-    await installApp(sim, app);
-    await simctl.launchApp(BUNDLE_ID);
-
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(2);
-    dirs[0].should.contain('/Data/');
-    dirs[1].should.contain('/Bundle/');
-
-    await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.not.empty;
   });
 
   it('should be able to delete an app', async function () {
@@ -128,15 +86,15 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
     // install & launch test app
-    await installApp(sim, app);
+    await sim.installApp(CUSTOM_APP);
 
     console.log('Application installed'); // eslint-disable-line no-console
 
-    (await sim.isAppInstalled(BUNDLE_ID)).should.be.true;
+    await sim.isAppInstalled(BUNDLE_ID).should.eventually.be.true;
 
     // this remains somewhat flakey
     await retryInterval(5, 1000, async () => {
-      await simctl.launchApp(BUNDLE_ID, 1);
+      await sim.launchApp(BUNDLE_ID, 1);
     });
 
     console.log('Application launched'); // eslint-disable-line no-console
@@ -151,31 +109,9 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.removeApp(BUNDLE_ID);
 
     // should not be able to launch anymore
-    await simctl.launchApp(BUNDLE_ID, 1).should.eventually.be.rejected;
+    await sim.launchApp(BUNDLE_ID, 1).should.eventually.be.rejected;
 
     (await sim.isAppInstalled(BUNDLE_ID)).should.be.false;
-  });
-
-  it('should delete custom app data', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.run({startupTimeout: LONG_TIMEOUT});
-
-    // install & launch test app
-    await installApp(sim, app);
-
-    // this remains somewhat flakey
-    await retryInterval(5, 1000, async () => {
-      await simctl.launchApp(BUNDLE_ID, 1);
-    });
-
-    // delete app directories
-    await sim.cleanCustomApp('TestApp', BUNDLE_ID);
-
-    // clear paths to force the simulator to get a new list of directories
-    sim.appDataBundlePaths = {};
-
-    let dirs = await sim.getAppDirs('TestApp', BUNDLE_ID);
-    dirs.should.have.length(0);
   });
 
   it('should delete a sim', async function () {
@@ -184,87 +120,35 @@ describe(`simulator ${OS_VERSION}`, function () {
     await getSimulator(simctl.udid).should.eventually.be.rejected;
   });
 
-  let itText = 'should match a bundleId to its app directory on a used sim';
-  let bundleId = 'com.apple.mobilesafari';
-  if (OS_VERSION === '7.1') {
-    itText = 'should match an app to its app directory on a used sim';
-    bundleId = 'MobileSafari';
-  }
-  it(itText, async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.launchAndQuit(false, LONG_TIMEOUT);
-
-    let path = await sim.getAppDir(bundleId);
-    await fs.hasAccess(path).should.eventually.be.true;
-  });
-
-  itText = 'should not match a bundleId to its app directory on a fresh sim';
-  bundleId = 'com.apple.mobilesafari';
-  if (OS_VERSION === '7.1') {
-    itText = 'should not match an app to its app directory on a fresh sim';
-    bundleId = 'MobileSafari';
-  }
-  it(itText, async function () {
-    let sim = await getSimulator(simctl.udid);
-    let path = await sim.getAppDir(bundleId);
-    chai.should().equal(path, undefined);
-  });
-
   it('should start a sim using the "run" method', async function () {
     let sim = await getSimulator(simctl.udid);
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    let stat = await sim.stat();
-    stat.state.should.equal('Booted');
+    (await sim.stat()).state.should.equal('Booted');
 
     await sim.shutdown();
-    stat = await sim.stat();
-    stat.state.should.equal('Shutdown');
+    (await sim.stat()).state.should.equal('Shutdown');
   });
 
   it('should be able to start safari', async function () {
     let sim = await getSimulator(simctl.udid);
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
-    await sim.openUrl('http://apple.com');
+    await sim.openUrl('https://apple.com');
+    await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
     await sim.shutdown();
-
-    // this test to catch errors in openUrl, that arise from bad sims or certain versions of xcode
   });
 
   it('should detect if a sim is running', async function () {
     let sim = await getSimulator(simctl.udid);
-    let running = await sim.isRunning();
-    running.should.be.false;
+    await sim.isRunning().should.eventually.be.false;
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
-    running = await sim.isRunning();
-    running.should.be.true;
+    await sim.isRunning().should.eventually.be.true;
 
     await sim.shutdown();
-    running = await sim.isRunning();
-    running.should.be.false;
-  });
-
-  it('should isolate sim', async function () {
-    let sim = await getSimulator(simctl.udid);
-    await sim.isolateSim();
-  });
-
-  it('should apply calendar access to simulator', async function () {
-    let sim = await getSimulator(simctl.udid);
-
-    if ((xcodeVersion.major === 11 && xcodeVersion.minor >= 4) || xcodeVersion.major >= 12) {
-      await sim.run({startupTimeout: LONG_TIMEOUT});
-      await sim.enableCalendarAccess(BUNDLE_ID);
-      await sim.disableCalendarAccess(BUNDLE_ID);
-    } else {
-      await sim.enableCalendarAccess(BUNDLE_ID);
-      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.true;
-      await sim.disableCalendarAccess(BUNDLE_ID);
-      (await sim.hasCalendarAccess(BUNDLE_ID)).should.be.false;
-    }
+    await sim.isRunning().should.eventually.be.false;
   });
 
   it('should properly start simulator in headless mode on Xcode9+', async function () {
@@ -317,12 +201,10 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
   it('should start a sim using the "run" method', async function () {
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    let stat = await sim.stat();
-    stat.state.should.equal('Booted');
+    (await sim.stat()).state.should.equal('Booted');
 
     await sim.shutdown();
-    stat = await sim.stat();
-    stat.state.should.equal('Shutdown');
+    (await sim.stat()).state.should.equal('Shutdown');
   });
 });
 
@@ -344,6 +226,32 @@ describe('advanced features', function () {
   after(async function () {
     await killAllSimulators();
     await deleteSimulator(sim.udid, OS_VERSION);
+  });
+
+  describe('custom apps', function () {
+    it('should find bundle id for TestApp', async function () {
+      if (!await sim.isAppInstalled(CUSTOM_APP)) {
+        await sim.installApp(CUSTOM_APP);
+      }
+      if (!await sim.isAppRunning(CUSTOM_APP)) {
+        await sim.launchApp(BUNDLE_ID);
+      }
+
+      await sim.getUserInstalledBundleIdsByBundleName('TestApp').should.eventually.eql([BUNDLE_ID]);
+    });
+
+    it('should scrub custom app', async function () {
+      if (!await sim.isAppInstalled(CUSTOM_APP)) {
+        await sim.installApp(CUSTOM_APP);
+      }
+      if (!await sim.isAppRunning(CUSTOM_APP)) {
+        await sim.launchApp(BUNDLE_ID);
+      }
+      await sim.scrubApp(BUNDLE_ID);
+      await sim.isAppRunning(BUNDLE_ID).should.eventually.be.false;
+      await sim.launchApp(BUNDLE_ID);
+      await sim.isAppRunning(BUNDLE_ID).should.eventually.be.true;
+    });
   });
 
   describe('biometric (touch Id/face Id enrollment)', function () {
@@ -403,38 +311,32 @@ describe('advanced features', function () {
   describe(`setReduceMotion`, function () {
     it('should check accessibility reduce motion settings', async function () {
       await sim.setReduceMotion(true);
-      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.ReduceMotionEnabled.should.eql(1);
-      }
-
       await sim.setReduceMotion(false);
-      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.ReduceMotionEnabled.should.eql(0);
-      }
     });
   });
 
   describe(`setReduceTransparency`, function () {
     it('should check accessibility reduce transparency settings', async function () {
       await sim.setReduceTransparency(true);
-      let fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.EnhancedBackgroundContrastEnabled.should.eql(1);
-      }
-
       await sim.setReduceTransparency(false);
-      fileSettings = await readSettings(sim, PLIST_IDENTIFIER.ACCESSIBLITY_SETTINGS);
-      for (const [, settings] of _.toPairs(fileSettings)) {
-        settings.EnhancedBackgroundContrastEnabled.should.eql(0);
-      }
     });
   });
 
-  describe('updateSafariGlobalSettings', function () {
+  describe('Safari', function () {
+    it('should scrub Safari', async function () {
+      if (xcodeVersion.major === 13 && process.env.CI) {
+        // the test is unstable in CI env
+        return this.skip();
+      }
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
+      await sim.scrubSafari();
+      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.false;
+      await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
+      await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.true;
+    });
+
     it('should set arbitrary preferences on Safari', async function () {
-      await sim.updateSafariGlobalSettings({
+      await sim.updateSafariSettings({
         ShowTabBar: 1,
         DidImportBuiltinBookmarks: 1,
       });

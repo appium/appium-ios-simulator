@@ -1,25 +1,6 @@
 // for testing, this is sample output of node-simclt.listDevices();
 
 let devices = {
-  '7.1': [
-    { name: 'iPhone 4s',
-      udid: 'C09B34E5-7DCB-442E-B79C-AB6BC0357417',
-      state: 'Shutdown' },
-    { name: 'iPhone 5',
-      udid: 'B236B73C-8EFA-4284-AC1F-2A45F3286E4C',
-      state: 'Shutdown' },
-    { name: 'iPhone 5s',
-      udid: '8E248C90-0F79-46AD-9CAA-8DF3B6E3FBA6',
-      state: 'Shutdown' },
-    { name: 'iPad 2',
-      udid: 'B4179FA5-B9C4-4F79-BDDF-314ED66B889C',
-      state: 'Shutdown' },
-    { name: 'iPad Retina',
-      udid: '707AC76E-319C-4215-BAF7-5D6D3B3BA4D2',
-      state: 'Shutdown' },
-    { name: 'iPad Air',
-      udid: 'FA5C971D-4E05-4AA3-B48B-C9619C7453BE',
-      state: 'Shutdown' }],
   '8.1': [
     { name: 'iPhone 4s',
       udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
