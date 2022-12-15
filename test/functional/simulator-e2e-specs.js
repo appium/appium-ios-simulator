@@ -324,6 +324,10 @@ describe('advanced features', function () {
 
   describe('Safari', function () {
     it('should scrub Safari', async function () {
+      if (xcodeVersion.major === 13 && process.env.CI) {
+        // the test is unstable in CI env
+        return this.skip();
+      }
       await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
       await sim.scrubSafari();
       await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID).should.eventually.be.false;
