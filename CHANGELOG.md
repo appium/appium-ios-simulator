@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/appium/appium-ios-simulator/compare/v5.0.1...v5.0.2) (2022-12-19)
+
+
+### Bug Fixes
+
+* udid reference in setAccess ([#350](https://github.com/appium/appium-ios-simulator/issues/350)) ([73d12a4](https://github.com/appium/appium-ios-simulator/commit/73d12a4417b7e3ec75b850e948c6bd91e75f214f))
+
 ## [5.0.1](https://github.com/appium/appium-ios-simulator/compare/v5.0.0...v5.0.1) (2022-12-15)
 
 
