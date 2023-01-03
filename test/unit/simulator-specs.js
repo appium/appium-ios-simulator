@@ -1,6 +1,7 @@
 // transpile:mocha
 
 import { getSimulator } from '../../lib/simulator';
+import * as teenProcess from 'teen_process';
 import Simctl from 'node-simctl';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -94,6 +95,51 @@ describe('simulator', function () {
       stats[0].name.should.equal('Resizable iPhone');
       stats[1].state.should.equal('Shutdown');
       stats[1].name.should.equal('Resizable iPad');
+    });
+  });
+
+  describe('getWebInspectorSocket', function () {
+    const stdout = `COMMAND     PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+launchd_s 81243 mwakizaka    3u  unix 0x9461828ef425ac31      0t0      /private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket
+launchd_s 81243 mwakizaka    4u  unix 0x9461828ef425bc99      0t0      /tmp/com.apple.CoreSimulator.SimDevice.0829568F-7479-4ADE-9E51-B208DC99C107/syslogsock
+launchd_s 81243 mwakizaka    6u  unix 0x9461828ef27d4c39      0t0      ->0x9461828ef27d4b71
+launchd_s 81243 mwakizaka    7u  unix 0x9461828ef425dd69      0t0      ->0x9461828ef27d5021
+launchd_s 81243 mwakizaka    8u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
+launchd_s 81243 mwakizaka    9u  unix 0x9461828ef425be29      0t0      /private/tmp/com.apple.launchd.rbqFyGyXrT/com.apple.testmanagerd.unix-domain.socket
+launchd_s 81243 mwakizaka   10u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
+launchd_s 81243 mwakizaka   11u  unix 0x9461828ef425c081      0t0      /private/tmp/com.apple.launchd.zHidszZQUZ/com.apple.testmanagerd.remote-automation.unix-domain.socket
+launchd_s 81243 mwakizaka   12u  unix 0x9461828ef425def9      0t0      ->0x9461828ef425de31
+launchd_s 35621 mwakizaka    4u  unix 0x7b7dbedd6d63253f      0t0      /tmp/com.apple.CoreSimulator.SimDevice.B5048708-566E-45D5-9885-C878EF7D6D13/syslogsock
+launchd_s 35621 mwakizaka    5u  unix 0x7b7dbedd6d62f727      0t0      /private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket
+launchd_s 35621 mwakizaka    9u  unix 0x7b7dbedd6d632607      0t0      /private/tmp/com.apple.launchd.KbYwOrA36E/Listeners
+launchd_s 35621 mwakizaka   10u  unix 0x7b7dbedd6d62f727      0t0      /private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket
+launchd_s 35621 mwakizaka   11u  unix 0x7b7dbedd6d62e6bf      0t0      /private/tmp/com.apple.launchd.7wTVfXC9QX/com.apple.testmanagerd.unix-domain.socket
+launchd_s 35621 mwakizaka   12u  unix 0x7b7dbedd6d632607      0t0      /private/tmp/com.apple.launchd.KbYwOrA36E/Listeners
+launchd_s 35621 mwakizaka   13u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket
+launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/tmp/com.apple.launchd.7wTVfXC9QX/com.apple.testmanagerd.unix-domain.socket
+launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
+
+    before(function () {
+      sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
+    });
+    after(function () {
+      teenProcess.exec.restore();
+    });
+
+    const testParams = [
+      {udid: '0829568F-7479-4ADE-9E51-B208DC99C107', line: 'first', expected: '/private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket'},
+      {udid: 'B5048708-566E-45D5-9885-C878EF7D6D13', line: 'second', expected: '/private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket'},
+    ];
+
+    testParams.forEach(({udid, line, expected}) => {
+      it(`should find a Web Inspector socket when it appears at the ${line} line of grouped outputs`, async function () {
+        const xcodeVersion = {major: 9, versionString: '9.3.0'};
+        xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+
+        const sim = await getSimulator(udid);
+        const webInspectorSocket = await sim.getWebInspectorSocket();
+        webInspectorSocket.should.equal(expected);
+      });
     });
   });
 });
