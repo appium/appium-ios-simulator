@@ -119,10 +119,10 @@ launchd_s 35621 mwakizaka   13u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/tmp/com.apple.launchd.7wTVfXC9QX/com.apple.testmanagerd.unix-domain.socket
 launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
 
-    before(function () {
+    beforeEach(function () {
       sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
     });
-    after(function () {
+    afterEach(function () {
       teenProcess.exec.restore();
     });
 
@@ -140,6 +140,16 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
         const webInspectorSocket = await sim.getWebInspectorSocket();
         webInspectorSocket.should.equal(expected);
       });
+    });
+
+    it(`should assign webInspectorSocket value only once`, async function () {
+      const xcodeVersion = {major: 9, versionString: '9.3.0'};
+      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+
+      const sim = await getSimulator(testParams[0].udid);
+      await sim.getWebInspectorSocket();
+      await sim.getWebInspectorSocket();
+      teenProcess.exec.callCount.should.equal(1);
     });
   });
 });
