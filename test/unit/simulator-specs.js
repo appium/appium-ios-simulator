@@ -121,6 +121,8 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
     beforeEach(function () {
       sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
+      const xcodeVersion = {major: 9, versionString: '9.3.0'};
+      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
     });
     afterEach(function () {
       teenProcess.exec.restore();
@@ -133,9 +135,6 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
     testParams.forEach(({udid, line, expected}) => {
       it(`should find a Web Inspector socket when it appears at the ${line} line of grouped records`, async function () {
-        const xcodeVersion = {major: 9, versionString: '9.3.0'};
-        xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
-
         const sim = await getSimulator(udid);
         const webInspectorSocket = await sim.getWebInspectorSocket();
         webInspectorSocket.should.equal(expected);
@@ -143,9 +142,6 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     });
 
     it(`should assign webInspectorSocket value only once`, async function () {
-      const xcodeVersion = {major: 9, versionString: '9.3.0'};
-      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
-
       const sim = await getSimulator(testParams[0].udid);
       await sim.getWebInspectorSocket();
       await sim.getWebInspectorSocket();
