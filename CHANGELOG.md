@@ -1,3 +1,10 @@
+## [5.0.3](https://github.com/appium/appium-ios-simulator/compare/v5.0.2...v5.0.3) (2023-01-04)
+
+
+### Bug Fixes
+
+* retrieve an appropriate unix socket path ([#352](https://github.com/appium/appium-ios-simulator/issues/352)) ([de11bfc](https://github.com/appium/appium-ios-simulator/commit/de11bfc13b9f66252fe6f14865f6970c8950db63))
+
 ## [5.0.2](https://github.com/appium/appium-ios-simulator/compare/v5.0.1...v5.0.2) (2022-12-19)
 
 
