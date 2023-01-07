@@ -35,7 +35,7 @@ assert.equal('Shutdown', (await sim.stat()).state);
 
 The following tools and utilities are not mandatory, but could be used by the appium-ios-simulator, if installed locally, to extend its functionality:
 
-- [Lyft](https://github.com/lyft)
+- [Mobile Native Foundation](https://github.com/MobileNativeFoundation)
 - [IDB](https://github.com/facebook/idb)
 - [AppleSimulatorUtils](https://github.com/wix/AppleSimulatorUtils)
 
