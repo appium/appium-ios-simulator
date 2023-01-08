@@ -1,3 +1,10 @@
+## [5.0.4](https://github.com/appium/appium-ios-simulator/compare/v5.0.3...v5.0.4) (2023-01-08)
+
+
+### Miscellaneous Chores
+
+* update links for set-simulator-location ([#353](https://github.com/appium/appium-ios-simulator/issues/353)) ([1db8818](https://github.com/appium/appium-ios-simulator/commit/1db88187647c354af523336d151a3dccde2193af))
+
 ## [5.0.3](https://github.com/appium/appium-ios-simulator/compare/v5.0.2...v5.0.3) (2023-01-04)
 
 
