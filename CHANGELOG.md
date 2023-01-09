@@ -1,3 +1,10 @@
+## [5.0.5](https://github.com/appium/appium-ios-simulator/compare/v5.0.4...v5.0.5) (2023-01-09)
+
+
+### Bug Fixes
+
+* add ios 14 and above case ([#351](https://github.com/appium/appium-ios-simulator/issues/351)) ([de60d15](https://github.com/appium/appium-ios-simulator/commit/de60d15540908d3f03e4854cde58efcd8aedf942))
+
 ## [5.0.4](https://github.com/appium/appium-ios-simulator/compare/v5.0.3...v5.0.4) (2023-01-08)
 
 
