@@ -37,7 +37,7 @@
     "@appium/support": "^3.0.0",
     "@babel/runtime": "^7.0.0",
     "@xmldom/xmldom": "^0.x",
-    "appium-xcode": "^4.0.0",
+    "appium-xcode": "^5.0.0",
     "async-lock": "^1.0.0",
     "asyncbox": "^2.3.1",
     "bluebird": "^3.5.1",
