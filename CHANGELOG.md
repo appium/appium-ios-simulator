@@ -1,3 +1,10 @@
+## [5.0.8](https://github.com/appium/appium-ios-simulator/compare/v5.0.7...v5.0.8) (2023-05-18)
+
+
+### Miscellaneous Chores
+
+* Bump @appium/support from 3.1.11 to 4.0.0 ([#359](https://github.com/appium/appium-ios-simulator/issues/359)) ([c5a7a99](https://github.com/appium/appium-ios-simulator/commit/c5a7a99b6383075f1d04297da05dd3c5c70a26d2))
+
 ## [5.0.7](https://github.com/appium/appium-ios-simulator/compare/v5.0.6...v5.0.7) (2023-01-17)
 
 
