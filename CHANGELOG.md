@@ -1,3 +1,10 @@
+## [5.0.9](https://github.com/appium/appium-ios-simulator/compare/v5.0.8...v5.0.9) (2023-06-07)
+
+
+### Miscellaneous Chores
+
+* Bump conventional-changelog-conventionalcommits ([#362](https://github.com/appium/appium-ios-simulator/issues/362)) ([025f81b](https://github.com/appium/appium-ios-simulator/commit/025f81b53e10890be7aa044240ff6614967bec9e))
+
 ## [5.0.8](https://github.com/appium/appium-ios-simulator/compare/v5.0.7...v5.0.8) (2023-05-18)
 
 
