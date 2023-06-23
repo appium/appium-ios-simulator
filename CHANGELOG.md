@@ -1,3 +1,10 @@
+## [5.1.0](https://github.com/appium/appium-ios-simulator/compare/v5.0.9...v5.1.0) (2023-06-23)
+
+
+### Features
+
+* Add Xcode15 support ([#364](https://github.com/appium/appium-ios-simulator/issues/364)) ([fcf5b70](https://github.com/appium/appium-ios-simulator/commit/fcf5b702c3dab993ef894ba6556540a99ee7c756))
+
 ## [5.0.9](https://github.com/appium/appium-ios-simulator/compare/v5.0.8...v5.0.9) (2023-06-07)
 
 
