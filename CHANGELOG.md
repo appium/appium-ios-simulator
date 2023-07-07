@@ -1,3 +1,10 @@
+## [5.1.1](https://github.com/appium/appium-ios-simulator/compare/v5.1.0...v5.1.1) (2023-07-07)
+
+
+### Miscellaneous Chores
+
+* Bump prettier from 2.8.8 to 3.0.0 ([#367](https://github.com/appium/appium-ios-simulator/issues/367)) ([c2604d9](https://github.com/appium/appium-ios-simulator/commit/c2604d995a96658cc441252c3e0cf608a4d6d0c9))
+
 ## [5.1.0](https://github.com/appium/appium-ios-simulator/compare/v5.0.9...v5.1.0) (2023-06-23)
 
 
