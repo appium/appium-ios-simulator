@@ -1,3 +1,10 @@
+## [5.1.2](https://github.com/appium/appium-ios-simulator/compare/v5.1.1...v5.1.2) (2023-07-21)
+
+
+### Bug Fixes
+
+* isAppInstalled in lib/simulator-xcode-15.js ([#368](https://github.com/appium/appium-ios-simulator/issues/368)) ([8a749d1](https://github.com/appium/appium-ios-simulator/commit/8a749d17a5951bfc6b717f7e9f24afb57330b90e))
+
 ## [5.1.1](https://github.com/appium/appium-ios-simulator/compare/v5.1.0...v5.1.1) (2023-07-07)
 
 
