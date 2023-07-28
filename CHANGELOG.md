@@ -1,3 +1,10 @@
+## [5.1.3](https://github.com/appium/appium-ios-simulator/compare/v5.1.2...v5.1.3) (2023-07-28)
+
+
+### Bug Fixes
+
+* Exclude empty entries from the list of system bundle identifiers ([#369](https://github.com/appium/appium-ios-simulator/issues/369)) ([698f4e5](https://github.com/appium/appium-ios-simulator/commit/698f4e5ee82112868c6d286c6f2255f529160f10))
+
 ## [5.1.2](https://github.com/appium/appium-ios-simulator/compare/v5.1.1...v5.1.2) (2023-07-21)
 
 
