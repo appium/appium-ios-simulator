@@ -1,3 +1,10 @@
+## [5.1.4](https://github.com/appium/appium-ios-simulator/compare/v5.1.3...v5.1.4) (2023-08-14)
+
+
+### Miscellaneous Chores
+
+* Bump lint-staged from 13.3.0 to 14.0.0 ([#370](https://github.com/appium/appium-ios-simulator/issues/370)) ([1ae4371](https://github.com/appium/appium-ios-simulator/commit/1ae437118fa5cbb32c93282403d754725c214dd6))
+
 ## [5.1.3](https://github.com/appium/appium-ios-simulator/compare/v5.1.2...v5.1.3) (2023-07-28)
 
 
