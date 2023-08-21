@@ -1,3 +1,10 @@
+## [5.2.0](https://github.com/appium/appium-ios-simulator/compare/v5.1.4...v5.2.0) (2023-08-21)
+
+
+### Features
+
+* Switch babel to typescript ([#372](https://github.com/appium/appium-ios-simulator/issues/372)) ([1d934e9](https://github.com/appium/appium-ios-simulator/commit/1d934e9b098295604bd12a704d6298c9471cc714))
+
 ## [5.1.4](https://github.com/appium/appium-ios-simulator/compare/v5.1.3...v5.1.4) (2023-08-14)
 
 
