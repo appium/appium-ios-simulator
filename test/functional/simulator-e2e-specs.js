@@ -322,6 +322,13 @@ describe('advanced features', function () {
     });
   });
 
+  describe(`setAutoFillPasswordsEnabled`, function () {
+    it('should update AutoFill Passwords settings', async function () {
+      await sim.setAutoFillPasswordsEnabled(true);
+      await sim.setAutoFillPasswordsEnabled(false);
+    });
+  });
+
   describe('Safari', function () {
     it('should scrub Safari', async function () {
       if (xcodeVersion.major === 13 && process.env.CI) {
