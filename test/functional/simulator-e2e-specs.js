@@ -322,10 +322,10 @@ describe('advanced features', function () {
     });
   });
 
-  describe(`setAutoFillPasswordsEnabled`, function () {
+  describe(`setAutoFillPasswords`, function () {
     it('should update AutoFill Passwords settings', async function () {
-      await sim.setAutoFillPasswordsEnabled(true);
-      await sim.setAutoFillPasswordsEnabled(false);
+      await sim.setAutoFillPasswords(true);
+      await sim.setAutoFillPasswords(false);
     });
   });
 
