@@ -1,3 +1,10 @@
+## [5.3.0](https://github.com/appium/appium-ios-simulator/compare/v5.2.2...v5.3.0) (2023-09-07)
+
+
+### Features
+
+* Add setAutoFillPasswordsEnabled function ([#378](https://github.com/appium/appium-ios-simulator/issues/378)) ([fa724ec](https://github.com/appium/appium-ios-simulator/commit/fa724eca6a7dde034e6375140c503c042132672e))
+
 ## [5.2.2](https://github.com/appium/appium-ios-simulator/compare/v5.2.1...v5.2.2) (2023-08-28)
 
 
