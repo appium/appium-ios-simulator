@@ -6,11 +6,9 @@ import sinon from 'sinon';
 import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
-import Simctl from 'node-simctl';
 import {
-  toBiometricDomainComponent, killAllSimulators, simExists,
+  toBiometricDomainComponent, killAllSimulators,
 } from '../../lib/utils';
-import { devices } from '../assets/deviceList';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
 
 chai.should();
@@ -42,18 +40,14 @@ const XCODE_VERSION_6 = {
 describe('util', function () {
   let execStub;
   let xcodeMock;
-  let getDevicesStub;
 
   beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(Simctl.prototype, 'getDevices');
-    getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     execStub.restore();
     xcodeMock.restore();
-    Simctl.prototype.getDevices.restore();
   });
 
   describe('killAllSimulators', function () {
@@ -73,47 +67,7 @@ describe('util', function () {
       await killAllSimulators();
       execStub.callCount.should.equal(2);
     });
-    it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      execStub.withArgs('pgrep').returns('0');
-      execStub.withArgs('xcrun').throws();
-      execStub.withArgs('pkill').returns();
-
-      try {
-        await killAllSimulators(500);
-      } catch (e) {}
-      execStub.callCount.should.equal(3);
-    });
   });
-
-  describe('simExists', function () {
-    it('returns true if device is found', async function () {
-      let results = await B.all([
-        simExists('8F4A3349-3ABF-4597-953A-285C5C0FFD00'),
-        simExists('7DEA409E-159A-4730-B1C6-7C18279F72B8'),
-        simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
-        simExists('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
-      ]);
-
-      for (let result of results) {
-        result.should.be.true;
-      }
-    });
-
-    it('returns false if device is not found', async function () {
-      let existence = [];
-      existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
-      existence.push(simExists('asdf'));
-      existence.push(simExists(4));
-
-      let results = await B.all(existence);
-
-      for (let result of results) {
-        result.should.be.false;
-      }
-    });
-  });
-
 });
 
 describe('Device preferences verification', function () {
