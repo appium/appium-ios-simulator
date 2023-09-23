@@ -1,7 +1,8 @@
+// transpile:mocha
+
 import { getSimulator } from '../../lib/simulator';
-import _ from 'lodash';
-import * as utilMethods from '../../lib/utils';
 import * as teenProcess from 'teen_process';
+import * as deviceUtils from '../../lib/device-utils';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
@@ -23,22 +24,16 @@ const UDID = devices['8.1'][0].udid;
 
 describe('simulator', function () {
   let xcodeMock;
-  let getSimInfoStub;
+  let getDevicesStub;
 
   beforeEach(function () {
     xcodeMock = sinon.mock(xcode);
-    getSimInfoStub = sinon.stub(utilMethods, 'getSimulatorInfo').callsFake(
-      async (udid) => {
-        const result = _.toPairs(devices)
-          .map((pair) => pair[1])
-          .reduce((a, b) => a.concat(b), []);
-        return await B.resolve(_.find(result, (dev) => dev.udid === udid));
-      }
-    );
+    getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
+    getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     xcodeMock.restore();
-    getSimInfoStub.restore();
+    getDevicesStub.restore();
   });
 
   describe('getSimulator', function () {
@@ -91,8 +86,8 @@ describe('simulator', function () {
         sinon.stub(sim.simctl, 'getDevices').returns(B.resolve(devices));
         return sim;
       });
-      const stats = await B.all(sims.map((sim) => sim.stat()));
 
+      const stats = await B.all(sims.map((sim) => sim.stat()));
       stats[0].state.should.equal('Shutdown');
       stats[0].name.should.equal('Resizable iPhone');
       stats[1].state.should.equal('Shutdown');
