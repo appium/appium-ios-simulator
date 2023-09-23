@@ -1,3 +1,10 @@
+## [5.3.2](https://github.com/appium/appium-ios-simulator/compare/v5.3.1...v5.3.2) (2023-09-23)
+
+
+### Bug Fixes
+
+* appropriately translate com.apple.SpringBoard and system prompts ([#384](https://github.com/appium/appium-ios-simulator/issues/384)) ([edde636](https://github.com/appium/appium-ios-simulator/commit/edde6368d540bb3df8611be38a1099c7ea2a8dea))
+
 ## [5.3.1](https://github.com/appium/appium-ios-simulator/compare/v5.3.0...v5.3.1) (2023-09-14)
 
 
