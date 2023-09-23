@@ -6,10 +6,10 @@ import sinon from 'sinon';
 import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
-import Simctl from 'node-simctl';
 import {
   toBiometricDomainComponent, killAllSimulators, simExists,
 } from '../../lib/utils';
+import * as deviceUtils from '../../lib/device-utils';
 import { devices } from '../assets/deviceList';
 import SimulatorXcode9 from '../../lib/simulator-xcode-9';
 
@@ -47,13 +47,13 @@ describe('util', function () {
   beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(Simctl.prototype, 'getDevices');
+    getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     execStub.restore();
     xcodeMock.restore();
-    Simctl.prototype.getDevices.restore();
+    getDevicesStub.restore();
   });
 
   describe('killAllSimulators', function () {

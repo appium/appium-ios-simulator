@@ -2,7 +2,7 @@
 
 import { getSimulator } from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
-import Simctl from 'node-simctl';
+import * as deviceUtils from '../../lib/device-utils';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
@@ -28,12 +28,12 @@ describe('simulator', function () {
 
   beforeEach(function () {
     xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(Simctl.prototype, 'getDevices');
+    getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
     xcodeMock.restore();
-    Simctl.prototype.getDevices.restore();
+    getDevicesStub.restore();
   });
 
   describe('getSimulator', function () {
@@ -79,18 +79,15 @@ describe('simulator', function () {
       let xcodeVersion = {major: 8, versionString: '8.0.0'};
       xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
 
-      let sims = [
-        getSimulator('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
-        getSimulator('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
-      ];
-
-      let stats = sims.map(function (simProm) {
-        // eslint-disable-next-line promise/prefer-await-to-then
-        return simProm.then((sim) => sim.stat());
+      const sims = (await B.all([
+        'F33783B2-9EE9-4A99-866E-E126ADBAD410',
+        'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
+      ].map(getSimulator))).map((sim) => {
+        sinon.stub(sim.simctl, 'getDevices').returns(B.resolve(devices));
+        return sim;
       });
 
-      stats = await B.all(stats);
-
+      const stats = await B.all(sims.map((sim) => sim.stat()));
       stats[0].state.should.equal('Shutdown');
       stats[0].name.should.equal('Resizable iPhone');
       stats[1].state.should.equal('Shutdown');
