@@ -1,3 +1,10 @@
+## [5.3.3](https://github.com/appium/appium-ios-simulator/compare/v5.3.2...v5.3.3) (2023-09-26)
+
+
+### Bug Fixes
+
+* Only restart springboard if the system language is changed ([#388](https://github.com/appium/appium-ios-simulator/issues/388)) ([99e3ae5](https://github.com/appium/appium-ios-simulator/commit/99e3ae5c91f0a6c57313cef5afb3311ee0f974d1))
+
 ## [5.3.2](https://github.com/appium/appium-ios-simulator/compare/v5.3.1...v5.3.2) (2023-09-23)
 
 
