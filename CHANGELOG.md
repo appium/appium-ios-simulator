@@ -1,3 +1,15 @@
+## [5.3.4](https://github.com/appium/appium-ios-simulator/compare/v5.3.3...v5.3.4) (2023-10-19)
+
+
+### Miscellaneous Chores
+
+* Bump @types/teen_process from 2.0.0 to 2.0.2 ([#394](https://github.com/appium/appium-ios-simulator/issues/394)) ([d7aff53](https://github.com/appium/appium-ios-simulator/commit/d7aff5367ff9624a713dcfb38b569baa06a8e5e7))
+* Bump eslint-config-prettier from 8.10.0 to 9.0.0 ([#395](https://github.com/appium/appium-ios-simulator/issues/395)) ([8a9dd1b](https://github.com/appium/appium-ios-simulator/commit/8a9dd1b2e6959fe38e0187bed5be43e42165b6a8))
+* Bump lint-staged from 14.0.1 to 15.0.2 ([#396](https://github.com/appium/appium-ios-simulator/issues/396)) ([65bc459](https://github.com/appium/appium-ios-simulator/commit/65bc4598800327ad19453e925bf3e5e4451435b7))
+* Bump semantic-release from 21.1.2 to 22.0.5 ([#387](https://github.com/appium/appium-ios-simulator/issues/387)) ([e86a288](https://github.com/appium/appium-ios-simulator/commit/e86a2888461aa17f317de836a12f22dfe662d634))
+* Use latest teen_process types ([5c97a49](https://github.com/appium/appium-ios-simulator/commit/5c97a495f4e72ed72db2cadb49d9b9f892621313))
+* Use latest types ([858661a](https://github.com/appium/appium-ios-simulator/commit/858661a45a0b547ee8b4895ce4571acefc7a67c4))
+
 ## [5.3.3](https://github.com/appium/appium-ios-simulator/compare/v5.3.2...v5.3.3) (2023-09-26)
 
 
