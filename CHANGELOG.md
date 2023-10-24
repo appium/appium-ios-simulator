@@ -1,3 +1,10 @@
+## [5.3.5](https://github.com/appium/appium-ios-simulator/compare/v5.3.4...v5.3.5) (2023-10-24)
+
+
+### Miscellaneous Chores
+
+* Bump sinon from 16.1.3 to 17.0.0 ([#398](https://github.com/appium/appium-ios-simulator/issues/398)) ([c28ad31](https://github.com/appium/appium-ios-simulator/commit/c28ad312bd1119ddb8f914776515fdf227646135))
+
 ## [5.3.4](https://github.com/appium/appium-ios-simulator/compare/v5.3.3...v5.3.4) (2023-10-19)
 
 
