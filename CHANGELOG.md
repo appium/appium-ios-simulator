@@ -1,3 +1,10 @@
+## [5.3.6](https://github.com/appium/appium-ios-simulator/compare/v5.3.5...v5.3.6) (2023-10-28)
+
+
+### Miscellaneous Chores
+
+* Bump @typescript-eslint/eslint-plugin from 5.62.0 to 6.9.0 ([#399](https://github.com/appium/appium-ios-simulator/issues/399)) ([3229686](https://github.com/appium/appium-ios-simulator/commit/322968656da427c7a65010a577e1eab5415f5367))
+
 ## [5.3.5](https://github.com/appium/appium-ios-simulator/compare/v5.3.4...v5.3.5) (2023-10-24)
 
 
