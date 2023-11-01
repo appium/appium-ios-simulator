@@ -1,3 +1,10 @@
+## [5.3.8](https://github.com/appium/appium-ios-simulator/compare/v5.3.7...v5.3.8) (2023-11-01)
+
+
+### Miscellaneous Chores
+
+* Bump asyncbox from 2.9.4 to 3.0.0 ([#401](https://github.com/appium/appium-ios-simulator/issues/401)) ([04ea35c](https://github.com/appium/appium-ios-simulator/commit/04ea35cac6f2e3d9430e9cf224d9d98588cb0643))
+
 ## [5.3.7](https://github.com/appium/appium-ios-simulator/compare/v5.3.6...v5.3.7) (2023-11-01)
 
 
