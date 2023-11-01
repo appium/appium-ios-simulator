@@ -1,3 +1,10 @@
+## [5.3.7](https://github.com/appium/appium-ios-simulator/compare/v5.3.6...v5.3.7) (2023-11-01)
+
+
+### Bug Fixes
+
+* appropriately translate some system prompts on iOS 16.1 simulator ([#400](https://github.com/appium/appium-ios-simulator/issues/400)) ([f551113](https://github.com/appium/appium-ios-simulator/commit/f55111343c77be88011c31a5c111127b57af01cd))
+
 ## [5.3.6](https://github.com/appium/appium-ios-simulator/compare/v5.3.5...v5.3.6) (2023-10-28)
 
 
