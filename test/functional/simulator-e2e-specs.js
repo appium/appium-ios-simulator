@@ -278,7 +278,7 @@ describe('advanced features', function () {
         return this.skip();
       }
 
-      await sim.configureLocalization({
+      (await sim.configureLocalization({
         language: {
           name: 'en'
         },
@@ -290,7 +290,7 @@ describe('advanced features', function () {
           name: 'en_US',
           layout: 'QWERTY',
         }
-      });
+      })).should.be.true;
     });
   });
 
