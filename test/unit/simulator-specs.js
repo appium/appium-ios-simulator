@@ -228,6 +228,15 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
         );
         spawnProcessSpy.callCount.should.eql(1);
       });
+
+      it('should confirm skip restarting services if skipSyncUiDialogTranslation is true', async function () {
+        const options = {language: {name: 'ja', skipSyncUiDialogTranslation: true}};
+        (await sim.configureLocalization(options)).should.be.true;
+        spawnProcessSpy.firstCall.args[0].should.eql(
+          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
+        );
+        spawnProcessSpy.callCount.should.eql(1);
+      });
     });
   });
 });
