@@ -1,3 +1,10 @@
+## [5.4.0](https://github.com/appium/appium-ios-simulator/compare/v5.3.10...v5.4.0) (2023-11-24)
+
+
+### Features
+
+* add skipSyncUiTranslation option ([#404](https://github.com/appium/appium-ios-simulator/issues/404)) ([1833e83](https://github.com/appium/appium-ios-simulator/commit/1833e839ddd17d32372d95745fc8e8078ce94faf))
+
 ## [5.3.10](https://github.com/appium/appium-ios-simulator/compare/v5.3.9...v5.3.10) (2023-11-23)
 
 
