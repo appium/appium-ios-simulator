@@ -145,4 +145,89 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       teenProcess.exec.callCount.should.equal(1);
     });
   });
+
+  describe('configureLocalization', function () {
+    let sim;
+    let spawnProcessSpy;
+    beforeEach(async function () {
+      const xcodeVersion = {major: 9, versionString: '9.0.0'};
+      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+      sim = await getSimulator(UDID);
+      spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');
+    });
+    afterEach(function () {
+      spawnProcessSpy.reset();
+    });
+
+    describe('locale', function () {
+      it('should configure locale', async function () {
+        const options = {locale: {name: 'en_US', calendar: 'gregorian'}};
+        (await sim.configureLocalization(options)).should.be.true;
+        spawnProcessSpy.firstCall.args[0].should.eql(
+          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLocale', '<string>en_US@calendar=gregorian</string>']
+        );
+        spawnProcessSpy.callCount.should.eql(1);
+      });
+    });
+
+    describe('keyboard', function () {
+      it('should configure keyboard', async function () {
+        const options = {keyboard: {name: 'en_US', layout: 'QWERTY'}};
+        (await sim.configureLocalization(options)).should.be.true;
+        spawnProcessSpy.firstCall.args[0].should.eql(
+          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>']
+        );
+        spawnProcessSpy.secondCall.args[0].should.eql(
+          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardsCurrentAndNext', '<array><string>en_US@sw=QWERTY</string></array>']
+        );
+        spawnProcessSpy.thirdCall.args[0].should.eql(
+          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsed', '<string>en_US@sw=QWERTY</string>']
+        );
+        spawnProcessSpy.getCall(3).args[0].should.eql(
+          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsedForLanguage', '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>']
+        );
+        spawnProcessSpy.callCount.should.eql(4);
+      });
+    });
+
+    describe('language', function () {
+      let getDirStub;
+      const stdout = JSON.stringify({AppleLanguages: ['en']});
+      beforeEach(function () {
+        getDirStub = sinon.stub(sim, 'getDir').callsFake(() => (''));
+        sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
+      });
+      afterEach(function () {
+        getDirStub.reset();
+        teenProcess.exec.restore();
+      });
+
+      it('should configure language and restart services', async function () {
+        const options = {language: {name: 'ja'}};
+        (await sim.configureLocalization(options)).should.be.true;
+        spawnProcessSpy.firstCall.args[0].should.eql(
+          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
+        );
+        spawnProcessSpy.secondCall.args[0].should.eql(
+          ['launchctl', 'stop', 'com.apple.SpringBoard']
+        );
+        spawnProcessSpy.thirdCall.args[0].should.eql(
+          ['launchctl', 'stop', 'com.apple.locationd']
+        );
+        spawnProcessSpy.getCall(3).args[0].should.eql(
+          ['launchctl', 'stop', 'com.apple.tccd']
+        );
+        spawnProcessSpy.callCount.should.eql(4);
+      });
+
+      it('should confirm skip restarting services if already applied', async function () {
+        const options = {language: {name: 'en'}};
+        (await sim.configureLocalization(options)).should.be.true;
+        spawnProcessSpy.firstCall.args[0].should.eql(
+          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>en</string></array>']
+        );
+        spawnProcessSpy.callCount.should.eql(1);
+      });
+    });
+  });
 });
