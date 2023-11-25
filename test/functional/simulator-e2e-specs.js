@@ -356,6 +356,8 @@ describe('advanced features', function () {
       expect(await sim.setPermission('com.apple.Maps', 'location', 'yes')).should.not.be.rejected;
       expect(await sim.setPermission('com.apple.Maps', 'location', 'no')).should.not.be.rejected;
       expect(await sim.setPermission('com.apple.Maps', 'location', 'unset')).should.not.be.rejected;
+
+      expect(await sim.setPermission('com.apple.Maps', 'location', 'unsupported')).should.be.rejected;
     });
 
     it('should set and get with wix command', async function () {
