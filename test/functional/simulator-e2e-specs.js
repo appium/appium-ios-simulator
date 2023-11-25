@@ -353,9 +353,9 @@ describe('advanced features', function () {
   describe('Permission', function () {
     it('should set and get with simctrl privacy command', async function () {
       // no exceptions
-      await sim.setPermission('com.apple.Maps', 'location', 'yes').should.eventually.be.true;
-      await sim.setPermission('com.apple.Maps', 'location', 'no').should.eventually.be.true;
-      await sim.setPermission('com.apple.Maps', 'location', 'unset').should.eventually.be.true;
+      expect(await sim.setPermission('com.apple.Maps', 'location', 'yes')).should.not.rejected;
+      expect(await sim.setPermission('com.apple.Maps', 'location', 'no')).should.not.rejected;
+      expect(await sim.setPermission('com.apple.Maps', 'location', 'unset')).should.not.rejected;
     });
 
     it('should set and get with wix command', async function () {
