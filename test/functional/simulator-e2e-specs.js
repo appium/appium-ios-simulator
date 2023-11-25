@@ -351,13 +351,26 @@ describe('advanced features', function () {
   });
 
   describe('Permission', function () {
-    it('should set and get', async function () {
+    it('should set and get with simctrl privacy command', async function () {
       await sim.setPermission('com.apple.Maps', 'microphone', 'yes');
       await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('yes');
       await sim.setPermission('com.apple.Maps', 'microphone', 'no');
       await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('no');
       await sim.setPermission('com.apple.Maps', 'microphone', 'unset');
       await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('unset');
+    });
+
+    it('should set and get with wix command', async function () {
+      await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('yes');
+      await sim.setPermission('com.apple.Maps', 'contacts', 'no');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('no');
+
+      // unset sets as 'no'
+      await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('yes');
+      await sim.setPermission('com.apple.Maps', 'contacts', 'unset');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('no');
     });
   });
 });

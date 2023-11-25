@@ -36,7 +36,11 @@ jobs:
     - uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: "${{ matrix.xcodeVersion }}"
-    - run: xcrun simctl list devices available
+    - run: |
+        brew update
+        brew tap wix/brew
+        brew install applesimutils
+        xcrun simctl list devices available
       name: Install Utilities
     - run: npm install
       name: Install dev dependencies
