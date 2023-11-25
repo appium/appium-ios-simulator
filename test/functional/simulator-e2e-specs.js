@@ -349,6 +349,17 @@ describe('advanced features', function () {
       });
     });
   });
+
+  describe('Permission', function () {
+    it('should set and get', async function () {
+      await sim.setPermission('com.apple.Maps', 'microphone', 'yes');
+      await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('yes');
+      await sim.setPermission('com.apple.Maps', 'microphone', 'no');
+      await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('no');
+      await sim.setPermission('com.apple.Maps', 'microphone', 'unset');
+      await sim.getPermission('com.apple.Maps', 'microphone').should.eventually.eql('unset');
+    });
+  });
 });
 
 describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function () {
