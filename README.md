@@ -38,6 +38,7 @@ The following tools and utilities are not mandatory, but could be used by the ap
 - [Mobile Native Foundation](https://github.com/MobileNativeFoundation)
 - [IDB](https://github.com/facebook/idb)
 - [AppleSimulatorUtils](https://github.com/wix/AppleSimulatorUtils)
+    - For `contacts`, `camera`, `faceid`, `health`, `homekit`, `notifications`, `speech` and `userTracking` permissions
 
 ### Xcode and iOS versions
 

@@ -349,6 +349,29 @@ describe('advanced features', function () {
       });
     });
   });
+
+  describe('Permission', function () {
+    it('should set and get with simctrl privacy command', async function () {
+      // no exceptions
+      await expect(sim.setPermission('com.apple.Maps', 'location', 'yes')).not.to.be.rejected;
+      await expect(sim.setPermission('com.apple.Maps', 'location', 'no')).not.to.be.rejected;
+      await expect(sim.setPermission('com.apple.Maps', 'location', 'unset')).not.to.be.rejected;
+      await expect(sim.setPermission('com.apple.Maps', 'location', 'unsupported')).to.be.rejected;
+    });
+
+    it('should set and get with wix command', async function () {
+      await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('yes');
+      await sim.setPermission('com.apple.Maps', 'contacts', 'no');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('no');
+
+      // unset sets as 'no'
+      await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('yes');
+      await sim.setPermission('com.apple.Maps', 'contacts', 'unset');
+      await sim.getPermission('com.apple.Maps', 'contacts').should.eventually.eql('no');
+    });
+  });
 });
 
 describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function () {
