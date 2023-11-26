@@ -1,3 +1,10 @@
+## [5.5.0](https://github.com/appium/appium-ios-simulator/compare/v5.4.0...v5.5.0) (2023-11-26)
+
+
+### Features
+
+* use xcrun privacy instead of wix for location permission but keep using wix for rest ([#406](https://github.com/appium/appium-ios-simulator/issues/406)) ([6280527](https://github.com/appium/appium-ios-simulator/commit/628052753caaa68fd8afffe14956d180156dded9))
+
 ## [5.4.0](https://github.com/appium/appium-ios-simulator/compare/v5.3.10...v5.4.0) (2023-11-24)
 
 
