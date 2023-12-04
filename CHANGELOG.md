@@ -1,3 +1,10 @@
+## [5.5.1](https://github.com/appium/appium-ios-simulator/compare/v5.5.0...v5.5.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* handle location command as case insensitive ([#407](https://github.com/appium/appium-ios-simulator/issues/407)) ([fa060a4](https://github.com/appium/appium-ios-simulator/commit/fa060a49fd6564cf41c492dc18b8f25bb270178a))
+
 ## [5.5.0](https://github.com/appium/appium-ios-simulator/compare/v5.4.0...v5.5.0) (2023-11-26)
 
 
