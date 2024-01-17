@@ -1,3 +1,11 @@
+## [5.5.2](https://github.com/appium/appium-ios-simulator/compare/v5.5.1...v5.5.2) (2024-01-17)
+
+
+### Miscellaneous Chores
+
+* Bump semantic-release from 22.0.12 to 23.0.0 ([#410](https://github.com/appium/appium-ios-simulator/issues/410)) ([c5dbc59](https://github.com/appium/appium-ios-simulator/commit/c5dbc599e9ca8b27c235f7aea05dca0fe8912376))
+* use latest lts for the publishment ([96c21d2](https://github.com/appium/appium-ios-simulator/commit/96c21d2724a774ba2b0edc8c203c708b373b143f))
+
 ## [5.5.1](https://github.com/appium/appium-ios-simulator/compare/v5.5.0...v5.5.1) (2023-12-04)
 
 
