@@ -1,3 +1,10 @@
+## [5.5.3](https://github.com/appium/appium-ios-simulator/compare/v5.5.2...v5.5.3) (2024-03-07)
+
+
+### Miscellaneous Chores
+
+* bump typescript ([f68792d](https://github.com/appium/appium-ios-simulator/commit/f68792dbc677f0f47cb67747fcdd11d65a9f1909))
+
 ## [5.5.2](https://github.com/appium/appium-ios-simulator/compare/v5.5.1...v5.5.2) (2024-01-17)
 
 
