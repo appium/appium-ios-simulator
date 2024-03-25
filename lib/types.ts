@@ -122,13 +122,13 @@ export interface KillUiClientOptions {
 }
 
 export interface CoreSimulator extends EventEmitter {
-  udid: string;
-  simctl: Simctl;
-  xcodeVersion: XcodeVersion;
-  keychainPath: string;
   _keychainsBackupPath: string|null|undefined;
-  _locationMenu: string;
   _webInspectorSocket: string|null|undefined;
+
+  get keychainPath(): string;
+  get udid(): string;
+  get simctl(): Simctl;
+  get xcodeVersion(): XcodeVersion;
 
   set devicesSetPath(value: string|null);
   get devicesSetPath(): string|null;
