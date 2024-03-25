@@ -1,5 +1,3 @@
-// transpile:mocha
-
 import { getSimulator } from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
 import * as deviceUtils from '../../lib/device-utils';
@@ -9,18 +7,15 @@ import sinon from 'sinon';
 import { devices } from '../assets/deviceList';
 import B from 'bluebird';
 import xcode from 'appium-xcode';
-import SimulatorXcode8 from '../../lib/simulator-xcode-8';
-import SimulatorXcode9 from '../../lib/simulator-xcode-9';
-import SimulatorXcode93 from '../../lib/simulator-xcode-9.3';
-import SimulatorXcode10 from '../../lib/simulator-xcode-10';
-import SimulatorXcode11 from '../../lib/simulator-xcode-11';
-import SimulatorXcode11_4 from '../../lib/simulator-xcode-11.4';
+import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
+import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
+import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
 
 
 chai.should();
 chai.use(chaiAsPromised);
 
-const UDID = devices['8.1'][0].udid;
+const UDID = devices['10.0'][0].udid;
 
 describe('simulator', function () {
   let xcodeMock;
@@ -38,18 +33,15 @@ describe('simulator', function () {
 
   describe('getSimulator', function () {
     it('should create a simulator with default xcode version', async function () {
-      let xcodeVersion = {major: 8, versionString: '8.0.0'};
+      let xcodeVersion = {major: 10, versionString: '10.0.0'};
       xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
 
       let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
-      sim.constructor.name.should.be.eql(SimulatorXcode8.name);
+      sim.constructor.name.should.be.eql(SimulatorXcode10.name);
     });
 
     const xcodeVersions = [
-      [8, 0, '8.0.0', SimulatorXcode8],
-      [9, 0, '9.0.0', SimulatorXcode9],
-      [9, 3, '9.3.0', SimulatorXcode93],
       [10, 0, '10.0.0', SimulatorXcode10],
       [11, 0, '11.0.0', SimulatorXcode11],
       [11, 4, '11.4.0', SimulatorXcode11_4],
@@ -76,7 +68,7 @@ describe('simulator', function () {
     });
 
     it('should list stats for sim', async function () {
-      let xcodeVersion = {major: 8, versionString: '8.0.0'};
+      let xcodeVersion = {major: 10, versionString: '10.0.0'};
       xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
 
       const sims = (await B.all([
@@ -118,7 +110,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
     beforeEach(function () {
       sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
-      const xcodeVersion = {major: 9, versionString: '9.3.0'};
+      const xcodeVersion = {major: 10, versionString: '10.0.0'};
       xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
     });
     afterEach(function () {
@@ -150,7 +142,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     let sim;
     let spawnProcessSpy;
     beforeEach(async function () {
-      const xcodeVersion = {major: 9, versionString: '9.0.0'};
+      const xcodeVersion = {major: 10, versionString: '10.0.0'};
       xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
       sim = await getSimulator(UDID);
       spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');

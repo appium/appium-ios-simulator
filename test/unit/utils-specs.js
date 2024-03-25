@@ -6,20 +6,19 @@ import sinon from 'sinon';
 import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
-import {
-  toBiometricDomainComponent, killAllSimulators, simExists,
-} from '../../lib/utils';
+import {killAllSimulators, simExists} from '../../lib/utils';
+import { toBiometricDomainComponent } from '../../lib/extensions/biometric';
 import * as deviceUtils from '../../lib/device-utils';
 import { devices } from '../assets/deviceList';
-import SimulatorXcode9 from '../../lib/simulator-xcode-9';
+import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 
 chai.should();
 chai.use(chaiAsPromised);
 
-const XCODE_VERSION_9 = {
-  versionString: '9.0',
-  versionFloat: 9.0,
-  major: 9,
+const XCODE_VERSION_10 = {
+  versionString: '10.0',
+  versionFloat: 10.0,
+  major: 10,
   minor: 0,
   patch: undefined
 };
@@ -58,7 +57,7 @@ describe('util', function () {
 
   describe('killAllSimulators', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_9));
+      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_10));
       execStub.withArgs('xcrun').returns();
       execStub.withArgs('pgrep').throws({code: 1});
 
@@ -117,7 +116,7 @@ describe('util', function () {
 });
 
 describe('Device preferences verification', function () {
-  const sim = new SimulatorXcode9('1234', XCODE_VERSION_9);
+  const sim = new SimulatorXcode10('1234', XCODE_VERSION_10);
 
   describe('for SimulatorWindowLastScale option', function () {
 
