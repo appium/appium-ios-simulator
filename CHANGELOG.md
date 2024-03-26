@@ -1,3 +1,10 @@
+## [6.1.0](https://github.com/appium/appium-ios-simulator/compare/v6.0.0...v6.1.0) (2024-03-26)
+
+
+### Features
+
+* Export all types ([#422](https://github.com/appium/appium-ios-simulator/issues/422)) ([deb8463](https://github.com/appium/appium-ios-simulator/commit/deb84636e963a319cdcc90364a4ce1e1d9539b40))
+
 ## [6.0.0](https://github.com/appium/appium-ios-simulator/compare/v5.5.3...v6.0.0) (2024-03-26)
 
 
