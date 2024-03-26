@@ -50,23 +50,26 @@ export interface CommonPreferences {
   ConnectHardwareKeyboard?: boolean;
 }
 
-export interface RunOptions {
+export interface StartUiClientOptions {
   /**
-   * Any positive float value. 1.0 means 1:1 scale.
    * Defines the window scale value for the UI client window for the current Simulator.
-   * Equals to `null` by default, which keeps the current scale unchanged.
+   * Equals to null by default, which keeps the current scale unchanged.
+   * It should be one of ['1.0', '0.75', '0.5', '0.33', '0.25'].
    */
   scaleFactor?: string;
+  /**
+   * Number of milliseconds to wait until Simulator booting
+   * process is completed. The default timeout of 60000 ms will be used if not set explicitly.
+   */
+  startupTimeout?: number;
+}
+
+export interface RunOptions extends StartUiClientOptions {
   /**
    * Whether to connect the hardware keyboard to the
    * Simulator UI client. Equals to `false` by default.
    */
   connectHardwareKeyboard?: boolean;
-  /**
-   * Number of milliseconds to wait until Simulator booting
-   * process is completed. The default timeout will be used if not set explicitly
-   */
-  startupTimeout?: number;
   /**
    * Whether to start the Simulator in headless mode (with UI
    * client invisible). `false` by default.
@@ -92,20 +95,6 @@ export interface RunOptions {
   devicePreferences?: DevicePreferences;
 }
 
-export interface StartUiClientOptions {
-  /**
-   * Defines the window scale value for the UI client window for the current Simulator.
-   * Equals to null by default, which keeps the current scale unchanged.
-   * It should be one of ['1.0', '0.75', '0.5', '0.33', '0.25'].
-   */
-  scaleFactor?: string;
-  /**
-   * Number of milliseconds to wait until Simulator booting
-   * process is completed. The default timeout of 60000 ms will be used if not set explicitly.
-   */
-  startupTimeout?: number;
-}
-
 export interface ShutdownOptions {
   /**
    * The number of milliseconds to wait until
@@ -119,6 +108,17 @@ export interface KillUiClientOptions {
   pid?: number | string | null;
   /** The signal number to send to the. 2 (SIGINT) by default */
   signal?: number | string;
+}
+
+export interface DeviceStat {
+  /** Simulator name, for example 'iPhone 10' */
+  name: string;
+  /** Device UDID, for example 'C09B34E5-7DCB-442E-B79C-AB6BC0357417' */
+  udid: string;
+  /** For example 'Booted' or 'Shutdown' */
+  state: string;
+  /** For example '12.4' */
+  sdk: string;
 }
 
 export interface CoreSimulator extends EventEmitter {
@@ -147,17 +147,17 @@ export interface CoreSimulator extends EventEmitter {
   getRootDir(): string;
   getDir(): string;
   getLogDir(): string;
-  stat(): Promise<StringRecord>;
+  stat(): Promise<DeviceStat|StringRecord<never>>;
   isFresh(): Promise<boolean>;
   isRunning(): Promise<boolean>;
   isShutdown(): Promise<boolean>;
-  startUIClient(opts?: StringRecord): Promise<void>;
-  run(opts?: StringRecord): Promise<void>;
+  startUIClient(opts?: StartUiClientOptions): Promise<void>;
+  run(opts?: RunOptions): Promise<void>;
   clean(): Promise<void>;
-  shutdown(opts?: StringRecord): Promise<void>;
+  shutdown(opts?: ShutdownOptions): Promise<void>;
   delete(): Promise<void>;
   ps(): Promise<ProcessInfo[]>;
-  killUIClient(opts?: StringRecord): Promise<boolean>;
+  killUIClient(opts?: KillUiClientOptions): Promise<boolean>;
   waitForBoot(startupTimeout: number): Promise<void>;
   getLaunchDaemonsRoot(): Promise<string>;
 }
@@ -198,7 +198,7 @@ export interface SupportsGeolocation {
 
 export interface InteractsWithKeychain {
   backupKeychains(): Promise<boolean>;
-  restoreKeychains (excludePatterns: string[]): Promise<boolean>;
+  restoreKeychains(excludePatterns: string[]): Promise<boolean>;
   clearKeychains(): Promise<void>;
 }
 
@@ -256,8 +256,6 @@ export interface HasSettings {
   disableKeyboardIntroduction(): Promise<boolean>;
   configureLocalization(opts?: LocalizationOptions): Promise<boolean>;
   setAutoFillPasswords(isEnabled: boolean): Promise<boolean>;
-  verifyDevicePreferences(prefs?: DevicePreferences): void;
-  updatePreferences(devicePrefs?: DevicePreferences, commonPrefs?: CommonPreferences): Promise<boolean>;
 }
 
 export interface CertificateOptions {
@@ -288,3 +286,14 @@ export interface SimulatorLookupOptions {
   /** The logger to use for the simulator class. A default logger will be created if not provided */
   logger?: AppiumLogger;
 }
+
+export type Simulator = CoreSimulator
+  & InteractsWithSafariBrowser
+  & InteractsWithApps
+  & HasSettings
+  & InteractsWithApps
+  & SupportsBiometric
+  & SupportsGeolocation
+  & InteractsWithKeychain
+  & SupportsAppPermissions
+  & HasMiscFeatures;

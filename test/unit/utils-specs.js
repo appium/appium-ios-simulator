@@ -8,6 +8,8 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import {killAllSimulators, simExists} from '../../lib/utils';
 import { toBiometricDomainComponent } from '../../lib/extensions/biometric';
+import { verifyDevicePreferences } from '../../lib/extensions/settings';
+
 import * as deviceUtils from '../../lib/device-utils';
 import { devices } from '../assets/deviceList';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
@@ -123,7 +125,7 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = [0.5, 1, 1.5];
       for (const validValue of validValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowLastScale: validValue
         })).should.not.throw();
       }
@@ -132,7 +134,7 @@ describe('Device preferences verification', function () {
     it('should throw if incorrect', function () {
       const invalidValues = [-1, 0.0, '', 'abc', null];
       for (const invalidValue of invalidValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowLastScale: invalidValue
         })).should.throw(Error, /is expected to be a positive float value/);
       }
@@ -146,7 +148,7 @@ describe('Device preferences verification', function () {
       const validValues = ['{0,0}', '{0.0,0}', '{0,0.0}', '{-10,0}', '{0,-10}',
         '{-32.58,0}', '{0,-32.58}', '{-32.58,-32.58}'];
       for (const validValue of validValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowCenter: validValue
         })).should.not.throw();
       }
@@ -156,7 +158,7 @@ describe('Device preferences verification', function () {
       const invalidValues = ['', '{}', '{,}', '{0,}', '{,0}', '{abc}', null,
         '{-10,-10', '{0. 0, 0}', '{ 0,0}', '{0, 0}'];
       for (const invalidValue of invalidValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowCenter: invalidValue
         })).should.throw(Error, /is expected to match/);
       }
@@ -169,7 +171,7 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
       for (const validValue of validValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowOrientation: validValue
         })).should.not.throw();
       }
@@ -178,7 +180,7 @@ describe('Device preferences verification', function () {
     it('should throw if incorrect', function () {
       const invalidValues = ['', null, 'portrait', 'bla', -1];
       for (const invalidValue of invalidValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowOrientation: invalidValue
         })).should.throw(Error, /is expected to be one of/);
       }
@@ -191,7 +193,7 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = [0, -100, 100, 1.0];
       for (const validValue of validValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowRotationAngle: validValue
         })).should.not.throw();
       }
@@ -200,7 +202,7 @@ describe('Device preferences verification', function () {
     it('should throw if incorrect', function () {
       const invalidValues = ['', null, 'bla', '0'];
       for (const invalidValue of invalidValues) {
-        (() => sim.verifyDevicePreferences({
+        (() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowRotationAngle: invalidValue
         })).should.throw(Error, /is expected to be a valid number/);
       }
