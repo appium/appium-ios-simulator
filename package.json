@@ -27,7 +27,7 @@
     "lib": "lib"
   },
   "files": [
-    "index.js",
+    "index.ts",
     "lib",
     "build/index.*",
     "build/lib",
