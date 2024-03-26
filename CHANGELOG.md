@@ -1,3 +1,10 @@
+## [6.1.1](https://github.com/appium/appium-ios-simulator/compare/v6.1.0...v6.1.1) (2024-03-26)
+
+
+### Bug Fixes
+
+* Update the typedef for scrubSafari API ([#423](https://github.com/appium/appium-ios-simulator/issues/423)) ([3ccbf80](https://github.com/appium/appium-ios-simulator/commit/3ccbf809144e2ff202b7f3cd642bb44a6ed65dca))
+
 ## [6.1.0](https://github.com/appium/appium-ios-simulator/compare/v6.0.0...v6.1.0) (2024-03-26)
 
 
