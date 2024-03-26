@@ -1,3 +1,17 @@
+## [6.0.0](https://github.com/appium/appium-ios-simulator/compare/v5.5.3...v6.0.0) (2024-03-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* Dropped obsolete simulator classes: SimulatorXcode8, SimulatorXcode9 and SimulatorXcode9_3. APIs that are still relevant have been moved to SimulatorXcode10
+* Added proper type definitions. Interfaces were refactored and connected to appropriate extension classes.
+
+Now it is possible to provide a logger to the factory method, which improves the visibility of session identifiers
+
+### Features
+
+* Drop obsolete Simulator versions ([#420](https://github.com/appium/appium-ios-simulator/issues/420)) ([bff7e56](https://github.com/appium/appium-ios-simulator/commit/bff7e561caa9d48c07203ce5e2b7641245168538))
+
 ## [5.5.3](https://github.com/appium/appium-ios-simulator/compare/v5.5.2...v5.5.3) (2024-03-07)
 
 
