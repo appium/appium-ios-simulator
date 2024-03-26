@@ -210,7 +210,7 @@ export interface SupportsAppPermissions {
 
 export interface InteractsWithSafariBrowser {
   openUrl(url: string): Promise<void>;
-  scrubSafari(keepPrefs: boolean): Promise<void>;
+  scrubSafari(keepPrefs?: boolean): Promise<void>;
   updateSafariSettings(updates: StringRecord): Promise<boolean>;
   getWebInspectorSocket(): Promise<string|null>;
 }
