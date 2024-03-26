@@ -29,7 +29,7 @@
   "files": [
     "index.js",
     "lib",
-    "build/index.js",
+    "build/index.*",
     "build/lib",
     "CHANGELOG.md"
   ],
@@ -41,7 +41,7 @@
     "asyncbox": "^3.0.0",
     "bluebird": "^3.5.1",
     "lodash": "^4.2.1",
-    "node-simctl": "^7.1.0",
+    "node-simctl": "^7.4.1",
     "semver": "^7.0.0",
     "source-map-support": "^0.x",
     "teen_process": "^2.0.0"
@@ -110,5 +110,6 @@
     "sinon": "^17.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.4.2"
-  }
+  },
+  "types": "./build/index.d.ts"
 }

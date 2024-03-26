@@ -1,7 +1,7 @@
 // for testing, this is sample output of node-simclt.listDevices();
 
 let devices = {
-  '8.1': [
+  '10.0': [
     { name: 'iPhone 4s',
       udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
       state: 'Shutdown' },
@@ -32,7 +32,7 @@ let devices = {
     { name: 'Resizable iPad',
       udid: '6DAB91C9-CCD1-4C17-9124-D765E2F0567A',
       state: 'Shutdown' }],
-  '8.3': [
+  '11.4': [
     { name: 'iPhone 4s',
       udid: '3D1A8D2A-615A-4C1E-A73C-91E92D6637FF',
       state: 'Shutdown' },
