@@ -1,3 +1,10 @@
+## [6.1.2](https://github.com/appium/appium-ios-simulator/compare/v6.1.1...v6.1.2) (2024-03-26)
+
+
+### Bug Fixes
+
+* Update settings domain name ([42f5b90](https://github.com/appium/appium-ios-simulator/commit/42f5b9032b2659cbbdead478f7e7c2559142da0f))
+
 ## [6.1.1](https://github.com/appium/appium-ios-simulator/compare/v6.1.0...v6.1.1) (2024-03-26)
 
 
