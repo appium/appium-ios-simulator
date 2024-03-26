@@ -8,3 +8,7 @@ export {
   killAllSimulators,
   simExists,
 };
+
+/**
+ * @typedef {import('./lib/types').Simulator} Simulator
+ */
