@@ -3,12 +3,6 @@
 import { getSimulator } from './lib/simulator';
 import { killAllSimulators, simExists } from './lib/utils';
 
-export {
-  getSimulator,
-  killAllSimulators,
-  simExists,
-};
+export { getSimulator, killAllSimulators, simExists };
 
-/**
- * @typedef {import('./lib/types').Simulator} Simulator
- */
+export type * from './lib/types';
