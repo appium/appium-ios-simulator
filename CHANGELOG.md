@@ -1,3 +1,10 @@
+## [6.1.4](https://github.com/appium/appium-ios-simulator/compare/v6.1.3...v6.1.4) (2024-05-16)
+
+
+### Miscellaneous Chores
+
+* Bump sinon from 17.0.2 to 18.0.0 ([#429](https://github.com/appium/appium-ios-simulator/issues/429)) ([b5393d7](https://github.com/appium/appium-ios-simulator/commit/b5393d7f5ff3b3809b9ae3c0e1d5022f4131c796))
+
 ## [6.1.3](https://github.com/appium/appium-ios-simulator/compare/v6.1.2...v6.1.3) (2024-04-09)
 
 
