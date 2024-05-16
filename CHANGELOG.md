@@ -1,3 +1,10 @@
+## [6.1.5](https://github.com/appium/appium-ios-simulator/compare/v6.1.4...v6.1.5) (2024-05-16)
+
+
+### Miscellaneous Chores
+
+* Update dev dependencies ([b386580](https://github.com/appium/appium-ios-simulator/commit/b386580930d30cd26f2d76bd118419fa08e10abc))
+
 ## [6.1.4](https://github.com/appium/appium-ios-simulator/compare/v6.1.3...v6.1.4) (2024-05-16)
 
 
