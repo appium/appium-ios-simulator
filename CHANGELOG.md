@@ -1,3 +1,9 @@
+## [6.1.6](https://github.com/appium/appium-ios-simulator/compare/v6.1.5...v6.1.6) (2024-06-04)
+
+### Miscellaneous Chores
+
+* Bump semantic-release from 23.1.1 to 24.0.0 and conventional-changelog-conventionalcommits to 8.0.0 ([#430](https://github.com/appium/appium-ios-simulator/issues/430)) ([0d819ef](https://github.com/appium/appium-ios-simulator/commit/0d819ef415df6086363d85f62474f10982e47351))
+
 ## [6.1.5](https://github.com/appium/appium-ios-simulator/compare/v6.1.4...v6.1.5) (2024-05-16)
 
 
