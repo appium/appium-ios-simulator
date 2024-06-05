@@ -1,3 +1,9 @@
+## [6.1.7](https://github.com/appium/appium-ios-simulator/compare/v6.1.6...v6.1.7) (2024-06-05)
+
+### Bug Fixes
+
+* system prompt for Apple ID sign in unexpectedly not translated ([#431](https://github.com/appium/appium-ios-simulator/issues/431)) ([9c3bb77](https://github.com/appium/appium-ios-simulator/commit/9c3bb77cb0ea3168f80e0db3161d70ed73873638))
+
 ## [6.1.6](https://github.com/appium/appium-ios-simulator/compare/v6.1.5...v6.1.6) (2024-06-04)
 
 ### Miscellaneous Chores
