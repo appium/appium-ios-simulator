@@ -209,7 +209,10 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
         spawnProcessSpy.getCall(3).args[0].should.eql(
           ['launchctl', 'stop', 'com.apple.tccd']
         );
-        spawnProcessSpy.callCount.should.eql(4);
+        spawnProcessSpy.getCall(4).args[0].should.eql(
+          ['launchctl', 'stop', 'com.apple.akd']
+        );
+        spawnProcessSpy.callCount.should.eql(5);
       });
 
       it('should confirm skip restarting services if already applied', async function () {
