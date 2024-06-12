@@ -1,3 +1,9 @@
+## [6.1.8](https://github.com/appium/appium-ios-simulator/compare/v6.1.7...v6.1.8) (2024-06-12)
+
+### Miscellaneous Chores
+
+* Bump @appium/support from 4.5.0 to 5.0.3 ([#433](https://github.com/appium/appium-ios-simulator/issues/433)) ([a9c974d](https://github.com/appium/appium-ios-simulator/commit/a9c974d9ea3bb5f333756e1071d0be07ce4d660a))
+
 ## [6.1.7](https://github.com/appium/appium-ios-simulator/compare/v6.1.6...v6.1.7) (2024-06-05)
 
 ### Bug Fixes
