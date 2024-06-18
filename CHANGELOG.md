@@ -1,3 +1,9 @@
+## [6.1.9](https://github.com/appium/appium-ios-simulator/compare/v6.1.8...v6.1.9) (2024-06-18)
+
+### Miscellaneous Chores
+
+* Bump chai and chai-as-promised ([#434](https://github.com/appium/appium-ios-simulator/issues/434)) ([ef29844](https://github.com/appium/appium-ios-simulator/commit/ef298446f987925ea749e0881a272a0ea0737e85))
+
 ## [6.1.8](https://github.com/appium/appium-ios-simulator/compare/v6.1.7...v6.1.8) (2024-06-12)
 
 ### Miscellaneous Chores
