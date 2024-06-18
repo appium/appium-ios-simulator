@@ -3,23 +3,16 @@ import _ from 'lodash';
 import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import B from 'bluebird';
 import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';
 import xcode from 'appium-xcode';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
 
-
 const BUNDLE_ID = 'io.appium.TestApp';
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '16.2';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 14';
 const CUSTOM_APP = path.resolve(__dirname, '..', 'assets', 'TestApp-iphonesimulator.app');
-
-chai.should();
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 async function deleteSimulator (udid, version) {
   // only want to get rid of the device if it is present
@@ -37,15 +30,22 @@ async function deleteSimulator (udid, version) {
   }
 }
 
-let xcodeVersion;
 
 describe(`simulator ${OS_VERSION}`, function () {
   this.timeout(LONG_TIMEOUT);
   this.retries(2);
 
   let simctl;
+  let chai;
+  let xcodeVersion;
 
   before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+
     xcodeVersion = await xcode.getVersion(true);
   });
 
@@ -181,8 +181,15 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
   this.retries(2);
 
   let sim;
+  let chai;
 
   before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+
     await killAllSimulators();
     const udid = await new Simctl().createDevice(
       'ios-simulator testing',
@@ -210,9 +217,20 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
 
 describe('advanced features', function () {
   let sim;
+  let chai;
+  let xcodeVersion;
+
   this.timeout(LONG_TIMEOUT);
 
   before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+
+    xcodeVersion = await xcode.getVersion(true);
+
     await killAllSimulators();
     const udid = await new Simctl().createDevice(
       'ios-simulator testing',
@@ -353,10 +371,10 @@ describe('advanced features', function () {
   describe('Permission', function () {
     it('should set and get with simctrl privacy command', async function () {
       // no exceptions
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'yes')).not.to.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'NO')).not.to.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'unset')).not.to.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'unsupported')).to.be.rejected;
+      await chai.expect(sim.setPermission('com.apple.Maps', 'location', 'yes')).not.to.be.rejected;
+      await chai.expect(sim.setPermission('com.apple.Maps', 'location', 'NO')).not.to.be.rejected;
+      await chai.expect(sim.setPermission('com.apple.Maps', 'location', 'unset')).not.to.be.rejected;
+      await chai.expect(sim.setPermission('com.apple.Maps', 'location', 'unsupported')).to.be.rejected;
     });
 
     it('should set and get with wix command', async function () {
@@ -379,12 +397,18 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
   this.retries(2);
 
   let simulatorsMapping = {};
+  let chai;
+  let xcodeVersion;
   const DEVICES_COUNT = 2;
 
   before(async function () {
-    if (_.isEmpty(xcodeVersion)) {
-      xcodeVersion = await xcode.getVersion(true);
-    }
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+
+    xcodeVersion = await xcode.getVersion(true);
     if (xcodeVersion.major < 9) {
       return this.skip();
     }
@@ -449,8 +473,15 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
 describe('getWebInspectorSocket', function () {
   this.timeout(LONG_TIMEOUT);
   let sim;
+  let chai;
 
   before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+
     await killAllSimulators();
     const udid = await new Simctl().createDevice(
       'ios-simulator testing',
@@ -469,7 +500,7 @@ describe('getWebInspectorSocket', function () {
     let socket = await sim.getWebInspectorSocket();
 
     if (parseFloat(OS_VERSION) < 11.3) {
-      expect(socket).to.be.null;
+      chai.expect(socket).to.be.null;
     } else {
       socket.should.include('/private/tmp/com.apple.launchd');
       socket.should.include('com.apple.webinspectord_sim.socket');

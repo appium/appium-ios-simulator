@@ -1,7 +1,3 @@
-// transpile:mocha
-
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
 import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
@@ -13,9 +9,6 @@ import { verifyDevicePreferences } from '../../lib/extensions/settings';
 import * as deviceUtils from '../../lib/device-utils';
 import { devices } from '../assets/deviceList';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
-
-chai.should();
-chai.use(chaiAsPromised);
 
 const XCODE_VERSION_10 = {
   versionString: '10.0',
@@ -44,6 +37,15 @@ describe('util', function () {
   let execStub;
   let xcodeMock;
   let getDevicesStub;
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+  });
 
   beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
@@ -119,6 +121,15 @@ describe('util', function () {
 
 describe('Device preferences verification', function () {
   const sim = new SimulatorXcode10('1234', XCODE_VERSION_10);
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+  });
 
   describe('for SimulatorWindowLastScale option', function () {
 

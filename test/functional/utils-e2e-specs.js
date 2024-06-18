@@ -2,13 +2,7 @@
 import { killAllSimulators } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
 import Simctl from 'node-simctl';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
-
-
-chai.should();
-chai.use(chaiAsPromised);
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
@@ -17,6 +11,16 @@ describe('killAllSimulators', function () {
   this.timeout(LONG_TIMEOUT);
 
   let sim;
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+  });
+
   beforeEach(async function () {
     await killAllSimulators();
     let udid = await new Simctl().createDevice(
