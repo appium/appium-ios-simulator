@@ -409,10 +409,6 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
     chai.use(chaiAsPromised.default);
 
     xcodeVersion = await xcode.getVersion(true);
-
-    if (_.isEmpty(xcodeVersion)) {
-      xcodeVersion = await xcode.getVersion(true);
-    }
     if (xcodeVersion.major < 9) {
       return this.skip();
     }
