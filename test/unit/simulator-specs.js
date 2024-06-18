@@ -1,8 +1,6 @@
 import { getSimulator } from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
 import * as deviceUtils from '../../lib/device-utils';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
 import { devices } from '../assets/deviceList';
 import B from 'bluebird';
@@ -11,15 +9,20 @@ import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
 import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
 
-
-chai.should();
-chai.use(chaiAsPromised);
-
 const UDID = devices['10.0'][0].udid;
 
 describe('simulator', function () {
   let xcodeMock;
   let getDevicesStub;
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+  });
 
   beforeEach(function () {
     xcodeMock = sinon.mock(xcode);

@@ -1,9 +1,12 @@
 import { toXmlArg, generateDefaultsCommandArgs } from '../../lib/defaults-utils';
-import chai, { expect } from 'chai';
-
-chai.should();
 
 describe('defaults-utils', function () {
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    chai.should();
+  });
 
   describe('toXmlArg', function () {
 
@@ -29,7 +32,7 @@ describe('defaults-utils', function () {
     });
 
     it('fails to convert an unknown value type', function () {
-      expect(() => toXmlArg(null)).to.throw;
+      chai.expect(() => toXmlArg(null)).to.throw;
     });
 
   });
