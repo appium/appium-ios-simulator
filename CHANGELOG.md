@@ -1,3 +1,9 @@
+## [6.1.10](https://github.com/appium/appium-ios-simulator/compare/v6.1.9...v6.1.10) (2024-07-09)
+
+### Miscellaneous Chores
+
+* Remove extra import ([22edcf1](https://github.com/appium/appium-ios-simulator/commit/22edcf130ccc92cbe6566d51d3def97a37b25bd8))
+
 ## [6.1.9](https://github.com/appium/appium-ios-simulator/compare/v6.1.8...v6.1.9) (2024-06-18)
 
 ### Miscellaneous Chores
