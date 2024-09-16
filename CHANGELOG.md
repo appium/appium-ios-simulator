@@ -1,3 +1,9 @@
+## [6.1.12](https://github.com/appium/appium-ios-simulator/compare/v6.1.11...v6.1.12) (2024-09-16)
+
+### Bug Fixes
+
+* type error by xmldom ([#437](https://github.com/appium/appium-ios-simulator/issues/437)) ([4d85282](https://github.com/appium/appium-ios-simulator/commit/4d85282ce6a5d89342fa20d96dd95d0fa3e25604))
+
 ## [6.1.11](https://github.com/appium/appium-ios-simulator/compare/v6.1.10...v6.1.11) (2024-07-29)
 
 ### Miscellaneous Chores
