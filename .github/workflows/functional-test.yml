@@ -8,16 +8,20 @@ concurrency:
 
 jobs:
   test:
+
+    # https://github.com/actions/runner-images/tree/main/images/macos
     strategy:
-      fail-fast: false
       matrix:
         include:
-        - xcodeVersion: 13.1
-          deviceName: iPhone X
-          iosVersion: 15.0
-        - xcodeVersion: 14.2
-          deviceName: iPhone 14
-          iosVersion: 16.2
+        - xcodeVersion: '14.3.1'
+          iosVersion: '16.4'
+          deviceName: 'iPhone 13'
+          platform: macos-13
+        - xcodeVersion: '15.4'
+          iosVersion: '17.5'
+          deviceName: 'iPhone 14'
+          platform: macos-14
+      fail-fast: false
 
     env:
       CI: true
@@ -26,7 +30,7 @@ jobs:
       MOBILE_DEVICE_NAME: ${{ matrix.deviceName }}
       XCODE_VERSION: ${{ matrix.xcodeVersion }}
     # https://github.com/actions/runner-images/tree/main/images/macos
-    runs-on: macos-12
+    runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
