@@ -1,3 +1,9 @@
+## [6.1.14](https://github.com/appium/appium-ios-simulator/compare/v6.1.13...v6.1.14) (2024-12-03)
+
+### Miscellaneous Chores
+
+* Bump mocha from 10.8.2 to 11.0.1 ([#440](https://github.com/appium/appium-ios-simulator/issues/440)) ([a015e35](https://github.com/appium/appium-ios-simulator/commit/a015e355c1ab19331c64cda72b4f6fed77e3d84d))
+
 ## [6.1.13](https://github.com/appium/appium-ios-simulator/compare/v6.1.12...v6.1.13) (2024-09-16)
 
 ### Miscellaneous Chores
