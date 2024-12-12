@@ -1,3 +1,9 @@
+## [6.1.16](https://github.com/appium/appium-ios-simulator/compare/v6.1.15...v6.1.16) (2024-12-12)
+
+### Miscellaneous Chores
+
+* Replace occurrences of the deprecated errorAndThrow API ([#442](https://github.com/appium/appium-ios-simulator/issues/442)) ([9e3a72c](https://github.com/appium/appium-ios-simulator/commit/9e3a72cb9ed607f48d583c76d695e3185c25a2f9))
+
 ## [6.1.15](https://github.com/appium/appium-ios-simulator/compare/v6.1.14...v6.1.15) (2024-12-06)
 
 ### Miscellaneous Chores
