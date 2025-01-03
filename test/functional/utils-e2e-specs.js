@@ -1,7 +1,7 @@
 // transpile:mocha
 import { killAllSimulators } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
-import Simctl from 'node-simctl';
+import { Simctl } from 'node-simctl';
 import { LONG_TIMEOUT, verifyStates } from './helpers';
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
@@ -35,7 +35,7 @@ describe('killAllSimulators', function () {
     await killAllSimulators();
     try {
       await sim.simctl.deleteDevice();
-    } catch (ign) {}
+    } catch {}
   });
   it('should be able to kill the simulators', async function () {
     await verifyStates(sim, true, true);

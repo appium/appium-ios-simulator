@@ -84,7 +84,7 @@ describe('util', function () {
 
       try {
         await killAllSimulators(500);
-      } catch (e) {}
+      } catch {}
       execStub.callCount.should.equal(3);
     });
   });
