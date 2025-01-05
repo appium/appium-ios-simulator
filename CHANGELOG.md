@@ -1,3 +1,9 @@
+## [6.1.17](https://github.com/appium/appium-ios-simulator/compare/v6.1.16...v6.1.17) (2025-01-05)
+
+### Miscellaneous Chores
+
+* Bump @appium/eslint-config-appium-ts from 0.3.3 to 1.0.1 ([#443](https://github.com/appium/appium-ios-simulator/issues/443)) ([b387d8d](https://github.com/appium/appium-ios-simulator/commit/b387d8d5933510d104cfb3a697a2b3b56fb929fc))
+
 ## [6.1.16](https://github.com/appium/appium-ios-simulator/compare/v6.1.15...v6.1.16) (2024-12-12)
 
 ### Miscellaneous Chores
