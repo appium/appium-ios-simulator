@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
 import { getSimulator } from '../../lib/simulator';
-import Simctl from 'node-simctl';
+import { Simctl } from 'node-simctl';
 import B from 'bluebird';
 import { retryInterval, waitForCondition } from 'asyncbox';
 import path from 'path';

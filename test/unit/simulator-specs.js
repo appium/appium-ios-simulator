@@ -1,10 +1,10 @@
 import { getSimulator } from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
 import * as deviceUtils from '../../lib/device-utils';
+import * as utils from '../../lib/utils';
 import sinon from 'sinon';
 import { devices } from '../assets/deviceList';
 import B from 'bluebird';
-import xcode from 'appium-xcode';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
 import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
@@ -12,7 +12,7 @@ import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
 const UDID = devices['10.0'][0].udid;
 
 describe('simulator', function () {
-  let xcodeMock;
+  let assertXcodeVersionStub;
   let getDevicesStub;
   let chai;
 
@@ -25,19 +25,19 @@ describe('simulator', function () {
   });
 
   beforeEach(function () {
-    xcodeMock = sinon.mock(xcode);
+    assertXcodeVersionStub = sinon.stub(utils, 'assertXcodeVersion');
     getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
     getDevicesStub.returns(B.resolve(devices));
   });
   afterEach(function () {
-    xcodeMock.restore();
+    assertXcodeVersionStub.restore();
     getDevicesStub.restore();
   });
 
   describe('getSimulator', function () {
     it('should create a simulator with default xcode version', async function () {
       let xcodeVersion = {major: 10, versionString: '10.0.0'};
-      xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       let sim = await getSimulator(UDID);
       sim.xcodeVersion.should.equal(xcodeVersion);
@@ -52,18 +52,17 @@ describe('simulator', function () {
 
     for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {
       it(`should create an xcode ${major} simulator with xcode version ${versionString}`, async function () {
-        let xcodeVersion = {major, minor, versionString};
-        xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
-        let sim = await getSimulator(UDID);
+        const xcodeVersion = {major, minor, versionString};
+        assertXcodeVersionStub.callsFake(() => xcodeVersion);
+        const sim = await getSimulator(UDID);
         sim.xcodeVersion.should.equal(xcodeVersion);
         sim.constructor.name.should.be.eql(expectedXcodeClass.name);
       });
     }
 
-    it('should throw an error if xcode version less than 6', async function () {
-      let xcodeVersion = {major: 5, versionString: '5.4.0'};
-      xcodeMock.expects('getVersion').returns(B.resolve(xcodeVersion));
-      await getSimulator(UDID).should.eventually.be.rejectedWith('version');
+    it('should throw an error if xcode version does not match', async function () {
+      assertXcodeVersionStub.throws();
+      await getSimulator(UDID).should.eventually.be.rejected;
     });
 
     it('should throw an error if udid does not exist', async function () {
@@ -72,7 +71,7 @@ describe('simulator', function () {
 
     it('should list stats for sim', async function () {
       let xcodeVersion = {major: 10, versionString: '10.0.0'};
-      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sims = (await B.all([
         'F33783B2-9EE9-4A99-866E-E126ADBAD410',
@@ -114,7 +113,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     beforeEach(function () {
       sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
       const xcodeVersion = {major: 10, versionString: '10.0.0'};
-      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
     afterEach(function () {
       teenProcess.exec.restore();
@@ -146,7 +145,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     let spawnProcessSpy;
     beforeEach(async function () {
       const xcodeVersion = {major: 10, versionString: '10.0.0'};
-      xcodeMock.expects('getVersion').atLeast(1).returns(B.resolve(xcodeVersion));
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
       sim = await getSimulator(UDID);
       spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');
     });
