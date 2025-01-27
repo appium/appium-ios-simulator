@@ -253,6 +253,10 @@ export interface HasSettings {
   updateSettings(domain: string, updates: StringRecord): Promise<boolean>;
   setAppearance(value: string): Promise<void>;
   getAppearance(): Promise<string>;
+  setContentSize(value: string): Promise<void>;
+  getContentSize(): Promise<string>;
+  setIncreaseContrast(value: string): Promise<void>;
+  getIncreaseContrast(): Promise<string>;
   disableKeyboardIntroduction(): Promise<boolean>;
   configureLocalization(opts?: LocalizationOptions): Promise<boolean>;
   setAutoFillPasswords(isEnabled: boolean): Promise<boolean>;
