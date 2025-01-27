@@ -1,3 +1,9 @@
+## [6.2.0](https://github.com/appium/appium-ios-simulator/compare/v6.1.17...v6.2.0) (2025-01-27)
+
+### Features
+
+* add increase contrast and content size commands ([#444](https://github.com/appium/appium-ios-simulator/issues/444)) ([486bc4d](https://github.com/appium/appium-ios-simulator/commit/486bc4d0bf152a6d8885a14a35235a78b1ee450e))
+
 ## [6.1.17](https://github.com/appium/appium-ios-simulator/compare/v6.1.16...v6.1.17) (2025-01-05)
 
 ### Miscellaneous Chores
