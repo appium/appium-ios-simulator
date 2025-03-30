@@ -7,7 +7,7 @@
     "ios",
     "simctl"
   ],
-  "version": "6.2.0",
+  "version": "6.2.1",
   "author": "Appium Contributors",
   "license": "Apache-2.0",
   "repository": {
@@ -81,7 +81,7 @@
     "pem": "^1.8.3",
     "prettier": "^3.0.0",
     "semantic-release": "^24.0.0",
-    "sinon": "^19.0.1",
+    "sinon": "^20.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.4.2"
   },
