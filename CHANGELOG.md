@@ -1,3 +1,9 @@
+## [6.2.2](https://github.com/appium/appium-ios-simulator/compare/v6.2.1...v6.2.2) (2025-04-05)
+
+### Bug Fixes
+
+* Wait for springboard restart and spotlight application restart after applesimutils invocation ([#447](https://github.com/appium/appium-ios-simulator/issues/447)) ([76d38b3](https://github.com/appium/appium-ios-simulator/commit/76d38b37930318c0c6c6a558903ca0f6bd11f25f))
+
 ## [6.2.1](https://github.com/appium/appium-ios-simulator/compare/v6.2.0...v6.2.1) (2025-03-25)
 
 ### Miscellaneous Chores
