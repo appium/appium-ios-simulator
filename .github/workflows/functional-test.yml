@@ -21,8 +21,8 @@ jobs:
           iosVersion: '17.5'
           deviceName: 'iPhone 15'
           platform: macos-14
-        - xcodeVersion: '16.0'
-          iosVersion: '18.0'
+        - xcodeVersion: '16.4'
+          iosVersion: '18.5'
           deviceName: 'iPhone 16'
           platform: macos-15
       fail-fast: false

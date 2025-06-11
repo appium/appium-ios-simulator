@@ -313,8 +313,6 @@ describe('advanced features', function () {
   });
 
   describe('keychains', function () {
-    this.retries(2);
-
     it('should properly backup and restore Simulator keychains', async function () {
       if (await sim.backupKeychains()) {
         (await sim.restoreKeychains('*.db*')).should.be.true;
