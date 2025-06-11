@@ -1,3 +1,9 @@
+## [6.2.5](https://github.com/appium/appium-ios-simulator/compare/v6.2.4...v6.2.5) (2025-06-11)
+
+### Miscellaneous Chores
+
+* Bump @types/node from 22.15.31 to 24.0.0 ([#449](https://github.com/appium/appium-ios-simulator/issues/449)) ([fbc07f2](https://github.com/appium/appium-ios-simulator/commit/fbc07f2560c5b87e75b39fdb01116178df1b363c))
+
 ## [6.2.4](https://github.com/appium/appium-ios-simulator/compare/v6.2.3...v6.2.4) (2025-06-11)
 
 ### Bug Fixes
