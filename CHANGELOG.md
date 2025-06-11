@@ -1,3 +1,9 @@
+## [6.2.4](https://github.com/appium/appium-ios-simulator/compare/v6.2.3...v6.2.4) (2025-06-11)
+
+### Bug Fixes
+
+* Keychains backup and restore ([#450](https://github.com/appium/appium-ios-simulator/issues/450)) ([c1ee6e6](https://github.com/appium/appium-ios-simulator/commit/c1ee6e628dd472c1f294e64ba02b68a315cb7e01))
+
 ## [6.2.3](https://github.com/appium/appium-ios-simulator/compare/v6.2.2...v6.2.3) (2025-05-20)
 
 ### Miscellaneous Chores
