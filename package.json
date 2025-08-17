@@ -18,8 +18,8 @@
     "url": "https://github.com/appium/appium-ios-simulator/issues"
   },
   "engines": {
-    "node": ">=14",
-    "npm": ">=8"
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+    "npm": ">=10"
   },
   "main": "./build/index.js",
   "bin": {},
@@ -34,17 +34,17 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@appium/support": "^6.0.0",
+    "@appium/support": "^7.0.0-rc.1",
     "@xmldom/xmldom": "^0.x",
-    "appium-xcode": "^5.0.0",
+    "appium-xcode": "^6.0.0",
     "async-lock": "^1.0.0",
     "asyncbox": "^3.0.0",
     "bluebird": "^3.5.1",
     "lodash": "^4.2.1",
-    "node-simctl": "^7.7.1",
+    "node-simctl": "^8.0.0",
     "semver": "^7.0.0",
     "source-map-support": "^0.x",
-    "teen_process": "^2.0.0"
+    "teen_process": "^3.0.0"
   },
   "scripts": {
     "build": "tsc -b",
@@ -63,9 +63,9 @@
     "singleQuote": true
   },
   "devDependencies": {
-    "@appium/eslint-config-appium-ts": "^1.x",
-    "@appium/tsconfig": "^0.x",
-    "@appium/types": "^0.x",
+    "@appium/eslint-config-appium-ts": "^2.0.0-rc.1",
+    "@appium/tsconfig": "^1.0.0-rc.1",
+    "@appium/types": "^1.0.0-rc.1",
     "@colors/colors": "^1.5.0",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -73,7 +73,6 @@
     "@types/lodash": "^4.14.196",
     "@types/mocha": "^10.0.1",
     "@types/node": "^24.0.0",
-    "@types/teen_process": "^2.0.2",
     "chai": "^5.1.1",
     "chai-as-promised": "^8.0.0",
     "conventional-changelog-conventionalcommits": "^9.0.0",
