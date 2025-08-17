@@ -1,3 +1,14 @@
+## [7.0.0](https://github.com/appium/appium-ios-simulator/compare/v6.2.6...v7.0.0) (2025-08-17)
+
+### ⚠ BREAKING CHANGES
+
+* Required Node.js version has been bumped to ^20.19.0 || ^22.12.0 || >=24.0.0
+* Required npm version has been bumped to >=10
+
+### Features
+
+* Bump Node.js version ([#452](https://github.com/appium/appium-ios-simulator/issues/452)) ([8aa62d0](https://github.com/appium/appium-ios-simulator/commit/8aa62d0688154002ab08d7c4f182731969f6ec37))
+
 ## [6.2.6](https://github.com/appium/appium-ios-simulator/compare/v6.2.5...v6.2.6) (2025-06-13)
 
 ### Miscellaneous Chores
