@@ -1,3 +1,9 @@
+## [7.0.1](https://github.com/appium/appium-ios-simulator/compare/v7.0.0...v7.0.1) (2025-08-23)
+
+### Miscellaneous Chores
+
+* Bump chai from 5.3.2 to 6.0.0 ([#453](https://github.com/appium/appium-ios-simulator/issues/453)) ([db3bcc8](https://github.com/appium/appium-ios-simulator/commit/db3bcc88bf2e0a0a7bcd7f6d31489d13a91a7063))
+
 ## [7.0.0](https://github.com/appium/appium-ios-simulator/compare/v6.2.6...v7.0.0) (2025-08-17)
 
 ### ⚠ BREAKING CHANGES
