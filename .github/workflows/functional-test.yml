@@ -13,18 +13,18 @@ jobs:
     strategy:
       matrix:
         include:
-        - xcodeVersion: '14.3.1'
-          iosVersion: '16.4'
-          deviceName: 'iPhone 14'
-          platform: macos-13
-        - xcodeVersion: '15.4'
-          iosVersion: '17.5'
-          deviceName: 'iPhone 15'
-          platform: macos-14
+        - xcodeVersion: '26.0'
+          iosVersion: '26.0'
+          deviceName: 'iPhone 17'
+          platform: macos-26
         - xcodeVersion: '16.4'
           iosVersion: '18.5'
           deviceName: 'iPhone 16'
           platform: macos-15
+        - xcodeVersion: '15.4'
+          iosVersion: '17.5'
+          deviceName: 'iPhone 15'
+          platform: macos-14
       fail-fast: false
 
     env:
