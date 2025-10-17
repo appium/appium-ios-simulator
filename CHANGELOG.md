@@ -1,3 +1,9 @@
+## [7.0.2](https://github.com/appium/appium-ios-simulator/compare/v7.0.1...v7.0.2) (2025-10-17)
+
+### Miscellaneous Chores
+
+* Bump semantic-release from 24.2.9 to 25.0.0 ([#455](https://github.com/appium/appium-ios-simulator/issues/455)) ([29cdc45](https://github.com/appium/appium-ios-simulator/commit/29cdc4576ca8b16ba5a6655cc0c227a8d160efa7))
+
 ## [7.0.1](https://github.com/appium/appium-ios-simulator/compare/v7.0.0...v7.0.1) (2025-08-23)
 
 ### Miscellaneous Chores
