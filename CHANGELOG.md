@@ -1,3 +1,9 @@
+## [7.0.3](https://github.com/appium/appium-ios-simulator/compare/v7.0.2...v7.0.3) (2025-11-15)
+
+### Miscellaneous Chores
+
+* publish via trusted publisher ([#456](https://github.com/appium/appium-ios-simulator/issues/456)) ([8e1f1af](https://github.com/appium/appium-ios-simulator/commit/8e1f1af8b55311641b580b48f0ff28dfecf4fe59))
+
 ## [7.0.2](https://github.com/appium/appium-ios-simulator/compare/v7.0.1...v7.0.2) (2025-10-17)
 
 ### Miscellaneous Chores
