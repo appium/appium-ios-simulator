@@ -381,7 +381,7 @@ export class SimulatorXcode14 extends EventEmitter implements
    * In xcode 11.4, UI Client must be first launched, otherwise
    * sim window stays minimized
    *
-   * @param isUiClientRunning - process id of simulator UI client.
+   * @param isUiClientRunning - whether the simulator UI client is already running.
    * @param opts - arguments to start simulator UI client with.
    */
   async launchWindow(isUiClientRunning: boolean, opts: RunOptions = {}): Promise<void> {
@@ -581,8 +581,23 @@ export class SimulatorXcode14 extends EventEmitter implements
    */
   async getLaunchDaemonsRoot(): Promise<string> {
     const devRoot = await getDeveloperRoot();
-    return path.resolve(devRoot,
-      'Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/System/Library/LaunchDaemons');
+    return path.resolve(
+      devRoot,
+      'Platforms',
+      'iPhoneOS.platform',
+      'Library',
+      'Developer',
+      'CoreSimulator',
+      'Profiles',
+      'Runtimes',
+      'iOS.simruntime',
+      'Contents',
+      'Resources',
+      'RuntimeRoot',
+      'System',
+      'Library',
+      'LaunchDaemons'
+    );
   }
 
   /**

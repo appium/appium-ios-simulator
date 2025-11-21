@@ -33,12 +33,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    * @returns The full path to the LaunchDaemons directory
    */
   async getLaunchDaemonsRoot(): Promise<string> {
-    const simRoot = await this.simctl.getEnv('IPHONE_SIMULATOR_ROOT');
-    if (!simRoot) {
-      throw new Error('The IPHONE_SIMULATOR_ROOT environment variable value cannot be retrieved');
-    }
-
-    return path.resolve(await this._getSystemRoot(), 'System/Library/LaunchDaemons');
+    return path.resolve(await this._getSystemRoot(), 'System', 'Library', 'LaunchDaemons');
   }
 
   /**
