@@ -8,21 +8,16 @@ import B from 'bluebird';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
 import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
+import { use as chaiUse, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+
+chaiUse(chaiAsPromised);
 
 const UDID = devices['10.0'][0].udid;
 
 describe('simulator', function () {
-  let assertXcodeVersionStub;
-  let getDevicesStub;
-  let chai;
-
-  before(async function () {
-    chai = await import('chai');
-    const chaiAsPromised = await import('chai-as-promised');
-
-    chai.should();
-    chai.use(chaiAsPromised.default);
-  });
+  let assertXcodeVersionStub: sinon.SinonStub;
+  let getDevicesStub: sinon.SinonStub;
 
   beforeEach(function () {
     assertXcodeVersionStub = sinon.stub(utils, 'assertXcodeVersion');
@@ -36,15 +31,15 @@ describe('simulator', function () {
 
   describe('getSimulator', function () {
     it('should create a simulator with default xcode version', async function () {
-      let xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 10, versionString: '10.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
-      let sim = await getSimulator(UDID);
-      sim.xcodeVersion.should.equal(xcodeVersion);
-      sim.constructor.name.should.be.eql(SimulatorXcode10.name);
+      const sim = await getSimulator(UDID);
+      expect(sim.xcodeVersion).to.equal(xcodeVersion);
+      expect(sim.constructor.name).to.eql(SimulatorXcode10.name);
     });
 
-    const xcodeVersions = [
+    const xcodeVersions: Array<[number, number, string, typeof SimulatorXcode10]> = [
       [10, 0, '10.0.0', SimulatorXcode10],
       [11, 0, '11.0.0', SimulatorXcode11],
       [11, 4, '11.4.0', SimulatorXcode11_4],
@@ -55,37 +50,37 @@ describe('simulator', function () {
         const xcodeVersion = {major, minor, versionString};
         assertXcodeVersionStub.callsFake(() => xcodeVersion);
         const sim = await getSimulator(UDID);
-        sim.xcodeVersion.should.equal(xcodeVersion);
-        sim.constructor.name.should.be.eql(expectedXcodeClass.name);
+        expect(sim.xcodeVersion).to.equal(xcodeVersion);
+        expect(sim.constructor.name).to.eql(expectedXcodeClass.name);
       });
     }
 
     it('should throw an error if xcode version does not match', async function () {
       assertXcodeVersionStub.throws();
-      await getSimulator(UDID).should.eventually.be.rejected;
+      await expect(getSimulator(UDID)).to.eventually.be.rejected;
     });
 
     it('should throw an error if udid does not exist', async function () {
-      await getSimulator('123').should.be.rejectedWith('No sim found');
+      await expect(getSimulator('123')).to.be.rejectedWith('No sim found');
     });
 
     it('should list stats for sim', async function () {
-      let xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 10, versionString: '10.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sims = (await B.all([
         'F33783B2-9EE9-4A99-866E-E126ADBAD410',
         'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
-      ].map(getSimulator))).map((sim) => {
+      ].map((udid) => getSimulator(udid)))).map((sim) => {
         sinon.stub(sim.simctl, 'getDevices').returns(B.resolve(devices));
         return sim;
       });
 
       const stats = await B.all(sims.map((sim) => sim.stat()));
-      stats[0].state.should.equal('Shutdown');
-      stats[0].name.should.equal('Resizable iPhone');
-      stats[1].state.should.equal('Shutdown');
-      stats[1].name.should.equal('Resizable iPad');
+      expect(stats[0].state).to.equal('Shutdown');
+      expect(stats[0].name).to.equal('Resizable iPhone');
+      expect(stats[1].state).to.equal('Shutdown');
+      expect(stats[1].name).to.equal('Resizable iPad');
     });
   });
 
@@ -94,7 +89,7 @@ describe('simulator', function () {
 launchd_s 81243 mwakizaka    3u  unix 0x9461828ef425ac31      0t0      /private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket
 launchd_s 81243 mwakizaka    4u  unix 0x9461828ef425bc99      0t0      /tmp/com.apple.CoreSimulator.SimDevice.0829568F-7479-4ADE-9E51-B208DC99C107/syslogsock
 launchd_s 81243 mwakizaka    6u  unix 0x9461828ef27d4c39      0t0      ->0x9461828ef27d4b71
-launchd_s 81243 mwakizaka    7u  unix 0x9461828ef425dd69      0t0      ->0x9461828ef27d5021
+launchd_s 81243 mwakizaka    7u  unix 0x9461828ef27d4c39      0t0      ->0x9461828ef27d5021
 launchd_s 81243 mwakizaka    8u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
 launchd_s 81243 mwakizaka    9u  unix 0x9461828ef425be29      0t0      /private/tmp/com.apple.launchd.rbqFyGyXrT/com.apple.testmanagerd.unix-domain.socket
 launchd_s 81243 mwakizaka   10u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
@@ -111,12 +106,12 @@ launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/
 launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
 
     beforeEach(function () {
-      sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
+      sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout } as any));
       const xcodeVersion = {major: 10, versionString: '10.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
     afterEach(function () {
-      teenProcess.exec.restore();
+      (teenProcess.exec as any).restore();
     });
 
     const testParams = [
@@ -128,7 +123,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it(`should find a Web Inspector socket when it appears at the ${line} line of grouped records`, async function () {
         const sim = await getSimulator(udid);
         const webInspectorSocket = await sim.getWebInspectorSocket();
-        webInspectorSocket.should.equal(expected);
+        expect(webInspectorSocket).to.equal(expected);
       });
     });
 
@@ -136,13 +131,13 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       const sim = await getSimulator(testParams[0].udid);
       await sim.getWebInspectorSocket();
       await sim.getWebInspectorSocket();
-      teenProcess.exec.callCount.should.equal(1);
+      expect((teenProcess.exec as any).callCount).to.equal(1);
     });
   });
 
   describe('configureLocalization', function () {
-    let sim;
-    let spawnProcessSpy;
+    let sim: any;
+    let spawnProcessSpy: sinon.SinonStub;
     beforeEach(async function () {
       const xcodeVersion = {major: 10, versionString: '10.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
@@ -156,84 +151,85 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     describe('locale', function () {
       it('should configure locale', async function () {
         const options = {locale: {name: 'en_US', calendar: 'gregorian'}};
-        (await sim.configureLocalization(options)).should.be.true;
-        spawnProcessSpy.firstCall.args[0].should.eql(
+        expect(await sim.configureLocalization(options)).to.be.true;
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
           ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLocale', '<string>en_US@calendar=gregorian</string>']
         );
-        spawnProcessSpy.callCount.should.eql(1);
+        expect(spawnProcessSpy.callCount).to.eql(1);
       });
     });
 
     describe('keyboard', function () {
       it('should configure keyboard', async function () {
         const options = {keyboard: {name: 'en_US', layout: 'QWERTY'}};
-        (await sim.configureLocalization(options)).should.be.true;
-        spawnProcessSpy.firstCall.args[0].should.eql(
+        expect(await sim.configureLocalization(options)).to.be.true;
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
           ['defaults', 'write', '.GlobalPreferences.plist', 'AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>']
         );
-        spawnProcessSpy.secondCall.args[0].should.eql(
+        expect(spawnProcessSpy.secondCall.args[0]).to.eql(
           ['defaults', 'write', 'com.apple.Preferences', 'KeyboardsCurrentAndNext', '<array><string>en_US@sw=QWERTY</string></array>']
         );
-        spawnProcessSpy.thirdCall.args[0].should.eql(
+        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(
           ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsed', '<string>en_US@sw=QWERTY</string>']
         );
-        spawnProcessSpy.getCall(3).args[0].should.eql(
+        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(
           ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsedForLanguage', '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>']
         );
-        spawnProcessSpy.callCount.should.eql(4);
+        expect(spawnProcessSpy.callCount).to.eql(4);
       });
     });
 
     describe('language', function () {
-      let getDirStub;
+      let getDirStub: sinon.SinonStub;
       const stdout = JSON.stringify({AppleLanguages: ['en']});
       beforeEach(function () {
         getDirStub = sinon.stub(sim, 'getDir').callsFake(() => (''));
-        sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout }));
+        sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout } as any));
       });
       afterEach(function () {
         getDirStub.reset();
-        teenProcess.exec.restore();
+        (teenProcess.exec as any).restore();
       });
 
       it('should configure language and restart services', async function () {
         const options = {language: {name: 'ja'}};
-        (await sim.configureLocalization(options)).should.be.true;
-        spawnProcessSpy.firstCall.args[0].should.eql(
+        expect(await sim.configureLocalization(options)).to.be.true;
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
           ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
         );
-        spawnProcessSpy.secondCall.args[0].should.eql(
+        expect(spawnProcessSpy.secondCall.args[0]).to.eql(
           ['launchctl', 'stop', 'com.apple.SpringBoard']
         );
-        spawnProcessSpy.thirdCall.args[0].should.eql(
+        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(
           ['launchctl', 'stop', 'com.apple.locationd']
         );
-        spawnProcessSpy.getCall(3).args[0].should.eql(
+        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(
           ['launchctl', 'stop', 'com.apple.tccd']
         );
-        spawnProcessSpy.getCall(4).args[0].should.eql(
+        expect(spawnProcessSpy.getCall(4).args[0]).to.eql(
           ['launchctl', 'stop', 'com.apple.akd']
         );
-        spawnProcessSpy.callCount.should.eql(5);
+        expect(spawnProcessSpy.callCount).to.eql(5);
       });
 
       it('should confirm skip restarting services if already applied', async function () {
         const options = {language: {name: 'en'}};
-        (await sim.configureLocalization(options)).should.be.true;
-        spawnProcessSpy.firstCall.args[0].should.eql(
+        expect(await sim.configureLocalization(options)).to.be.true;
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
           ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>en</string></array>']
         );
-        spawnProcessSpy.callCount.should.eql(1);
+        expect(spawnProcessSpy.callCount).to.eql(1);
       });
 
       it('should confirm skip restarting services if skipSyncUiDialogTranslation is true', async function () {
         const options = {language: {name: 'ja', skipSyncUiDialogTranslation: true}};
-        (await sim.configureLocalization(options)).should.be.true;
-        spawnProcessSpy.firstCall.args[0].should.eql(
+        expect(await sim.configureLocalization(options)).to.be.true;
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
           ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
         );
-        spawnProcessSpy.callCount.should.eql(1);
+        expect(spawnProcessSpy.callCount).to.eql(1);
       });
     });
   });
 });
+
