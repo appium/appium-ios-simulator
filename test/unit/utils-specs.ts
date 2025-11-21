@@ -9,7 +9,7 @@ import { use as chaiUse, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import * as deviceUtils from '../../lib/device-utils';
-import { devices } from '../assets/deviceList';
+import { devices } from './device-list';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 
 chaiUse(chaiAsPromised);

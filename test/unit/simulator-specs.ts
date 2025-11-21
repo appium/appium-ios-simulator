@@ -3,7 +3,7 @@ import * as teenProcess from 'teen_process';
 import * as deviceUtils from '../../lib/device-utils';
 import * as utils from '../../lib/utils';
 import sinon from 'sinon';
-import { devices } from '../assets/deviceList';
+import { devices } from './device-list';
 import B from 'bluebird';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
 import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
