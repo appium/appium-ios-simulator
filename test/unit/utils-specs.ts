@@ -5,10 +5,14 @@ import xcode from 'appium-xcode';
 import {killAllSimulators, simExists} from '../../lib/utils';
 import { toBiometricDomainComponent } from '../../lib/extensions/biometric';
 import { verifyDevicePreferences } from '../../lib/extensions/settings';
+import { use as chaiUse, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
 import * as deviceUtils from '../../lib/device-utils';
-import { devices } from '../assets/deviceList';
+import { devices } from './device-list';
 import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
+
+chaiUse(chaiAsPromised);
 
 const XCODE_VERSION_10 = {
   versionString: '10.0',
@@ -34,18 +38,9 @@ const XCODE_VERSION_6 = {
 
 
 describe('util', function () {
-  let execStub;
-  let xcodeMock;
-  let getDevicesStub;
-  let chai;
-
-  before(async function () {
-    chai = await import('chai');
-    const chaiAsPromised = await import('chai-as-promised');
-
-    chai.should();
-    chai.use(chaiAsPromised.default);
-  });
+  let execStub: sinon.SinonStub;
+  let xcodeMock: sinon.SinonMock;
+  let getDevicesStub: sinon.SinonStub;
 
   beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
@@ -66,7 +61,7 @@ describe('util', function () {
       execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
-      execStub.callCount.should.equal(2);
+      expect(execStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
@@ -74,7 +69,7 @@ describe('util', function () {
       execStub.withArgs('pgrep').throws({code: 1});
 
       await killAllSimulators();
-      execStub.callCount.should.equal(2);
+      expect(execStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
       xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
@@ -85,34 +80,34 @@ describe('util', function () {
       try {
         await killAllSimulators(500);
       } catch {}
-      execStub.callCount.should.equal(3);
+      expect(execStub.callCount).to.equal(3);
     });
   });
 
   describe('simExists', function () {
     it('returns true if device is found', async function () {
-      let results = await B.all([
+      const results = await B.all([
         simExists('8F4A3349-3ABF-4597-953A-285C5C0FFD00'),
         simExists('7DEA409E-159A-4730-B1C6-7C18279F72B8'),
         simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
         simExists('DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'),
       ]);
 
-      for (let result of results) {
-        result.should.be.true;
+      for (const result of results) {
+        expect(result).to.be.true;
       }
     });
 
     it('returns false if device is not found', async function () {
-      let existence = [];
+      const existence: Promise<boolean>[] = [];
       existence.push(simExists('A94E4CD7-D412-4198-BCD4-26799672975E'));
       existence.push(simExists('asdf'));
-      existence.push(simExists(4));
+      existence.push(simExists(4 as any));
 
-      let results = await B.all(existence);
+      const results = await B.all(existence);
 
-      for (let result of results) {
-        result.should.be.false;
+      for (const result of results) {
+        expect(result).to.be.false;
       }
     });
   });
@@ -121,33 +116,24 @@ describe('util', function () {
 
 describe('Device preferences verification', function () {
   const sim = new SimulatorXcode10('1234', XCODE_VERSION_10);
-  let chai;
-
-  before(async function () {
-    chai = await import('chai');
-    const chaiAsPromised = await import('chai-as-promised');
-
-    chai.should();
-    chai.use(chaiAsPromised.default);
-  });
 
   describe('for SimulatorWindowLastScale option', function () {
 
     it('should pass if correct', function () {
       const validValues = [0.5, 1, 1.5];
       for (const validValue of validValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowLastScale: validValue
-        })).should.not.throw();
+        })).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = [-1, 0.0, '', 'abc', null];
+      const invalidValues: any[] = [-1, 0.0, '', 'abc', null];
       for (const invalidValue of invalidValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowLastScale: invalidValue
-        })).should.throw(Error, /is expected to be a positive float value/);
+        })).to.throw(Error, /is expected to be a positive float value/);
       }
     });
 
@@ -159,19 +145,19 @@ describe('Device preferences verification', function () {
       const validValues = ['{0,0}', '{0.0,0}', '{0,0.0}', '{-10,0}', '{0,-10}',
         '{-32.58,0}', '{0,-32.58}', '{-32.58,-32.58}'];
       for (const validValue of validValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowCenter: validValue
-        })).should.not.throw();
+        })).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = ['', '{}', '{,}', '{0,}', '{,0}', '{abc}', null,
+      const invalidValues: any[] = ['', '{}', '{,}', '{0,}', '{,0}', '{abc}', null,
         '{-10,-10', '{0. 0, 0}', '{ 0,0}', '{0, 0}'];
       for (const invalidValue of invalidValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowCenter: invalidValue
-        })).should.throw(Error, /is expected to match/);
+        })).to.throw(Error, /is expected to match/);
       }
     });
 
@@ -182,18 +168,18 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
       for (const validValue of validValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowOrientation: validValue
-        })).should.not.throw();
+        })).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = ['', null, 'portrait', 'bla', -1];
+      const invalidValues: any[] = ['', null, 'portrait', 'bla', -1];
       for (const invalidValue of invalidValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowOrientation: invalidValue
-        })).should.throw(Error, /is expected to be one of/);
+        })).to.throw(Error, /is expected to be one of/);
       }
     });
 
@@ -204,34 +190,35 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = [0, -100, 100, 1.0];
       for (const validValue of validValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowRotationAngle: validValue
-        })).should.not.throw();
+        })).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues = ['', null, 'bla', '0'];
+      const invalidValues: any[] = ['', null, 'bla', '0'];
       for (const invalidValue of invalidValues) {
-        (() => verifyDevicePreferences.bind(sim)({
+        expect(() => verifyDevicePreferences.bind(sim)({
           SimulatorWindowRotationAngle: invalidValue
-        })).should.throw(Error, /is expected to be a valid number/);
+        })).to.throw(Error, /is expected to be a valid number/);
       }
     });
   });
 
   describe('toBiometricDomainComponent', function () {
     it('return touch id object', function () {
-      toBiometricDomainComponent('touchId').should.eql('fingerTouch');
+      expect(toBiometricDomainComponent('touchId')).to.eql('fingerTouch');
     });
     it('return face id object', function () {
-      toBiometricDomainComponent('faceId').should.eql('pearl');
+      expect(toBiometricDomainComponent('faceId')).to.eql('pearl');
     });
 
     it('raise an error since the argument does not exist in biometric', function () {
-      (function () {
+      expect(function () {
         toBiometricDomainComponent('no-touchId');
-      }).should.throw();
+      }).to.throw();
     });
   });
 });
+

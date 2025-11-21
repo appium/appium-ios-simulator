@@ -1,6 +1,12 @@
 // for testing, this is sample output of node-simclt.listDevices();
 
-let devices = {
+interface Device {
+  name: string;
+  udid: string;
+  state: string;
+}
+
+const devices: Record<string, Device[]> = {
   '10.0': [
     { name: 'iPhone 4s',
       udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
@@ -66,3 +72,4 @@ let devices = {
 };
 
 export { devices };
+
