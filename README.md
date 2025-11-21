@@ -36,7 +36,6 @@ assert.equal('Shutdown', (await sim.stat()).state);
 The following tools and utilities are not mandatory, but could be used by the appium-ios-simulator, if installed locally, to extend its functionality:
 
 - [Mobile Native Foundation](https://github.com/MobileNativeFoundation)
-- [IDB](https://github.com/facebook/idb)
 - [AppleSimulatorUtils](https://github.com/wix/AppleSimulatorUtils)
     - For `contacts`, `camera`, `faceid`, `health`, `homekit`, `notifications`, `speech` and `userTracking` permissions
 

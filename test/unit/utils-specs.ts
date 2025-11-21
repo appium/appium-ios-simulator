@@ -10,7 +10,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 import * as deviceUtils from '../../lib/device-utils';
 import { devices } from './device-list';
-import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
+import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
 
 chaiUse(chaiAsPromised);
 
@@ -115,7 +115,7 @@ describe('util', function () {
 });
 
 describe('Device preferences verification', function () {
-  const sim = new SimulatorXcode10('1234', XCODE_VERSION_10);
+  const sim = new SimulatorXcode14('1234', XCODE_VERSION_10);
 
   describe('for SimulatorWindowLastScale option', function () {
 

@@ -1,32 +1,30 @@
-import { SimulatorXcode10 } from './simulator-xcode-10';
-import { SimulatorXcode11 } from './simulator-xcode-11';
-import { SimulatorXcode11_4 } from './simulator-xcode-11.4';
 import { SimulatorXcode14 } from './simulator-xcode-14';
 import { SimulatorXcode15 } from './simulator-xcode-15';
 import { getSimulatorInfo, assertXcodeVersion, MIN_SUPPORTED_XCODE_VERSION } from './utils';
 import * as xcode from 'appium-xcode';
 import { log } from './logger';
+import type { Simulator, SimulatorLookupOptions } from './types';
 
 /**
  * Finds and returns the corresponding Simulator instance for the given ID.
  *
- * @param {string} udid - The ID of an existing Simulator.
- * @param {import('./types').SimulatorLookupOptions} [opts={}]
+ * @param udid - The ID of an existing Simulator.
+ * @param opts - Simulator lookup options
  * @throws {Error} If the Simulator with given udid does not exist in devices list.
  *   If you want to create a new simulator, you can use the `createDevice()` method of
  *   [node-simctl](github.com/appium/node-simctl).
- * @return {Promise<import('./types').Simulator>} Simulator object associated with the udid passed in.
+ * @return Simulator object associated with the udid passed in.
  */
-export async function getSimulator (udid, opts = {}) {
-  let {
-    platform = 'iOS',
+export async function getSimulator(udid: string, opts: SimulatorLookupOptions = {}): Promise<Simulator> {
+  let platform = opts.platform ?? 'iOS';
+  const {
     checkExistence = true,
     devicesSetPath,
     logger,
   } = opts;
 
   const xcodeVersion = assertXcodeVersion(
-    /** @type {import('appium-xcode').XcodeVersion} */ (await xcode.getVersion(true))
+    await xcode.getVersion(true) as xcode.XcodeVersion
   );
   if (checkExistence) {
     const simulatorInfo = await getSimulatorInfo(udid, {
@@ -43,19 +41,9 @@ export async function getSimulator (udid, opts = {}) {
   (logger ?? log).info(
     `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`
   );
-  let SimClass;
+  let SimClass: typeof SimulatorXcode14 | typeof SimulatorXcode15;
   switch (xcodeVersion.major) {
     case MIN_SUPPORTED_XCODE_VERSION:
-      SimClass = SimulatorXcode10;
-      break;
-    case 11:
-      SimClass = xcodeVersion.minor < 4 ? SimulatorXcode11 : SimulatorXcode11_4;
-      break;
-    case 12:
-    case 13:
-      SimClass = SimulatorXcode11_4;
-      break;
-    case 14:
       SimClass = SimulatorXcode14;
       break;
     case 15:
@@ -70,3 +58,4 @@ export async function getSimulator (udid, opts = {}) {
   }
   return result;
 }
+

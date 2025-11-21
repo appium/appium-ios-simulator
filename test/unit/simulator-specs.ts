@@ -5,9 +5,8 @@ import * as utils from '../../lib/utils';
 import sinon from 'sinon';
 import { devices } from './device-list';
 import B from 'bluebird';
-import { SimulatorXcode10 } from '../../lib/simulator-xcode-10';
-import { SimulatorXcode11 } from '../../lib/simulator-xcode-11';
-import { SimulatorXcode11_4 } from '../../lib/simulator-xcode-11.4';
+import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
+import { SimulatorXcode15 } from '../../lib/simulator-xcode-15';
 import { use as chaiUse, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -31,18 +30,17 @@ describe('simulator', function () {
 
   describe('getSimulator', function () {
     it('should create a simulator with default xcode version', async function () {
-      const xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sim = await getSimulator(UDID);
       expect(sim.xcodeVersion).to.equal(xcodeVersion);
-      expect(sim.constructor.name).to.eql(SimulatorXcode10.name);
+      expect(sim.constructor.name).to.eql(SimulatorXcode14.name);
     });
 
-    const xcodeVersions: Array<[number, number, string, typeof SimulatorXcode10]> = [
-      [10, 0, '10.0.0', SimulatorXcode10],
-      [11, 0, '11.0.0', SimulatorXcode11],
-      [11, 4, '11.4.0', SimulatorXcode11_4],
+    const xcodeVersions: Array<[number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15]> = [
+      [14, 0, '14.0.0', SimulatorXcode14],
+      [15, 0, '15.0.0', SimulatorXcode15],
     ];
 
     for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {
@@ -55,6 +53,17 @@ describe('simulator', function () {
       });
     }
 
+    it('should throw an error if xcode version is below minimum supported', async function () {
+      const xcodeVersion = {major: 10, versionString: '10.0.0'};
+      assertXcodeVersionStub.callsFake(() => {
+        throw new Error(
+          `Tried to use an iOS simulator with xcode version ${xcodeVersion.versionString} ` +
+          `but only Xcode version 14 and up are supported`
+        );
+      });
+      await expect(getSimulator(UDID)).to.eventually.be.rejected;
+    });
+
     it('should throw an error if xcode version does not match', async function () {
       assertXcodeVersionStub.throws();
       await expect(getSimulator(UDID)).to.eventually.be.rejected;
@@ -65,7 +74,7 @@ describe('simulator', function () {
     });
 
     it('should list stats for sim', async function () {
-      const xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sims = (await B.all([
@@ -107,7 +116,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
     beforeEach(function () {
       sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout } as any));
-      const xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
     afterEach(function () {
@@ -139,7 +148,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     let sim: any;
     let spawnProcessSpy: sinon.SinonStub;
     beforeEach(async function () {
-      const xcodeVersion = {major: 10, versionString: '10.0.0'};
+      const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
       sim = await getSimulator(UDID);
       spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');
