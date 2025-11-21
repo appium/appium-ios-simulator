@@ -307,7 +307,7 @@ describe('advanced features', function () {
         return this.skip();
       }
 
-      (await sim.configureLocalization({
+      expect(await sim.configureLocalization({
         language: {
           name: 'en'
         },
