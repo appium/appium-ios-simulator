@@ -133,9 +133,6 @@ export interface CoreSimulator extends EventEmitter {
   set devicesSetPath(value: string|null);
   get devicesSetPath(): string|null;
 
-  get idb(): any;
-  set idb(value: any);
-
   get startupTimeout(): number;
   get uiClientBundleId(): string;
 

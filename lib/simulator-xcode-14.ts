@@ -14,56 +14,60 @@ import * as appExtensions from './extensions/applications';
 import * as biometricExtensions from './extensions/biometric';
 import * as safariExtensions from './extensions/safari';
 import * as keychainExtensions from './extensions/keychain';
-import * as geolocationExtensions from './extensions/geolocation';
 import * as settingsExtensions from './extensions/settings';
 import * as permissionsExtensions from './extensions/permissions';
 import * as miscExtensions from './extensions/misc';
-
+import type {
+  CoreSimulator,
+  HasSettings,
+  InteractsWithApps,
+  InteractsWithKeychain,
+  SupportsGeolocation,
+  HasMiscFeatures,
+  InteractsWithSafariBrowser,
+  SupportsBiometric,
+  DeviceStat,
+  ShutdownOptions,
+  RunOptions,
+  StartUiClientOptions,
+  KillUiClientOptions,
+  ProcessInfo,
+  CertificateOptions,
+} from './types';
+import type { XcodeVersion } from 'appium-xcode';
+import type { AppiumLogger, StringRecord } from '@appium/types';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
 const UI_CLIENT_BUNDLE_ID = 'com.apple.iphonesimulator';
 const STARTUP_TIMEOUT_MS = 120 * 1000;
 
-/**
- * @typedef {import('./types').CoreSimulator} CoreSimulator
- * @typedef {import('./types').HasSettings} HasSettings
- * @typedef {import('./types').InteractsWithApps} InteractsWithApps
- * @typedef {import('./types').InteractsWithKeychain} InteractsWithKeychain
- * @typedef {import('./types').SupportsGeolocation} SupportsGeolocation
- * @typedef {import('./types').HasMiscFeatures} HasMiscFeatures
- * @typedef {import('./types').InteractsWithSafariBrowser} InteractsWithSafariBrowser
- * @typedef {import('./types').SupportsBiometric} SupportsBiometric
- */
-
-/**
- * @implements {CoreSimulator}
- * @implements {HasSettings}
- * @implements {InteractsWithApps}
- * @implements {InteractsWithKeychain}
- * @implements {SupportsGeolocation}
- * @implements {HasMiscFeatures}
- * @implements {InteractsWithSafariBrowser}
- * @implements {SupportsBiometric}
- */
-export class SimulatorXcode10 extends EventEmitter {
-  /** @type {string|undefined|null} */
-  _keychainsBackupPath;
-
-  /** @type {string|undefined|null} */
-  _platformVersion;
-
-  /** @type {string|undefined|null} */
-  _webInspectorSocket;
+export class SimulatorXcode14 extends EventEmitter implements
+  CoreSimulator,
+  HasSettings,
+  InteractsWithApps,
+  InteractsWithKeychain,
+  SupportsGeolocation,
+  HasMiscFeatures,
+  InteractsWithSafariBrowser,
+  SupportsBiometric {
+  _keychainsBackupPath: string | null | undefined;
+  _platformVersion: string | null | undefined;
+  _webInspectorSocket: string | null | undefined;
+  private readonly _udid: string;
+  private readonly _simctl: Simctl;
+  private readonly _xcodeVersion: XcodeVersion;
+  private readonly _log: AppiumLogger;
 
   /**
-   * Constructs the object with the `udid` and version of Xcode. Use the exported `getSimulator(udid)` method instead.
+   * Constructs the object with the `udid` and version of Xcode.
+   * Use the exported `getSimulator(udid)` method instead.
    *
-   * @param {string} udid - The Simulator ID.
-   * @param {import('appium-xcode').XcodeVersion} xcodeVersion - The target Xcode version in format {major, minor, build}.
-   * @param {import('@appium/types').AppiumLogger?} log
+   * @param udid - The Simulator ID.
+   * @param xcodeVersion - The target Xcode version in format {major, minor, build}.
+   * @param log - Optional logger instance.
    */
-  constructor (udid, xcodeVersion, log = null) {
+  constructor(udid: string, xcodeVersion: XcodeVersion, log: AppiumLogger | null = null) {
     super();
 
     this._udid = String(udid);
@@ -75,136 +79,119 @@ export class SimulatorXcode10 extends EventEmitter {
     // our logic for figuring out if a sim has been run
     // it will be set when it is needed
     this._platformVersion = null;
-    this._idb = null;
     this._webInspectorSocket = null;
     this._log = log ?? defaultLog;
   }
 
   /**
-   * @returns {string}
+   * @returns The unique device identifier (UDID) of the simulator.
    */
-  get udid() {
+  get udid(): string {
     return this._udid;
   }
 
   /**
-   * @returns {Simctl}
+   * @returns The Simctl instance for interacting with the simulator.
    */
-  get simctl() {
+  get simctl(): Simctl {
     return this._simctl;
   }
 
   /**
-   * @returns {import('appium-xcode').XcodeVersion}
+   * @returns The Xcode version information.
    */
-  get xcodeVersion() {
+  get xcodeVersion(): XcodeVersion {
     return this._xcodeVersion;
   }
 
   /**
-   * @returns {string}
+   * @returns The full path to the keychain directory for this simulator.
    */
-  get keychainPath() {
+  get keychainPath(): string {
     return path.resolve(this.getDir(), 'Library', 'Keychains');
   }
 
   /**
-   * @return {import('@appium/types').AppiumLogger}
+   * @returns The logger instance used by this simulator.
    */
-  get log() {
+  get log(): AppiumLogger {
     return this._log;
   }
 
   /**
-   * @return {string} Bundle identifier of Simulator UI client.
+   * @returns The bundle identifier of the Simulator UI client.
    */
-  get uiClientBundleId () {
+  get uiClientBundleId(): string {
     return UI_CLIENT_BUNDLE_ID;
   }
 
   /**
-   * @return {number} The max number of milliseconds to wait until Simulator booting is completed.
+   * @returns The maximum number of milliseconds to wait until Simulator booting is completed.
    */
-  get startupTimeout () {
+  get startupTimeout(): number {
     return STARTUP_TIMEOUT_MS;
   }
 
   /**
-   * @return {?string} The full path to the devices set where the current simulator is located.
-   * `null` value means that the default path is used, which is usually `~/Library/Developer/CoreSimulator/Devices`
+   * @returns The full path to the devices set where the current simulator is located.
+   * `null` value means that the default path is used.
    */
-  get devicesSetPath () {
+  get devicesSetPath(): string | null {
     return this.simctl.devicesSetPath;
   }
 
   /**
    * Set the full path to the devices set. It is recommended to set this value
    * once right after Simulator instance is created and to not change it during
-   * the instance lifecycle
+   * the instance lifecycle.
    *
-   * @param {?string} value The full path to the devices set root on the
-   * local file system
+   * @param value - The full path to the devices set root on the local file system.
    */
-  set devicesSetPath (value) {
+  set devicesSetPath(value: string | null) {
     this.simctl.devicesSetPath = value;
-  }
-
-  /**
-   * IDB instance setter
-   *
-   * @param {any} value
-   */
-  set idb (value) {
-    this._idb = value;
-  }
-
-  /**
-   * @return {Promise<any>} idb instance
-   */
-  get idb () {
-    return this._idb;
   }
 
   /**
    * Retrieve the full path to the directory where Simulator stuff is located.
    *
-   * @return {string} The path string.
+   * @returns The path string.
    */
-  getRootDir () {
+  getRootDir(): string {
     return path.resolve(process.env.HOME ?? '', 'Library', 'Developer', 'CoreSimulator', 'Devices');
   }
 
   /**
    * Retrieve the full path to the directory where Simulator applications data is located.
    *
-   * @return {string} The path string.
+   * @returns The path string.
    */
-  getDir () {
+  getDir(): string {
     return path.resolve(this.getRootDir(), this.udid, 'data');
   }
 
   /**
    * Retrieve the full path to the directory where Simulator logs are stored.
    *
-   * @return {string} The path string.
+   * @returns The path string.
    */
-  getLogDir () {
+  getLogDir(): string {
     return path.resolve(process.env.HOME ?? '', 'Library', 'Logs', 'CoreSimulator', this.udid);
   }
 
   /**
-   * Get the state and specifics of this sim.
+   * Get the state and specifics of this simulator.
    *
-   * @return {Promise<import('./types').DeviceStat|import('@appium/types').StringRecord<never>>} Simulator stats mapping, for example:
+   * @returns Simulator stats mapping, for example:
    * { name: 'iPhone 4s',
    *   udid: 'C09B34E5-7DCB-442E-B79C-AB6BC0357417',
    *   state: 'Shutdown',
    *   sdk: '8.3'
    * }
    */
-  async stat () {
-    for (const [sdk, deviceArr] of _.toPairs(await this.simctl.getDevices())) {
-      for (let device of deviceArr) {
+  async stat(): Promise<DeviceStat | StringRecord<never>> {
+    const devices = await this.simctl.getDevices();
+    for (const [sdk, deviceArr] of _.toPairs(devices)) {
+      for (const device of deviceArr as any[]) {
         if (device.udid === this.udid) {
           device.sdk = sdk;
           return device;
@@ -217,11 +204,11 @@ export class SimulatorXcode10 extends EventEmitter {
 
   /**
    * Check if the Simulator has been booted at least once
-   * and has not been erased before
+   * and has not been erased before.
    *
-   * @return {Promise<boolean>} True if the current Simulator has never been started before
+   * @returns True if the current Simulator has never been started before.
    */
-  async isFresh () {
+  async isFresh(): Promise<boolean> {
     const cachesRoot = path.resolve(this.getDir(), 'Library', 'Caches');
     return (await fs.exists(cachesRoot))
       ? (await fs.glob('*', {cwd: cachesRoot})).length === 0
@@ -232,9 +219,9 @@ export class SimulatorXcode10 extends EventEmitter {
    * Retrieves the state of the current Simulator. One should distinguish the
    * states of Simulator UI and the Simulator itself.
    *
-   * @return {Promise<boolean>} True if the current Simulator is running.
+   * @returns True if the current Simulator is running.
    */
-  async isRunning () {
+  async isRunning(): Promise<boolean> {
     try {
       await this.simctl.getEnv('dummy');
       return true;
@@ -249,24 +236,24 @@ export class SimulatorXcode10 extends EventEmitter {
    * in the transitional Shutting Down state right after the `shutdown`
    * command has been issued.
    *
-   * @return {Promise<boolean>} True if the current Simulator is shut down.
+   * @returns True if the current Simulator is shut down.
    */
-  async isShutdown () {
+  async isShutdown(): Promise<boolean> {
     try {
       await this.simctl.getEnv('dummy');
       return false;
-    } catch (e) {
+    } catch (e: any) {
       return _.includes(e.stderr, 'Current state: Shutdown');
     }
   }
 
   /**
-   * Retrieves the current process id of the UI client
+   * Retrieves the current process id of the UI client.
    *
-   * @return {Promise<string|null>} The process ID or null if the UI client is not running
+   * @returns The process ID or null if the UI client is not running.
    */
-  async getUIClientPid () {
-    let stdout;
+  async getUIClientPid(): Promise<string | null> {
+    let stdout: string;
     try {
       ({stdout} = await exec('pgrep', ['-fn', `${SIMULATOR_APP_NAME}/Contents/MacOS/`]));
     } catch {
@@ -283,23 +270,23 @@ export class SimulatorXcode10 extends EventEmitter {
   /**
    * Check the state of Simulator UI client.
    *
-   * @return {Promise<boolean>} True of if UI client is running or false otherwise.
+   * @returns True if UI client is running or false otherwise.
    */
-  async isUIClientRunning () {
+  async isUIClientRunning(): Promise<boolean> {
     return !_.isNull(await this.getUIClientPid());
   }
 
   /**
    * Get the platform version of the current Simulator.
    *
-   * @return {Promise<string>} SDK version, for example '8.3'.
+   * @returns SDK version, for example '18.3'.
    */
-  async getPlatformVersion () {
+  async getPlatformVersion(): Promise<string> {
     if (!this._platformVersion) {
-      const {sdk} = await this.stat();
-      this._platformVersion = sdk;
+      const stat = await this.stat();
+      this._platformVersion = 'sdk' in stat ? stat.sdk : '';
     }
-    return /** @type {string} */ (this._platformVersion);
+    return this._platformVersion as string;
   }
 
   /**
@@ -309,21 +296,21 @@ export class SimulatorXcode10 extends EventEmitter {
    *
    * @throws {Error} If there was a failure while booting the Simulator.
    */
-  async boot () {
+  async boot(): Promise<void> {
     const bootEventsEmitter = new EventEmitter();
     await this.simctl.startBootMonitor({
-      onError: (err) => bootEventsEmitter.emit('failure', err),
+      onError: (err: Error) => bootEventsEmitter.emit('failure', err),
       onFinished: () => bootEventsEmitter.emit('finish'),
       shouldPreboot: true,
     });
     try {
-      await new B((resolve, reject) => {
+      await new B<void>((resolve, reject) => {
         // Historically this call was always asynchronous,
         // e.g. it was not waiting until Simulator is fully booted.
         // So we preserve that behavior, and if no errors are received for a while
         // then we assume the Simulator booting is still in progress.
         setTimeout(resolve, 3000);
-        bootEventsEmitter.once('failure', (err) => {
+        bootEventsEmitter.once('failure', (err: Error) => {
           if (_.includes(err?.message, 'state: Booted')) {
             resolve();
           } else {
@@ -341,9 +328,9 @@ export class SimulatorXcode10 extends EventEmitter {
    * Verify whether the Simulator booting is completed and/or wait for it
    * until the timeout expires.
    *
-   * @param {number} startupTimeout - the number of milliseconds to wait until booting is completed.
+   * @param startupTimeout - The number of milliseconds to wait until booting is completed.
    */
-  async waitForBoot (startupTimeout) {
+  async waitForBoot(startupTimeout: number): Promise<void> {
     await this.simctl.startBootMonitor({timeout: startupTimeout});
   }
 
@@ -351,26 +338,26 @@ export class SimulatorXcode10 extends EventEmitter {
    * Reset the current Simulator to the clean state.
    * It is expected the simulator is in shutdown state when this API is called.
    */
-  async clean () {
+  async clean(): Promise<void> {
     this.log.info(`Cleaning simulator ${this.udid}`);
     await this.simctl.eraseDevice(10000);
   }
 
   /**
-   * Delete the particular Simulator from devices list
+   * Delete the particular Simulator from devices list.
    */
-  async delete () {
+  async delete(): Promise<void> {
     await this.simctl.deleteDevice();
   }
 
   /**
    * Shut down the current Simulator.
    *
-   * @param {import('./types').ShutdownOptions} [opts={}]
+   * @param opts - Shutdown options including timeout.
    * @throws {Error} If Simulator fails to transition into Shutdown state after
-   * the given timeout
+   * the given timeout.
    */
-  async shutdown (opts = {}) {
+  async shutdown(opts: ShutdownOptions = {}): Promise<void> {
     if (await this.isShutdown()) {
       return;
     }
@@ -391,23 +378,27 @@ export class SimulatorXcode10 extends EventEmitter {
 
   /**
    * Boots simulator and opens simulators UI Client if not already opened.
+   * In xcode 11.4, UI Client must be first launched, otherwise
+   * sim window stays minimized
    *
-   * @param {boolean} isUiClientRunning - process id of simulator UI client.
-   * @param {import('./types').RunOptions} [opts={}] - arguments to start simulator UI client with.
+   * @param isUiClientRunning - whether the simulator UI client is already running.
+   * @param opts - arguments to start simulator UI client with.
    */
-  async launchWindow (isUiClientRunning, opts = {}) {
-    await this.boot();
+  async launchWindow(isUiClientRunning: boolean, opts: RunOptions = {}): Promise<void> {
+    // In xcode 11.4, UI Client must be first launched, otherwise
+    // sim window stays minimized
     if (!isUiClientRunning) {
       await this.startUIClient(opts);
     }
+    await this.boot();
   }
 
   /**
-   * Start the Simulator UI client with the given arguments
+   * Start the Simulator UI client with the given arguments.
    *
-   * @param {import('./types').StartUiClientOptions} [opts={}] - Simulator startup options
+   * @param opts - Simulator startup options.
    */
-  async startUIClient (opts = {}) {
+  async startUIClient(opts: StartUiClientOptions = {}): Promise<void> {
     opts = _.cloneDeep(opts);
     _.defaultsDeep(opts, {
       startupTimeout: this.startupTimeout,
@@ -418,7 +409,7 @@ export class SimulatorXcode10 extends EventEmitter {
     this.log.info(`Starting Simulator UI: ${util.quote(['open', ...args])}`);
     try {
       await exec('open', args, {timeout: opts.startupTimeout});
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(`Got an unexpected error while opening Simulator UI: ` +
         err.stderr || err.stdout || err.message);
     }
@@ -428,9 +419,9 @@ export class SimulatorXcode10 extends EventEmitter {
    * Executes given Simulator with options. The Simulator will not be restarted if
    * it is already running and the current UI state matches to `isHeadless` option.
    *
-   * @param {import('./types').RunOptions} [opts={}] - One or more of available Simulator options
+   * @param opts - One or more of available Simulator options.
    */
-  async run (opts = {}) {
+  async run(opts: RunOptions = {}): Promise<void> {
     opts = _.cloneDeep(opts);
     _.defaultsDeep(opts, {
       isHeadless: false,
@@ -490,7 +481,7 @@ export class SimulatorXcode10 extends EventEmitter {
     (async () => {
       try {
         await this.disableKeyboardIntroduction();
-      } catch (e) {
+      } catch (e: any) {
         this.log.info(`Cannot disable Simulator keyboard introduction. Original error: ${e.message}`);
       }
     })();
@@ -499,13 +490,13 @@ export class SimulatorXcode10 extends EventEmitter {
   /**
    * Kill the UI client if it is running.
    *
-   * @param {import('./types').KillUiClientOptions} [opts={}]
-   * @return {Promise<boolean>} True if the UI client was successfully killed or false
+   * @param opts - Options including process ID and signal number.
+   * @returns True if the UI client was successfully killed or false
    *                   if it is not running.
-   * @throws {Error} If sending the signal to the client process fails
+   * @throws {Error} If sending the signal to the client process fails.
    */
-  async killUIClient (opts = {}) {
-    let {
+  async killUIClient(opts: KillUiClientOptions = {}): Promise<boolean> {
+    const {
       pid,
       signal = 2,
     } = opts;
@@ -518,7 +509,7 @@ export class SimulatorXcode10 extends EventEmitter {
     try {
       await exec('kill', [`-${signal}`, `${clientPid}`]);
       return true;
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 1) {
         return false;
       }
@@ -531,53 +522,172 @@ export class SimulatorXcode10 extends EventEmitter {
    * The simulator must be in running state in order for this
    * method to work properly.
    *
-   * @return {Promise<import('./types').ProcessInfo[]>} The list of retrieved process
-   * information
-   * @throws {Error} if no process information could be retrieved.
+   * @returns The list of retrieved process information.
+   * @throws {Error} If no process information could be retrieved.
    */
-  async ps () {
+  async ps(): Promise<ProcessInfo[]> {
     const {stdout} = await this.simctl.spawnProcess([
-      'launchctl',
-      'print',
-      'system',
+      'launchctl', 'list'
     ]);
-
-    const servicesMatch = /^\s*services\s*=\s*{([^}]+)/m.exec(stdout);
-    if (!servicesMatch) {
-      this.log.debug(stdout);
-      throw new Error(`The list of active processes cannot be retrieved`);
-    }
     /*
     Example match:
-        0     78 	com.apple.resourcegrabberd
-    82158      - 	com.apple.assistant_service
-    82120      - 	com.apple.nanoregistryd
-    82087      - 	com.apple.notifyd
-    82264      - 	UIKitApplication:com.apple.Preferences[704b][rb-legacy]
+      PID	Status	Label
+      -	0	com.apple.progressd
+      22109	0	com.apple.CoreAuthentication.daemon
+      21995	0	com.apple.cloudphotod
+      22045	0	com.apple.homed
+      22042	0	com.apple.dataaccess.dataaccessd
+      -	0	com.apple.DragUI.druid
+      22076	0	UIKitApplication:com.apple.mobilesafari[2b0f][rb-legacy]
     */
-    /** @type {import('./types').ProcessInfo[]} */
-    const result = [];
-    const pattern = /^\s*(\d+)\s+[\d-]+\s+([\w\-.]+:)?([\w\-.]+)/gm;
-    let match;
-    while ((match = pattern.exec(servicesMatch[1]))) {
+    const extractGroup = (lbl: string): string | null => lbl.includes(':') ? lbl.split(':')[0] : null;
+    const extractName = (lbl: string): string => {
+      let res = lbl;
+      const colonIdx = res.indexOf(':');
+      if (colonIdx >= 0 && res.length > colonIdx) {
+        res = res.substring(colonIdx + 1);
+      }
+      const bracketIdx = res.indexOf('[');
+      if (bracketIdx >= 0) {
+        res = res.substring(0, bracketIdx);
+      }
+      return res;
+    };
+
+    const result: ProcessInfo[] = [];
+    for (const line of stdout.split('\n')) {
+      const trimmedLine = _.trim(line);
+      if (!trimmedLine) {
+        continue;
+      }
+
+      const [pidStr,, label] = trimmedLine.split(/\s+/);
+      const pid = parseInt(pidStr, 10);
+      if (!pid || !label) {
+        continue;
+      }
+
       result.push({
-        pid: parseInt(match[1], 10),
-        group: _.trimEnd(match[2], ':') || null,
-        name: match[3],
+        pid,
+        group: extractGroup(label),
+        name: extractName(label),
       });
     }
     return result;
   }
 
   /**
-   * @returns {Promise<string>}
+   * @returns The full path to the LaunchDaemons directory.
    */
-  async getLaunchDaemonsRoot () {
+  async getLaunchDaemonsRoot(): Promise<string> {
     const devRoot = await getDeveloperRoot();
-    return path.resolve(devRoot,
-      'Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/System/Library/LaunchDaemons');
+    return path.resolve(
+      devRoot,
+      'Platforms',
+      'iPhoneOS.platform',
+      'Library',
+      'Developer',
+      'CoreSimulator',
+      'Profiles',
+      'Runtimes',
+      'iOS.simruntime',
+      'Contents',
+      'Resources',
+      'RuntimeRoot',
+      'System',
+      'Library',
+      'LaunchDaemons'
+    );
   }
 
+  /**
+   * Sets the geolocation for the simulator.
+   *
+   * @param latitude - The latitude coordinate.
+   * @param longitude - The longitude coordinate.
+   * @returns True if the geolocation was set successfully.
+   */
+  setGeolocation = async (latitude: string | number, longitude: string | number): Promise<boolean> => {
+    await this.simctl.setLocation(latitude, longitude);
+    return true;
+  };
+
+  /**
+   * Clears Keychains for the particular simulator in runtime (there is no need to stop it).
+   *
+   * @returns
+   * @throws {Error} If keychain cleanup has failed.
+   */
+  clearKeychains = async (): Promise<void> => {
+    await this.simctl.resetKeychain();
+  };
+
+  /**
+   * Adds the given certificate to the booted simulator.
+   * The simulator could be in both running and shutdown states
+   * in order for this method to run as expected.
+   *
+   * @since Xcode 11.4
+   * @param payload the content of the PEM certificate
+   * @param opts Certificate options
+   * @returns True if the certificate was added successfully.
+   */
+  addCertificate = async (payload: string, opts: CertificateOptions = {}): Promise<boolean> => {
+    const {
+      isRoot = true,
+    } = opts;
+    const methodName = isRoot ? 'addRootCertificate' : 'addCertificate';
+    await this.simctl[methodName](payload, {raw: true});
+    return true;
+  };
+
+  /**
+   * Simulates push notification delivery to the booted simulator
+   *
+   * @since Xcode SDK 11.4
+   * @param payload - The object that describes Apple push notification content.
+   * It must contain a top-level "Simulator Target Bundle" key with a string value matching
+   * the target application's bundle identifier and "aps" key with valid Apple Push Notification values.
+   * For example:
+   * {
+   *   "Simulator Target Bundle": "com.apple.Preferences",
+   *   "aps": {
+   *     "alert": "This is a simulated notification!",
+   *     "badge": 3,
+   *     "sound": "default"
+   *   }
+   * }
+   */
+  pushNotification = async (payload: StringRecord): Promise<void> => {
+    await this.simctl.pushNotification(payload);
+  };
+
+  /**
+   * Sets UI appearance style.
+   * This function can only be called on a booted simulator.
+   *
+   * @since Xcode SDK 11.4
+   * @param value one of possible appearance values:
+   * - dark: to switch to the Dark mode
+   * - light: to switch to the Light mode
+   */
+  setAppearance = async (value: string): Promise<void> => {
+    await this.simctl.setAppearance(_.toLower(value));
+  };
+
+  /**
+   * Gets the current UI appearance style
+   * This function can only be called on a booted simulator.
+   *
+   * @since Xcode SDK 11.4
+   * @returns the current UI appearance style.
+   * Possible values are:
+   * - dark: to switch to the Dark mode
+   * - light: to switch to the Light mode
+   */
+  getAppearance = async (): Promise<string> => await this.simctl.getAppearance();
+
+  // Extension methods
   installApp = appExtensions.installApp;
   getUserInstalledBundleIdsByBundleName = appExtensions.getUserInstalledBundleIdsByBundleName;
   isAppInstalled = appExtensions.isAppInstalled;
@@ -590,35 +700,22 @@ export class SimulatorXcode10 extends EventEmitter {
   openUrl = safariExtensions.openUrl;
   scrubSafari = safariExtensions.scrubSafari;
   updateSafariSettings = safariExtensions.updateSafariSettings;
-  getWebInspectorSocket = /** @type {() => Promise<string|null>} */ (
-    /** @type {unknown} */ (safariExtensions.getWebInspectorSocket)
-  );
+  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<string | null>;
 
   isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
   enrollBiometric = biometricExtensions.enrollBiometric;
   sendBiometricMatch = biometricExtensions.sendBiometricMatch;
 
-  setGeolocation = geolocationExtensions.setGeolocation;
-
-  backupKeychains = /** @type {() => Promise<boolean>} */ (
-    /** @type {unknown} */ (keychainExtensions.backupKeychains)
-  );
-  restoreKeychains = /** @type {() => Promise<boolean>} */ (
-    /** @type {unknown} */ (keychainExtensions.restoreKeychains)
-  );
-  clearKeychains = keychainExtensions.clearKeychains;
+  backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
+  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (excludePatterns: string[]) => Promise<boolean>;
 
   shake = miscExtensions.shake;
-  addCertificate = miscExtensions.addCertificate;
-  pushNotification = miscExtensions.pushNotification;
 
   setPermission = permissionsExtensions.setPermission;
   setPermissions = permissionsExtensions.setPermissions;
   getPermission = permissionsExtensions.getPermission;
 
   updateSettings = settingsExtensions.updateSettings;
-  setAppearance = settingsExtensions.setAppearance;
-  getAppearance = settingsExtensions.getAppearance;
   setIncreaseContrast = settingsExtensions.setIncreaseContrast;
   getIncreaseContrast = settingsExtensions.getIncreaseContrast;
   setContentSize = settingsExtensions.setContentSize;
@@ -629,3 +726,4 @@ export class SimulatorXcode10 extends EventEmitter {
   setReduceTransparency = settingsExtensions.setReduceTransparency;
   disableKeyboardIntroduction = settingsExtensions.disableKeyboardIntroduction;
 }
+
