@@ -1,3 +1,14 @@
+## [8.0.0](https://github.com/appium/appium-ios-simulator/compare/v7.0.3...v8.0.0) (2025-11-22)
+
+### ⚠ BREAKING CHANGES
+
+* The minimum supported Xcode version is set to 14
+* Removed idb getter and setter from Simulator class
+
+### Features
+
+* Stop supporting Xcode versions below 14 ([#458](https://github.com/appium/appium-ios-simulator/issues/458)) ([8071076](https://github.com/appium/appium-ios-simulator/commit/807107669c69f1b01c14156c548e6f28fbc0470f))
+
 ## [7.0.3](https://github.com/appium/appium-ios-simulator/compare/v7.0.2...v7.0.3) (2025-11-15)
 
 ### Miscellaneous Chores
