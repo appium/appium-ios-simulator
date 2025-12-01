@@ -38,7 +38,7 @@ jobs:
     # https://github.com/actions/runner-images/tree/main/images/macos
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - uses: actions/setup-node@v3
       with:
         node-version: lts/*
