@@ -1,3 +1,9 @@
+## [8.0.2](https://github.com/appium/appium-ios-simulator/compare/v8.0.1...v8.0.2) (2025-12-02)
+
+### Miscellaneous Chores
+
+* **deps:** Bump actions/setup-node from 3 to 6 ([#461](https://github.com/appium/appium-ios-simulator/issues/461)) ([8fcaaa7](https://github.com/appium/appium-ios-simulator/commit/8fcaaa734f2cec5e504b0f60265125544822da6a))
+
 ## [8.0.1](https://github.com/appium/appium-ios-simulator/compare/v8.0.0...v8.0.1) (2025-12-02)
 
 ### Miscellaneous Chores
