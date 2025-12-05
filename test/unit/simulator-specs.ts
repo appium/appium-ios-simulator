@@ -1,6 +1,5 @@
 import { getSimulator } from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
-import * as deviceUtils from '../../lib/device-utils';
 import * as utils from '../../lib/utils';
 import sinon from 'sinon';
 import { devices } from './device-list';
@@ -9,6 +8,7 @@ import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
 import { SimulatorXcode15 } from '../../lib/simulator-xcode-15';
 import { use as chaiUse, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as xcodeModule from 'appium-xcode';
 
 chaiUse(chaiAsPromised);
 
@@ -17,15 +17,19 @@ const UDID = devices['10.0'][0].udid;
 describe('simulator', function () {
   let assertXcodeVersionStub: sinon.SinonStub;
   let getDevicesStub: sinon.SinonStub;
+  let getVersionStub: sinon.SinonStub;
 
   beforeEach(function () {
     assertXcodeVersionStub = sinon.stub(utils, 'assertXcodeVersion');
-    getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
-    getDevicesStub.returns(B.resolve(devices));
+    getDevicesStub = sinon.stub(utils, 'getDevices');
+    getDevicesStub.resolves(devices);
+    getVersionStub = sinon.stub(xcodeModule, 'getVersion');
+    getVersionStub.withArgs(true).returns(B.resolve({major: 14, versionString: '14.0.0'}));
   });
   afterEach(function () {
     assertXcodeVersionStub.restore();
     getDevicesStub.restore();
+    getVersionStub.restore();
   });
 
   describe('getSimulator', function () {
@@ -154,7 +158,9 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');
     });
     afterEach(function () {
-      spawnProcessSpy.reset();
+      if (spawnProcessSpy) {
+        spawnProcessSpy.reset();
+      }
     });
 
     describe('locale', function () {
