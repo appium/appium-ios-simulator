@@ -2,13 +2,14 @@ import sinon from 'sinon';
 import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
+import * as xcodeModule from 'appium-xcode';
 import {killAllSimulators, simExists} from '../../lib/utils';
 import { toBiometricDomainComponent } from '../../lib/extensions/biometric';
 import { verifyDevicePreferences } from '../../lib/extensions/settings';
 import { use as chaiUse, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as utils from '../../lib/utils';
 
-import * as deviceUtils from '../../lib/device-utils';
 import { devices } from './device-list';
 import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
 
@@ -41,22 +42,25 @@ describe('util', function () {
   let execStub: sinon.SinonStub;
   let xcodeMock: sinon.SinonMock;
   let getDevicesStub: sinon.SinonStub;
+  let getVersionStub: sinon.SinonStub;
 
   beforeEach(function () {
     execStub = sinon.stub(TeenProcess, 'exec');
     xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(deviceUtils, 'getDevices');
-    getDevicesStub.returns(B.resolve(devices));
+    getDevicesStub = sinon.stub(utils, 'getDevices');
+    getDevicesStub.resolves(devices);
+    getVersionStub = sinon.stub(xcodeModule, 'getVersion');
   });
   afterEach(function () {
     execStub.restore();
     xcodeMock.restore();
     getDevicesStub.restore();
+    getVersionStub.restore();
   });
 
   describe('killAllSimulators', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_10));
+      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_10));
       execStub.withArgs('xcrun').returns();
       execStub.withArgs('pgrep').throws({code: 1});
 
@@ -64,7 +68,7 @@ describe('util', function () {
       expect(execStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_8));
+      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_8));
       execStub.withArgs('xcrun').returns();
       execStub.withArgs('pgrep').throws({code: 1});
 
@@ -72,15 +76,21 @@ describe('util', function () {
       expect(execStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
-      xcodeMock.expects('getVersion').once().withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      execStub.withArgs('pgrep').returns('0');
-      execStub.withArgs('xcrun').throws();
-      execStub.withArgs('pkill').returns();
+      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_6));
+      execStub.withArgs('xcrun', sinon.match.array).throws();
+      execStub.withArgs('pgrep', sinon.match.array).returns({stdout: '12345'});
+      execStub.withArgs('kill', sinon.match.array).returns();
+      execStub.withArgs('pkill', sinon.match.array).returns();
+      // getDevices is stubbed, so it won't call exec internally
+      // The stub returns devices immediately, so waitForCondition will complete quickly
 
       try {
         await killAllSimulators(500);
       } catch {}
-      expect(execStub.callCount).to.equal(3);
+      // Expected calls: xcrun (throws), pgrep, kill, pkill = 4 calls
+      // Note: getVersion is stubbed, so it shouldn't call exec for xcode-select
+      // getDevices is stubbed, so it won't call exec either
+      expect(execStub.callCount).to.equal(4);
     });
   });
 

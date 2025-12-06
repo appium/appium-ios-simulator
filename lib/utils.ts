@@ -5,7 +5,10 @@ import { waitForCondition } from 'asyncbox';
 import { getVersion } from 'appium-xcode';
 import type { XcodeVersion } from 'appium-xcode';
 import path from 'path';
-import { getDevices } from './device-utils';
+import { Simctl } from 'node-simctl';
+import type { StringRecord } from '@appium/types';
+// it's a hack needed to stub getDevices in tests
+import * as utilsModule from './utils';
 
 const DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS = 30000;
 export const SAFARI_STARTUP_TIMEOUT_MS = 25 * 1000;
@@ -90,8 +93,8 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
   let remainingDevices: string[] = [];
   async function allSimsAreDown(): Promise<boolean> {
     remainingDevices = [];
-    let devices = await getDevices();
-    devices = _.flatten(_.values(devices));
+    const devicesRecord = await utilsModule.getDevices();
+    const devices = _.flatten(_.values(devicesRecord));
     return _.every(devices, (sim: any) => {
       const state = sim.state.toLowerCase();
       const done = ['shutdown', 'unavailable', 'disconnected'].includes(state);
@@ -131,7 +134,7 @@ export async function getSimulatorInfo(udid: string, opts: SimulatorInfoOptions 
     devicesSetPath
   } = opts;
   // see the README for github.com/appium/node-simctl for example output of getDevices()
-  const devices = _.toPairs(await getDevices({devicesSetPath}))
+  const devices = _.toPairs(await utilsModule.getDevices({devicesSetPath}))
     .map((pair) => pair[1])
     .reduce((a, b) => a.concat(b), []);
   return _.find(devices, (sim: any) => sim.udid === udid);
@@ -171,3 +174,10 @@ export function assertXcodeVersion<V extends XcodeVersion>(xcodeVersion: V): V {
   return xcodeVersion;
 }
 
+/**
+ * @param simctlOpts - Optional simctl options
+ * @returns Promise that resolves to a record of devices grouped by SDK version
+ */
+export async function getDevices(simctlOpts?: StringRecord): Promise<Record<string, any[]>> {
+  return await new Simctl(simctlOpts).getDevices();
+}
