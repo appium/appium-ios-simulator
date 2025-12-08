@@ -5,10 +5,14 @@ import B from 'bluebird';
 import { MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS } from '../utils';
 import { waitForCondition } from 'asyncbox';
 import { exec } from 'teen_process';
+import type { CoreSimulator, InteractsWithSafariBrowser, InteractsWithApps, HasSettings } from '../types';
+import type { StringRecord } from '@appium/types';
+
+type CoreSimulatorWithSafariBrowser = CoreSimulator & InteractsWithSafariBrowser & InteractsWithApps & HasSettings;
 
 // The root of all these files is located under Safari data container root
 // in 'Library' subfolder
-const DATA_FILES = [
+const DATA_FILES: string[][] = [
   ['Caches', '*'],
   ['Image Cache', '*'],
   ['WebKit', MOBILE_SAFARI_BUNDLE_ID, '*'],
@@ -23,24 +27,22 @@ const DATA_FILES = [
  * Open the given URL in mobile Safari browser.
  * The browser will be started automatically if it is not running.
  *
- * @this {CoreSimulatorWithSafariBrowser}
- * @param {string} url
+ * @param url URL to open
  */
-export async function openUrl (url) {
+export async function openUrl(this: CoreSimulatorWithSafariBrowser, url: string): Promise<void> {
   if (!await this.isRunning()) {
     throw new Error(`Tried to open '${url}', but Simulator is not in Booted state`);
   }
   const timer = new timing.Timer().start();
   await this.simctl.openUrl(url);
-  /** @type {Error|undefined|null} */
-  let psError;
+  let psError: Error | undefined | null;
   try {
     await waitForCondition(async () => {
-      let procList = [];
+      let procList: any[] = [];
       try {
         procList = await this.ps();
         psError = null;
-      } catch (e) {
+      } catch (e: any) {
         this.log.debug(e.message);
         psError = e;
       }
@@ -67,10 +69,9 @@ export async function openUrl (url) {
  * Clean up the directories for mobile Safari.
  * Safari will be terminated if it is running.
  *
- * @this {CoreSimulatorWithSafariBrowser}
- * @param {boolean} keepPrefs - Whether to keep Safari preferences from being deleted.
+ * @param keepPrefs Whether to keep Safari preferences from being deleted.
  */
-export async function scrubSafari (keepPrefs = true) {
+export async function scrubSafari(this: CoreSimulatorWithSafariBrowser, keepPrefs: boolean = true): Promise<void> {
   try {
     await this.terminateApp(MOBILE_SAFARI_BUNDLE_ID);
   } catch {}
@@ -86,12 +87,11 @@ export async function scrubSafari (keepPrefs = true) {
 }
 
 /**
- * Updates variious Safari settings. Simulator must be booted in order to for it
+ * Updates various Safari settings. Simulator must be booted in order for it
  * to success.
  *
- * @this {CoreSimulatorWithSafariBrowser}
- * @param {import('@appium/types').StringRecord} updates An object containing Safari settings to be updated.
- * The list of available setting names and their values could be retrived by
+ * @param updates An object containing Safari settings to be updated.
+ * The list of available setting names and their values could be retrieved by
  * changing the corresponding Safari settings in the UI and then inspecting
  * 'Library/Preferences/com.apple.mobilesafari.plist' file inside of
  * com.apple.mobilesafari app container.
@@ -100,9 +100,9 @@ export async function scrubSafari (keepPrefs = true) {
  * command output.
  * Use the `xcrun simctl spawn <sim_udid> defaults read <path_to_plist>` command
  * to print the plist content to the Terminal.
- * @returns {Promise<boolean>}
+ * @returns Promise that resolves to true if settings were updated
  */
-export async function updateSafariSettings(updates) {
+export async function updateSafariSettings(this: CoreSimulatorWithSafariBrowser, updates: StringRecord): Promise<boolean> {
   if (_.isEmpty(updates)) {
     return false;
   }
@@ -113,10 +113,9 @@ export async function updateSafariSettings(updates) {
 }
 
 /**
- * @this {CoreSimulatorWithSafariBrowser}
- * @returns {Promise<string|null>}
+ * @returns Promise that resolves to the Web Inspector socket path or null
  */
-export async function getWebInspectorSocket() {
+export async function getWebInspectorSocket(this: CoreSimulatorWithSafariBrowser): Promise<string | null> {
   if (this._webInspectorSocket) {
     return this._webInspectorSocket;
   }
@@ -137,17 +136,12 @@ export async function getWebInspectorSocket() {
 
   const pidPattern = `${udidMatch[1]}.+\\s+(\\S+com\\.apple\\.webinspectord_sim\\.socket)`;
   const pidMatch = stdout.match(new RegExp(pidPattern));
-  if (!pidMatch) {
+  if (!pidMatch || !pidMatch[1]) {
     this.log.debug(`Failed to get Web Inspector socket. lsof result: ${stdout}`);
     return null;
   }
-  this._webInspectorSocket = /** @type {string} */ (pidMatch[1]);
-  return this._webInspectorSocket;
+  const socketPath = pidMatch[1];
+  this._webInspectorSocket = socketPath;
+  return socketPath;
 }
 
-/**
- * @typedef {import('../types').CoreSimulator
- * & import('../types').InteractsWithSafariBrowser
- * & import('../types').InteractsWithApps
- * & import('../types').HasSettings} CoreSimulatorWithSafariBrowser
- */

@@ -2,6 +2,9 @@ import _ from 'lodash';
 import path from 'path';
 import { fs, mkdirp, tempDir, util } from '@appium/support';
 import { exec } from 'teen_process';
+import type { CoreSimulator, InteractsWithKeychain } from '../types';
+
+type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
 
 /**
  * Create the backup of keychains folder.
@@ -9,11 +12,10 @@ import { exec } from 'teen_process';
  * deleted if this method was called twice in a row without
  * `restoreKeychains` being invoked.
  *
- * @this {CoreSimulatorWithKeychain}
- * @returns {Promise<boolean>} True if the backup operation was successfull.
+ * @returns True if the backup operation was successful.
  */
-export async function backupKeychains () {
-  const resetBackupPath = async (/** @type {string | null | undefined} */ newPath) => {
+export async function backupKeychains(this: CoreSimulatorWithKeychain): Promise<boolean> {
+  const resetBackupPath = async (newPath: string | null | undefined) => {
     if (_.isString(this._keychainsBackupPath) && await fs.exists(this._keychainsBackupPath)) {
       await fs.unlink(this._keychainsBackupPath);
     }
@@ -34,7 +36,7 @@ export async function backupKeychains () {
   this.log.debug(`Creating keychains backup with '${util.quote(['zip', ...zipArgs])}' command`);
   try {
     await exec('zip', zipArgs, {cwd: path.dirname(this.keychainPath)});
-  } catch (err) {
+  } catch (err: any) {
     throw new Error(
       `Cannot create keychains backup from '${this.keychainPath}'. ` +
       `Original error: ${err.stderr || err.stdout || err.message}`
@@ -45,29 +47,34 @@ export async function backupKeychains () {
 }
 
 /**
- * Restore the previsouly created keychains backup.
+ * Restore the previously created keychains backup.
  *
- * @this {CoreSimulatorWithKeychain}
- * @param {string[]} excludePatterns - The list
+ * @param excludePatterns The list
  * of file name patterns to be excluded from restore. The format
  * of each item should be the same as '-x' option format for
  * 'unzip' utility. This can also be a comma-separated string,
  * which is going be transformed into a list automatically,
  * for example: '*.db*,blabla.sqlite'
- * @returns {Promise<boolean>} If the restore opration was successful.
+ * @returns If the restore operation was successful.
  * @throws {Error} If there is no keychains backup available for restore.
  */
-export async function restoreKeychains (excludePatterns = []) {
+export async function restoreKeychains(
+  this: CoreSimulatorWithKeychain,
+  excludePatterns: string[] | string = []
+): Promise<boolean> {
   if (!_.isString(this._keychainsBackupPath) || !await fs.exists(this._keychainsBackupPath)) {
     throw new Error(`The keychains backup archive does not exist. ` +
                     `Are you sure it was created before?`);
   }
 
+  let patterns: string[] = [];
   if (_.isString(excludePatterns)) {
-    excludePatterns = excludePatterns.split(',').map((x) => x.trim());
+    patterns = excludePatterns.split(',').map((x) => x.trim());
+  } else {
+    patterns = excludePatterns;
   }
   const isServerRunning = await this.isRunning();
-  let plistPath;
+  let plistPath: string | undefined;
   if (isServerRunning) {
     plistPath = path.resolve(await this.getLaunchDaemonsRoot(), 'com.apple.securityd.plist');
     if (!await fs.exists(plistPath)) {
@@ -78,21 +85,25 @@ export async function restoreKeychains (excludePatterns = []) {
   try {
     await fs.rimraf(this.keychainPath);
     await mkdirp(this.keychainPath);
+    const backupPath = this._keychainsBackupPath;
+    if (!backupPath) {
+      throw new Error('Backup path is not set');
+    }
     const unzipArgs = [
-      '-o', this._keychainsBackupPath,
-      ...(_.flatMap(excludePatterns.map((x) => ['-x', x]))),
+      '-o', backupPath,
+      ...(_.flatMap(patterns.map((x) => ['-x', x]))),
       '-d', path.dirname(this.keychainPath),
     ];
     this.log.debug(`Restoring keychains with '${util.quote(['unzip', ...unzipArgs])}' command`);
     try {
       await exec('unzip', unzipArgs);
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(
-        `Cannot restore keychains from '${this._keychainsBackupPath}'. ` +
+        `Cannot restore keychains from '${backupPath}'. ` +
         `Original error: ${err.stderr || err.stdout || err.message}`
       );
     }
-    await fs.unlink(this._keychainsBackupPath);
+    await fs.unlink(backupPath);
     this._keychainsBackupPath = null;
   } finally {
     if (isServerRunning && plistPath) {
@@ -105,11 +116,10 @@ export async function restoreKeychains (excludePatterns = []) {
 /**
  * Clears Keychains for the particular simulator in runtime (there is no need to stop it).
  *
- * @this {CoreSimulatorWithKeychain}
- * @returns {Promise<void>}
+ * @returns Promise that resolves when keychains are cleared
  * @throws {Error} If keychain cleanup has failed.
  */
-export async function clearKeychains () {
+export async function clearKeychains(this: CoreSimulatorWithKeychain): Promise<void> {
   const plistPath = path.resolve(await this.getLaunchDaemonsRoot(), 'com.apple.securityd.plist');
   if (!await fs.exists(plistPath)) {
     throw new Error(`Cannot clear keychains because '${plistPath}' does not exist`);
@@ -125,6 +135,3 @@ export async function clearKeychains () {
   }
 }
 
-/**
- * @typedef {import('../types').CoreSimulator & import('../types').InteractsWithKeychain} CoreSimulatorWithKeychain
- */
