@@ -88,23 +88,27 @@ export async function updateSettings(
  * Sets UI appearance style.
  * This function can only be called on a booted simulator.
  *
- * @param _value Appearance value
+ * @param value one of possible appearance values:
+ * - dark: to switch to the Dark mode
+ * - light: to switch to the Light mode
  * @since Xcode SDK 11.4
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function setAppearance(this: CoreSimulatorWithSettings, _value: string): Promise<void> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set UI appearance`);
+export async function setAppearance(this: CoreSimulatorWithSettings, value: string): Promise<void> {
+  await this.simctl.setAppearance(_.toLower(value));
 }
 
 /**
  * Gets the current UI appearance style
  * This function can only be called on a booted simulator.
  *
- * @returns Promise that resolves to the appearance value
+ * @returns the current UI appearance style.
+ * Possible values are:
+ * - dark: to switch to the Dark mode
+ * - light: to switch to the Light mode
  * @since Xcode SDK 11.4
  */
 export async function getAppearance(this: CoreSimulatorWithSettings): Promise<string> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to get UI appearance`);
+  return await this.simctl.getAppearance();
 }
 
 /**

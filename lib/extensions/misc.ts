@@ -15,31 +15,46 @@ export async function shake(this: CoreSimulatorWithMiscFeatures): Promise<void> 
 }
 
 /**
- * Adds the given certificate into the Trusted Root Store on the simulator.
- * The simulator must be shut down in order for this method to work properly.
+ * Adds the given certificate to the booted simulator.
+ * The simulator could be in both running and shutdown states
+ * in order for this method to run as expected.
  *
+ * @since Xcode 11.4
  * @param payload the content of the PEM certificate
  * @param opts Certificate options
- * @returns `true` if the certificate has been successfully installed
- * or `false` if it has already been there
+ * @returns True if the certificate was added successfully.
  */
 export async function addCertificate(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  this: CoreSimulatorWithMiscFeatures, _payload: string, _opts: CertificateOptions = {}
+  this: CoreSimulatorWithMiscFeatures, payload: string, opts: CertificateOptions = {}
 ): Promise<boolean> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old add certificates`);
+  const {
+    isRoot = true,
+  } = opts;
+  const methodName = isRoot ? 'addRootCertificate' : 'addCertificate';
+  await this.simctl[methodName](payload, {raw: true});
+  return true;
 }
 
 /**
- * Simulates push notification delivery
+ * Simulates push notification delivery to the booted simulator
  *
- * @param _payload Push notification payload
  * @since Xcode SDK 11.4
+ * @param payload The object that describes Apple push notification content.
+ * It must contain a top-level "Simulator Target Bundle" key with a string value matching
+ * the target application's bundle identifier and "aps" key with valid Apple Push Notification values.
+ * For example:
+ * {
+ *   "Simulator Target Bundle": "com.apple.Preferences",
+ *   "aps": {
+ *     "alert": "This is a simulated notification!",
+ *     "badge": 3,
+ *     "sound": "default"
+ *   }
+ * }
  */
 export async function pushNotification(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  this: CoreSimulatorWithMiscFeatures, _payload: StringRecord
+  this: CoreSimulatorWithMiscFeatures, payload: StringRecord
 ): Promise<void> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to push notifications`);
+  await this.simctl.pushNotification(payload);
 }
 
