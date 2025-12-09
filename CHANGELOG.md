@@ -1,3 +1,9 @@
+## [8.0.4](https://github.com/appium/appium-ios-simulator/compare/v8.0.3...v8.0.4) (2025-12-09)
+
+### Miscellaneous Chores
+
+* Migrate extensions to typescript ([#463](https://github.com/appium/appium-ios-simulator/issues/463)) ([3bc4543](https://github.com/appium/appium-ios-simulator/commit/3bc45431601b76359944aa2b21e676ea5e9cdfbe))
+
 ## [8.0.3](https://github.com/appium/appium-ios-simulator/compare/v8.0.2...v8.0.3) (2025-12-06)
 
 ### Miscellaneous Chores
