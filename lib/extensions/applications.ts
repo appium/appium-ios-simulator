@@ -3,25 +3,29 @@ import path from 'path';
 import { fs, plist, util } from '@appium/support';
 import B from 'bluebird';
 import { waitForCondition } from 'asyncbox';
+import type { CoreSimulator, InteractsWithApps, LaunchAppOptions } from '../types';
+
+type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
 
 /**
  * Install valid .app package on Simulator.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} app - The path to the .app package.
+ * @param app The path to the .app package.
  */
-export async function installApp (app) {
+export async function installApp(this: CoreSimulatorWithApps, app: string): Promise<void> {
   return await this.simctl.installApp(app);
 }
 
 /**
  * Returns user installed bundle ids which has 'bundleName' in their Info.Plist as 'CFBundleName'
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleName - The bundle name of the application to be checked.
- * @return {Promise<string[]>} - The list of bundle ids which have 'bundleName'
+ * @param bundleName The bundle name of the application to be checked.
+ * @return The list of bundle ids which have 'bundleName'
  */
-export async function getUserInstalledBundleIdsByBundleName (bundleName) {
+export async function getUserInstalledBundleIdsByBundleName(
+  this: CoreSimulatorWithApps,
+  bundleName: string
+): Promise<string[]> {
   const appsRoot = path.resolve(this.getDir(), 'Containers', 'Bundle', 'Application');
   // glob all Info.plist from simdir/data/Containers/Bundle/Application
   const infoPlists = await fs.glob('*/*.app/Info.plist', {
@@ -32,12 +36,14 @@ export async function getUserInstalledBundleIdsByBundleName (bundleName) {
     return [];
   }
 
-  const bundleInfoPromises = [];
+  const bundleInfoPromises: Promise<any>[] = [];
   for (const infoPlist of infoPlists) {
     bundleInfoPromises.push((async () => {
       try {
         return await plist.parsePlistFile(infoPlist);
-      } catch {}
+      } catch {
+        return null;
+      }
     })());
   }
   const bundleInfos = (await B.all(bundleInfoPromises)).filter(_.isPlainObject);
@@ -58,11 +64,10 @@ export async function getUserInstalledBundleIdsByBundleName (bundleName) {
 /**
  * Verify whether the particular application is installed on Simulator.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - The bundle id of the application to be checked.
- * @return {Promise<boolean>} True if the given application is installed.
+ * @param bundleId The bundle id of the application to be checked.
+ * @return True if the given application is installed.
  */
-export async function isAppInstalled (bundleId) {
+export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
   try {
     const appContainer = await this.simctl.getAppContainer(bundleId);
     if (!appContainer.endsWith('.app')) {
@@ -76,29 +81,32 @@ export async function isAppInstalled (bundleId) {
     try {
       const info = await this.simctl.appInfo(bundleId);
       return info.includes('ApplicationType');
-    } catch {}
+    } catch {
+      return false;
+    }
   }
-  return false;
 }
 
 /**
  * Uninstall the given application from the current Simulator.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - The buindle ID of the application to be removed.
+ * @param bundleId The bundle ID of the application to be removed.
  */
-export async function removeApp (bundleId) {
+export async function removeApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
   await this.simctl.removeApp(bundleId);
 }
 
 /**
  * Starts the given application on Simulator
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - The buindle ID of the application to be launched
- * @param {import('../types').LaunchAppOptions} [opts={}]
+ * @param bundleId The bundle ID of the application to be launched
+ * @param opts Launch options
  */
-export async function launchApp (bundleId, opts = {}) {
+export async function launchApp(
+  this: CoreSimulatorWithApps,
+  bundleId: string,
+  opts: LaunchAppOptions = {}
+): Promise<void> {
   await this.simctl.launchApp(bundleId);
   const {
     wait = false,
@@ -119,22 +127,20 @@ export async function launchApp (bundleId, opts = {}) {
 }
 
 /**
- * Stops the given application on  Simulator.
+ * Stops the given application on Simulator.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - The buindle ID of the application to be stopped
+ * @param bundleId The bundle ID of the application to be stopped
  */
-export async function terminateApp (bundleId) {
+export async function terminateApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
   await this.simctl.terminateApp(bundleId);
 }
 
 /**
  * Check if app with the given identifier is running.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - The buindle ID of the application to be checked.
+ * @param bundleId The bundle ID of the application to be checked.
  */
-export async function isAppRunning (bundleId) {
+export async function isAppRunning(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
   return (await this.ps()).some(({name}) => name === bundleId);
 }
 
@@ -142,11 +148,10 @@ export async function isAppRunning (bundleId) {
  * Scrub (delete the preferences and changed files) the particular application on Simulator.
  * The app will be terminated automatically if it is running.
  *
- * @this {CoreSimulatorWithApps}
- * @param {string} bundleId - Bundle identifier of the application.
+ * @param bundleId Bundle identifier of the application.
  * @throws {Error} if the given app is not installed.
  */
-export async function scrubApp (bundleId) {
+export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
   const appDataRoot = await this.simctl.getAppContainer(bundleId, 'data');
   const appFiles = await fs.glob('**/*', {
     cwd: appDataRoot,
@@ -164,6 +169,3 @@ export async function scrubApp (bundleId) {
   await B.all(appFiles.map((p) => fs.rimraf(p)));
 }
 
-/**
- * @typedef {import('../types').CoreSimulator & import('../types').InteractsWithApps} CoreSimulatorWithApps
- */

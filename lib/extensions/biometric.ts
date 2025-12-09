@@ -1,16 +1,18 @@
 import _ from 'lodash';
+import type { CoreSimulator, SupportsBiometric } from '../types';
+
+type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
 const ENROLLMENT_NOTIFICATION_RECEIVER = 'com.apple.BiometricKit.enrollmentChanged';
-const BIOMETRICS = {
+const BIOMETRICS: Record<string, string> = {
   touchId: 'fingerTouch',
   faceId: 'pearl',
 };
 
 /**
- * @this {CoreSimulatorWithBiometric}
- * @returns {Promise<boolean>}
+ * @returns Promise that resolves to true if biometric is enrolled
  */
-export async function isBiometricEnrolled () {
+export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Promise<boolean> {
   const {stdout} = await this.simctl.spawnProcess([
     'notifyutil',
     '-g', ENROLLMENT_NOTIFICATION_RECEIVER
@@ -25,10 +27,9 @@ export async function isBiometricEnrolled () {
 }
 
 /**
- * @this {CoreSimulatorWithBiometric}
- * @param {boolean} isEnabled
+ * @param isEnabled Whether to enable biometric enrollment
  */
-export async function enrollBiometric (isEnabled = true) {
+export async function enrollBiometric(this: CoreSimulatorWithBiometric, isEnabled: boolean = true): Promise<void> {
   this.log.debug(`Setting biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`);
   await this.simctl.spawnProcess([
     'notifyutil',
@@ -46,12 +47,15 @@ export async function enrollBiometric (isEnabled = true) {
 /**
  * Sends a notification to match/not match the particular biometric.
  *
- * @this {CoreSimulatorWithBiometric}
- * @param {boolean} shouldMatch [true] - Set it to true or false in order to emulate
+ * @param shouldMatch Set it to true or false in order to emulate
  * matching/not matching the corresponding biometric
- * @param {string} biometricName [touchId] - Either touchId or faceId (faceId is only available since iOS 11)
+ * @param biometricName Either touchId or faceId (faceId is only available since iOS 11)
  */
-export async function sendBiometricMatch (shouldMatch = true, biometricName = 'touchId') {
+export async function sendBiometricMatch(
+  this: CoreSimulatorWithBiometric,
+  shouldMatch: boolean = true,
+  biometricName: string = 'touchId'
+): Promise<void> {
   const domainComponent = toBiometricDomainComponent(biometricName);
   const domain = `com.apple.BiometricKit_Sim.${domainComponent}.${shouldMatch ? '' : 'no'}match`;
   await this.simctl.spawnProcess([
@@ -65,16 +69,13 @@ export async function sendBiometricMatch (shouldMatch = true, biometricName = 't
 }
 
 /**
- * @param {string} name
- * @returns {string}
+ * @param name Biometric name (touchId or faceId)
+ * @returns Domain component string
  */
-export function toBiometricDomainComponent (name) {
+export function toBiometricDomainComponent(name: string): string {
   if (!BIOMETRICS[name]) {
     throw new Error(`'${name}' is not a valid biometric. Use one of: ${JSON.stringify(_.keys(BIOMETRICS))}`);
   }
   return BIOMETRICS[name];
 }
 
-/**
- * @typedef {import('../types').CoreSimulator & import('../types').SupportsBiometric} CoreSimulatorWithBiometric
- */

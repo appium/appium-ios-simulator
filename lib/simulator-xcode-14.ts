@@ -17,6 +17,7 @@ import * as keychainExtensions from './extensions/keychain';
 import * as settingsExtensions from './extensions/settings';
 import * as permissionsExtensions from './extensions/permissions';
 import * as miscExtensions from './extensions/misc';
+import * as geolocationExtensions from './extensions/geolocation';
 import type {
   CoreSimulator,
   HasSettings,
@@ -32,7 +33,6 @@ import type {
   StartUiClientOptions,
   KillUiClientOptions,
   ProcessInfo,
-  CertificateOptions,
 } from './types';
 import type { XcodeVersion } from 'appium-xcode';
 import type { AppiumLogger, StringRecord } from '@appium/types';
@@ -600,93 +600,6 @@ export class SimulatorXcode14 extends EventEmitter implements
     );
   }
 
-  /**
-   * Sets the geolocation for the simulator.
-   *
-   * @param latitude - The latitude coordinate.
-   * @param longitude - The longitude coordinate.
-   * @returns True if the geolocation was set successfully.
-   */
-  setGeolocation = async (latitude: string | number, longitude: string | number): Promise<boolean> => {
-    await this.simctl.setLocation(latitude, longitude);
-    return true;
-  };
-
-  /**
-   * Clears Keychains for the particular simulator in runtime (there is no need to stop it).
-   *
-   * @returns
-   * @throws {Error} If keychain cleanup has failed.
-   */
-  clearKeychains = async (): Promise<void> => {
-    await this.simctl.resetKeychain();
-  };
-
-  /**
-   * Adds the given certificate to the booted simulator.
-   * The simulator could be in both running and shutdown states
-   * in order for this method to run as expected.
-   *
-   * @since Xcode 11.4
-   * @param payload the content of the PEM certificate
-   * @param opts Certificate options
-   * @returns True if the certificate was added successfully.
-   */
-  addCertificate = async (payload: string, opts: CertificateOptions = {}): Promise<boolean> => {
-    const {
-      isRoot = true,
-    } = opts;
-    const methodName = isRoot ? 'addRootCertificate' : 'addCertificate';
-    await this.simctl[methodName](payload, {raw: true});
-    return true;
-  };
-
-  /**
-   * Simulates push notification delivery to the booted simulator
-   *
-   * @since Xcode SDK 11.4
-   * @param payload - The object that describes Apple push notification content.
-   * It must contain a top-level "Simulator Target Bundle" key with a string value matching
-   * the target application's bundle identifier and "aps" key with valid Apple Push Notification values.
-   * For example:
-   * {
-   *   "Simulator Target Bundle": "com.apple.Preferences",
-   *   "aps": {
-   *     "alert": "This is a simulated notification!",
-   *     "badge": 3,
-   *     "sound": "default"
-   *   }
-   * }
-   */
-  pushNotification = async (payload: StringRecord): Promise<void> => {
-    await this.simctl.pushNotification(payload);
-  };
-
-  /**
-   * Sets UI appearance style.
-   * This function can only be called on a booted simulator.
-   *
-   * @since Xcode SDK 11.4
-   * @param value one of possible appearance values:
-   * - dark: to switch to the Dark mode
-   * - light: to switch to the Light mode
-   */
-  setAppearance = async (value: string): Promise<void> => {
-    await this.simctl.setAppearance(_.toLower(value));
-  };
-
-  /**
-   * Gets the current UI appearance style
-   * This function can only be called on a booted simulator.
-   *
-   * @since Xcode SDK 11.4
-   * @returns the current UI appearance style.
-   * Possible values are:
-   * - dark: to switch to the Dark mode
-   * - light: to switch to the Light mode
-   */
-  getAppearance = async (): Promise<string> => await this.simctl.getAppearance();
-
   // Extension methods
   installApp = appExtensions.installApp;
   getUserInstalledBundleIdsByBundleName = appExtensions.getUserInstalledBundleIdsByBundleName;
@@ -708,14 +621,21 @@ export class SimulatorXcode14 extends EventEmitter implements
 
   backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
   restoreKeychains = keychainExtensions.restoreKeychains as unknown as (excludePatterns: string[]) => Promise<boolean>;
+  clearKeychains = keychainExtensions.clearKeychains;
+
+  setGeolocation = geolocationExtensions.setGeolocation;
 
   shake = miscExtensions.shake;
+  addCertificate = miscExtensions.addCertificate;
+  pushNotification = miscExtensions.pushNotification;
 
   setPermission = permissionsExtensions.setPermission;
   setPermissions = permissionsExtensions.setPermissions;
   getPermission = permissionsExtensions.getPermission;
 
   updateSettings = settingsExtensions.updateSettings;
+  setAppearance = settingsExtensions.setAppearance;
+  getAppearance = settingsExtensions.getAppearance;
   setIncreaseContrast = settingsExtensions.setIncreaseContrast;
   getIncreaseContrast = settingsExtensions.getIncreaseContrast;
   setContentSize = settingsExtensions.setContentSize;
