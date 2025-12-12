@@ -79,8 +79,8 @@ export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: stri
     // so we try the hidden appinfo subcommand, which prints correct info for
     // system/hidden apps
     try {
-      const info = await this.simctl.appInfo(bundleId);
-      return info.includes('ApplicationType');
+      await this.simctl.appInfo(bundleId);
+      return true;
     } catch {
       return false;
     }
