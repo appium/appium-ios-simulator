@@ -1,3 +1,9 @@
+## [8.0.6](https://github.com/appium/appium-ios-simulator/compare/v8.0.5...v8.0.6) (2025-12-12)
+
+### Bug Fixes
+
+* appinfo call via node-simctl ([#466](https://github.com/appium/appium-ios-simulator/issues/466)) ([5169955](https://github.com/appium/appium-ios-simulator/commit/516995541b68f6f4f1c0c32f102fac1477d72725))
+
 ## [8.0.5](https://github.com/appium/appium-ios-simulator/compare/v8.0.4...v8.0.5) (2025-12-11)
 
 ### Miscellaneous Chores
