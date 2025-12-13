@@ -1,3 +1,9 @@
+## [8.0.7](https://github.com/appium/appium-ios-simulator/compare/v8.0.6...v8.0.7) (2025-12-13)
+
+### Miscellaneous Chores
+
+* **deps:** remove source-map-support ([#467](https://github.com/appium/appium-ios-simulator/issues/467)) ([888b31b](https://github.com/appium/appium-ios-simulator/commit/888b31bfa24f6f934508316b164876a42b15c23f))
+
 ## [8.0.6](https://github.com/appium/appium-ios-simulator/compare/v8.0.5...v8.0.6) (2025-12-12)
 
 ### Bug Fixes
