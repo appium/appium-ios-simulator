@@ -1,3 +1,9 @@
+## [8.0.9](https://github.com/appium/appium-ios-simulator/compare/v8.0.8...v8.0.9) (2025-12-22)
+
+### Miscellaneous Chores
+
+* bump teen_process ([#470](https://github.com/appium/appium-ios-simulator/issues/470)) ([76b4be6](https://github.com/appium/appium-ios-simulator/commit/76b4be6485f8cc2a526680b702b0ee3880207fa7))
+
 ## [8.0.8](https://github.com/appium/appium-ios-simulator/compare/v8.0.7...v8.0.8) (2025-12-19)
 
 ### Miscellaneous Chores
