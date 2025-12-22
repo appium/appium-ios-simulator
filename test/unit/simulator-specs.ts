@@ -15,21 +15,23 @@ chaiUse(chaiAsPromised);
 const UDID = devices['10.0'][0].udid;
 
 describe('simulator', function () {
+  let sandbox: sinon.SinonSandbox;
+
   let assertXcodeVersionStub: sinon.SinonStub;
   let getDevicesStub: sinon.SinonStub;
   let getVersionStub: sinon.SinonStub;
 
   beforeEach(function () {
-    assertXcodeVersionStub = sinon.stub(utils, 'assertXcodeVersion');
-    getDevicesStub = sinon.stub(utils, 'getDevices');
+    sandbox = sinon.createSandbox();
+    assertXcodeVersionStub = sandbox.stub(utils, 'assertXcodeVersion');
+    getDevicesStub = sandbox.stub(utils, 'getDevices');
     getDevicesStub.resolves(devices);
-    getVersionStub = sinon.stub(xcodeModule, 'getVersion');
+    getVersionStub = sandbox.stub(xcodeModule, 'getVersion');
     getVersionStub.withArgs(true).returns(B.resolve({major: 14, versionString: '14.0.0'}));
   });
   afterEach(function () {
-    assertXcodeVersionStub.restore();
-    getDevicesStub.restore();
-    getVersionStub.restore();
+    sandbox.verify();
+    sandbox.restore();
   });
 
   describe('getSimulator', function () {
@@ -98,6 +100,7 @@ describe('simulator', function () {
   });
 
   describe('getWebInspectorSocket', function () {
+    let innerExecStub;
     const stdout = `COMMAND     PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 launchd_s 81243 mwakizaka    3u  unix 0x9461828ef425ac31      0t0      /private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket
 launchd_s 81243 mwakizaka    4u  unix 0x9461828ef425bc99      0t0      /tmp/com.apple.CoreSimulator.SimDevice.0829568F-7479-4ADE-9E51-B208DC99C107/syslogsock
@@ -119,12 +122,10 @@ launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/
 launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
 
     beforeEach(function () {
-      sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout } as any));
+      innerExecStub = sandbox.stub().callsFake(() => ({ stdout } as any));
+      sandbox.stub(teenProcess, 'exec').get(() => innerExecStub);
       const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
-    });
-    afterEach(function () {
-      (teenProcess.exec as any).restore();
     });
 
     const testParams = [
@@ -144,7 +145,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       const sim = await getSimulator(testParams[0].udid);
       await sim.getWebInspectorSocket();
       await sim.getWebInspectorSocket();
-      expect((teenProcess.exec as any).callCount).to.equal(1);
+      expect(innerExecStub.callCount).to.equal(1);
     });
   });
 
@@ -195,15 +196,10 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     });
 
     describe('language', function () {
-      let getDirStub: sinon.SinonStub;
       const stdout = JSON.stringify({AppleLanguages: ['en']});
       beforeEach(function () {
-        getDirStub = sinon.stub(sim, 'getDir').callsFake(() => (''));
-        sinon.stub(teenProcess, 'exec').callsFake(() => ({ stdout } as any));
-      });
-      afterEach(function () {
-        getDirStub.reset();
-        (teenProcess.exec as any).restore();
+        sandbox.stub(teenProcess, 'exec').get(() => sandbox.stub().callsFake(() => ({ stdout } as any)));
+        sandbox.stub(sim, 'getDir').callsFake(() => (''));
       });
 
       it('should configure language and restart services', async function () {
