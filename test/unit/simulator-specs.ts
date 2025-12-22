@@ -100,7 +100,7 @@ describe('simulator', function () {
   });
 
   describe('getWebInspectorSocket', function () {
-    let innerExecStub;
+    let innerExecStub: sinon.SinonStub;
     const stdout = `COMMAND     PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 launchd_s 81243 mwakizaka    3u  unix 0x9461828ef425ac31      0t0      /private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket
 launchd_s 81243 mwakizaka    4u  unix 0x9461828ef425bc99      0t0      /tmp/com.apple.CoreSimulator.SimDevice.0829568F-7479-4ADE-9E51-B208DC99C107/syslogsock
