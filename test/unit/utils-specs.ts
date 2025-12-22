@@ -39,58 +39,59 @@ const XCODE_VERSION_6 = {
 
 
 describe('util', function () {
-  let execStub: sinon.SinonStub;
-  let xcodeMock: sinon.SinonMock;
+  let sandbox: sinon.SinonSandbox;
+
   let getDevicesStub: sinon.SinonStub;
-  let getVersionStub: sinon.SinonStub;
+  let innerExecStub: sinon.SinonStub;
 
   beforeEach(function () {
-    execStub = sinon.stub(TeenProcess, 'exec');
-    xcodeMock = sinon.mock(xcode);
-    getDevicesStub = sinon.stub(utils, 'getDevices');
+    sandbox = sinon.createSandbox();
+    getDevicesStub = sandbox.stub(utils, 'getDevices');
     getDevicesStub.resolves(devices);
-    getVersionStub = sinon.stub(xcodeModule, 'getVersion');
+    sandbox.stub(xcodeModule, 'getVersion');
+    sandbox.mock(xcode);
   });
   afterEach(function () {
-    execStub.restore();
-    xcodeMock.restore();
-    getDevicesStub.restore();
-    getVersionStub.restore();
+    sandbox.verify();
+    sandbox.restore();
   });
 
   describe('killAllSimulators', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
-      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_10));
-      execStub.withArgs('xcrun').returns();
-      execStub.withArgs('pgrep').throws({code: 1});
-
+      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_10)));
+      innerExecStub = sandbox.stub()
+        .withArgs('xcrun').returns()
+        .withArgs('pgrep').throws({code: 1});
+      sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
-      expect(execStub.callCount).to.equal(2);
+      expect(innerExecStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
-      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_8));
-      execStub.withArgs('xcrun').returns();
-      execStub.withArgs('pgrep').throws({code: 1});
-
+      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_8)));
+      innerExecStub = sandbox.stub();
+      innerExecStub.withArgs('xcrun').returns();
+      innerExecStub.withArgs('pgrep').throws({code: 1});
+      sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
-      expect(execStub.callCount).to.equal(2);
+      expect(innerExecStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
-      getVersionStub.withArgs(true).returns(B.resolve(XCODE_VERSION_6));
-      execStub.withArgs('xcrun', sinon.match.array).throws();
-      execStub.withArgs('pgrep', sinon.match.array).returns({stdout: '12345'});
-      execStub.withArgs('kill', sinon.match.array).returns();
-      execStub.withArgs('pkill', sinon.match.array).returns();
+      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_6)));
+      innerExecStub = sandbox.stub();
+      innerExecStub.withArgs('xcrun').throws();
+      innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
+      innerExecStub.withArgs('kill').returns();
+      innerExecStub.withArgs('pkill').returns();
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
-
+      sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       try {
         await killAllSimulators(500);
       } catch {}
       // Expected calls: xcrun (throws), pgrep, kill, pkill = 4 calls
       // Note: getVersion is stubbed, so it shouldn't call exec for xcode-select
       // getDevices is stubbed, so it won't call exec either
-      expect(execStub.callCount).to.equal(4);
+      expect(innerExecStub.callCount).to.equal(4);
     });
   });
 
