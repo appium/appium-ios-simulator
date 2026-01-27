@@ -1,3 +1,9 @@
+## [8.0.10](https://github.com/appium/appium-ios-simulator/compare/v8.0.9...v8.0.10) (2026-01-27)
+
+### Miscellaneous Chores
+
+* **deps:** Bump asyncbox from 4.1.1 to 6.0.1 ([#473](https://github.com/appium/appium-ios-simulator/issues/473)) ([3aca303](https://github.com/appium/appium-ios-simulator/commit/3aca3038adc13b7d8253881f308a1a32dc2418c0))
+
 ## [8.0.9](https://github.com/appium/appium-ios-simulator/compare/v8.0.8...v8.0.9) (2025-12-22)
 
 ### Miscellaneous Chores
