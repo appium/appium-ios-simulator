@@ -1,6 +1,6 @@
 import { fs } from '@appium/support';
 import { exec } from 'teen_process';
-import path from 'path';
+import path from 'node:path';
 import _ from 'lodash';
 import B from 'bluebird';
 import { SimulatorXcode14 } from './simulator-xcode-14';

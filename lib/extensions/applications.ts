@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import path from 'path';
+import path from 'node:path';
 import { fs, plist, util } from '@appium/support';
 import B from 'bluebird';
 import { waitForCondition } from 'asyncbox';

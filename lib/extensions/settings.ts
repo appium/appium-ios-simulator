@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { NSUserDefaults, generateDefaultsCommandArgs } from '../defaults-utils';
 import B from 'bluebird';
-import path from 'path';
+import path from 'node:path';
 import { exec } from 'teen_process';
 import AsyncLock from 'async-lock';
 import { fs } from '@appium/support';

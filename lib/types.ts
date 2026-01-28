@@ -15,7 +15,7 @@ export interface ProcessInfo {
    * particular group. For `normal` application processes the group
    * name usually equals to `UIKitApplication`.
    */
-  group: string|null;
+  group: string | null;
   /**
    * The process name, for example `com.apple.Preferences`
    */
@@ -100,7 +100,7 @@ export interface ShutdownOptions {
    * The number of milliseconds to wait until
    * Simulator is shut down completely. No wait happens if the timeout value is not set
    */
-  timeout?: number|string;
+  timeout?: number | string;
 }
 
 export interface KillUiClientOptions {
@@ -122,29 +122,29 @@ export interface DeviceStat {
 }
 
 export interface CoreSimulator extends EventEmitter {
-  _keychainsBackupPath: string|null|undefined;
-  _webInspectorSocket: string|null|undefined;
+  _keychainsBackupPath: string | null | undefined;
+  _webInspectorSocket: string | null | undefined;
 
   get keychainPath(): string;
   get udid(): string;
   get simctl(): Simctl;
   get xcodeVersion(): XcodeVersion;
 
-  set devicesSetPath(value: string|null);
-  get devicesSetPath(): string|null;
+  set devicesSetPath(value: string | null);
+  get devicesSetPath(): string | null;
 
   get startupTimeout(): number;
   get uiClientBundleId(): string;
 
   get log(): AppiumLogger;
 
-  getUIClientPid(): Promise<string|null>;
+  getUIClientPid(): Promise<string | null>;
   isUIClientRunning(): Promise<boolean>;
   getPlatformVersion(): Promise<string>;
   getRootDir(): string;
   getDir(): string;
   getLogDir(): string;
-  stat(): Promise<DeviceStat|StringRecord<never>>;
+  stat(): Promise<DeviceStat | StringRecord<never>>;
   isFresh(): Promise<boolean>;
   isRunning(): Promise<boolean>;
   isShutdown(): Promise<boolean>;
@@ -190,7 +190,7 @@ export interface SupportsBiometric {
 }
 
 export interface SupportsGeolocation {
-  setGeolocation(latitude: string|number, longitude: string|number): Promise<boolean>;
+  setGeolocation(latitude: string | number, longitude: string | number): Promise<boolean>;
 }
 
 export interface InteractsWithKeychain {
@@ -209,7 +209,7 @@ export interface InteractsWithSafariBrowser {
   openUrl(url: string): Promise<void>;
   scrubSafari(keepPrefs?: boolean): Promise<void>;
   updateSafariSettings(updates: StringRecord): Promise<boolean>;
-  getWebInspectorSocket(): Promise<string|null>;
+  getWebInspectorSocket(): Promise<string | null>;
 }
 
 interface KeyboardOptions {
@@ -218,7 +218,7 @@ interface KeyboardOptions {
   /** The keyboard layout, for example `QUERTY` or `Ukrainian` */
   layout: string;
   /** hardware Could either be `Automatic` or `null` */
-  hardware?: string|null;
+  hardware?: string | null;
 }
 
 export interface LanguageOptions {
@@ -283,7 +283,7 @@ export interface SimulatorLookupOptions {
    * the current simulator is located. `null` value means that the default path is
    * used, which is usually `~/Library/Developer/CoreSimulator/Devices`
    */
-  devicesSetPath?: string|null;
+  devicesSetPath?: string | null;
   /** The logger to use for the simulator class. A default logger will be created if not provided */
   logger?: AppiumLogger;
 }
