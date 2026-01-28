@@ -1,3 +1,9 @@
+## [8.0.11](https://github.com/appium/appium-ios-simulator/compare/v8.0.10...v8.0.11) (2026-01-28)
+
+### Miscellaneous Chores
+
+* **deps-dev:** Bump @appium/eslint-config-appium-ts from 2.0.5 to 3.0.0 ([#474](https://github.com/appium/appium-ios-simulator/issues/474)) ([47def60](https://github.com/appium/appium-ios-simulator/commit/47def60dabd4a7104696b387bc3acca933c31c27))
+
 ## [8.0.10](https://github.com/appium/appium-ios-simulator/compare/v8.0.9...v8.0.10) (2026-01-27)
 
 ### Miscellaneous Chores
