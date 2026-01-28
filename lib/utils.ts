@@ -4,7 +4,7 @@ import { exec } from 'teen_process';
 import { waitForCondition } from 'asyncbox';
 import { getVersion } from 'appium-xcode';
 import type { XcodeVersion } from 'appium-xcode';
-import path from 'path';
+import path from 'node:path';
 import { Simctl } from 'node-simctl';
 import type { StringRecord } from '@appium/types';
 // it's a hack needed to stub getDevices in tests

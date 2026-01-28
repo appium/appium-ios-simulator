@@ -3,7 +3,7 @@ import { waitForCondition, retryInterval } from 'asyncbox';
 import { getDeveloperRoot, SIMULATOR_APP_NAME} from './utils';
 import { exec } from 'teen_process';
 import { log as defaultLog } from './logger';
-import EventEmitter from 'events';
+import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import _ from 'lodash';
 import path from 'node:path';

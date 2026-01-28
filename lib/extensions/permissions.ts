@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { fs, timing, util } from '@appium/support';
 import { exec } from 'teen_process';
-import path from 'path';
+import path from 'node:path';
 import B from 'bluebird';
 import { waitForCondition } from 'asyncbox';
 import type { CoreSimulator, SupportsAppPermissions } from '../types';
