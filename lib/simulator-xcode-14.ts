@@ -1,15 +1,15 @@
-import { fs, timing, util } from '@appium/support';
-import { waitForCondition, retryInterval } from 'asyncbox';
-import { getDeveloperRoot, SIMULATOR_APP_NAME} from './utils';
-import { exec } from 'teen_process';
-import { log as defaultLog } from './logger';
+import {fs, timing, util} from '@appium/support';
+import {waitForCondition, retryInterval} from 'asyncbox';
+import {getDeveloperRoot, SIMULATOR_APP_NAME} from './utils';
+import {exec} from 'teen_process';
+import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import _ from 'lodash';
 import path from 'node:path';
 import B from 'bluebird';
-import { getPath as getXcodePath } from 'appium-xcode';
-import { Simctl } from 'node-simctl';
+import {getPath as getXcodePath} from 'appium-xcode';
+import {Simctl} from 'node-simctl';
 import * as appExtensions from './extensions/applications';
 import * as biometricExtensions from './extensions/biometric';
 import * as safariExtensions from './extensions/safari';
@@ -34,23 +34,26 @@ import type {
   KillUiClientOptions,
   ProcessInfo,
 } from './types';
-import type { XcodeVersion } from 'appium-xcode';
-import type { AppiumLogger, StringRecord } from '@appium/types';
+import type {XcodeVersion} from 'appium-xcode';
+import type {AppiumLogger, StringRecord} from '@appium/types';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
 const UI_CLIENT_BUNDLE_ID = 'com.apple.iphonesimulator';
 const STARTUP_TIMEOUT_MS = 120 * 1000;
 
-export class SimulatorXcode14 extends EventEmitter implements
-  CoreSimulator,
-  HasSettings,
-  InteractsWithApps,
-  InteractsWithKeychain,
-  SupportsGeolocation,
-  HasMiscFeatures,
-  InteractsWithSafariBrowser,
-  SupportsBiometric {
+export class SimulatorXcode14
+  extends EventEmitter
+  implements
+    CoreSimulator,
+    HasSettings,
+    InteractsWithApps,
+    InteractsWithKeychain,
+    SupportsGeolocation,
+    HasMiscFeatures,
+    InteractsWithSafariBrowser,
+    SupportsBiometric
+{
   _keychainsBackupPath: string | null | undefined;
   _platformVersion: string | null | undefined;
   _webInspectorSocket: string | null | undefined;
@@ -410,8 +413,11 @@ export class SimulatorXcode14 extends EventEmitter implements
     try {
       await exec('open', args, {timeout: opts.startupTimeout});
     } catch (err: any) {
-      throw new Error(`Got an unexpected error while opening Simulator UI: ` +
-        err.stderr || err.stdout || err.message);
+      throw new Error(
+        `Got an unexpected error while opening Simulator UI: ` + err.stderr ||
+          err.stdout ||
+          err.message,
+      );
     }
   }
 
@@ -428,7 +434,8 @@ export class SimulatorXcode14 extends EventEmitter implements
       startupTimeout: this.startupTimeout,
     });
 
-    const [devicePreferences, commonPreferences] = settingsExtensions.compileSimulatorPreferences.bind(this)(opts);
+    const [devicePreferences, commonPreferences] =
+      settingsExtensions.compileSimulatorPreferences.bind(this)(opts);
     await settingsExtensions.updatePreferences.bind(this)(devicePreferences, commonPreferences);
 
     const timer = new timing.Timer().start();
@@ -441,7 +448,9 @@ export class SimulatorXcode14 extends EventEmitter implements
           return false;
         }
         if (await this.killUIClient({pid: uiClientPid})) {
-          this.log.info(`Detected the Simulator UI client was running and killed it. Verifying the current Simulator state`);
+          this.log.info(
+            `Detected the Simulator UI client was running and killed it. Verifying the current Simulator state`,
+          );
         }
         try {
           // Stopping the UI client kills all running servers for some early XCode versions. This is a known bug
@@ -450,22 +459,30 @@ export class SimulatorXcode14 extends EventEmitter implements
             intervalMs: 100,
           });
         } catch {
-          if (!await this.isRunning()) {
-            throw new Error(`Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`);
+          if (!(await this.isRunning())) {
+            throw new Error(
+              `Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`,
+            );
           }
           return false;
         }
-        this.log.info(`Booting Simulator with UDID '${this.udid}' in headless mode. ` +
-          `All UI-related capabilities are going to be ignored`);
+        this.log.info(
+          `Booting Simulator with UDID '${this.udid}' in headless mode. ` +
+            `All UI-related capabilities are going to be ignored`,
+        );
         await this.boot();
       } else {
         if (isServerRunning && uiClientPid) {
-          this.log.info(`Both Simulator with UDID '${this.udid}' and the UI client are currently running`);
+          this.log.info(
+            `Both Simulator with UDID '${this.udid}' and the UI client are currently running`,
+          );
           return false;
         }
         if (isServerRunning) {
-          this.log.info(`Simulator '${this.udid}' is booted while its UI is not visible. ` +
-            `Trying to restart it with the Simulator window visible`);
+          this.log.info(
+            `Simulator '${this.udid}' is booted while its UI is not visible. ` +
+              `Trying to restart it with the Simulator window visible`,
+          );
           await this.shutdown({timeout: SIMULATOR_SHUTDOWN_TIMEOUT});
         }
         await this.launchWindow(Boolean(uiClientPid), opts);
@@ -475,14 +492,18 @@ export class SimulatorXcode14 extends EventEmitter implements
 
     if (shouldWaitForBoot && opts.startupTimeout) {
       await this.waitForBoot(opts.startupTimeout);
-      this.log.info(`Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`);
+      this.log.info(
+        `Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`,
+      );
     }
 
     (async () => {
       try {
         await this.disableKeyboardIntroduction();
       } catch (e: any) {
-        this.log.info(`Cannot disable Simulator keyboard introduction. Original error: ${e.message}`);
+        this.log.info(
+          `Cannot disable Simulator keyboard introduction. Original error: ${e.message}`,
+        );
       }
     })();
   }
@@ -496,11 +517,8 @@ export class SimulatorXcode14 extends EventEmitter implements
    * @throws {Error} If sending the signal to the client process fails.
    */
   async killUIClient(opts: KillUiClientOptions = {}): Promise<boolean> {
-    const {
-      pid,
-      signal = 2,
-    } = opts;
-    const clientPid = pid || await this.getUIClientPid();
+    const {pid, signal = 2} = opts;
+    const clientPid = pid || (await this.getUIClientPid());
     if (!clientPid) {
       return false;
     }
@@ -526,9 +544,7 @@ export class SimulatorXcode14 extends EventEmitter implements
    * @throws {Error} If no process information could be retrieved.
    */
   async ps(): Promise<ProcessInfo[]> {
-    const {stdout} = await this.simctl.spawnProcess([
-      'launchctl', 'list'
-    ]);
+    const {stdout} = await this.simctl.spawnProcess(['launchctl', 'list']);
     /*
     Example match:
       PID	Status	Label
@@ -540,7 +556,8 @@ export class SimulatorXcode14 extends EventEmitter implements
       -	0	com.apple.DragUI.druid
       22076	0	UIKitApplication:com.apple.mobilesafari[2b0f][rb-legacy]
     */
-    const extractGroup = (lbl: string): string | null => lbl.includes(':') ? lbl.split(':')[0] : null;
+    const extractGroup = (lbl: string): string | null =>
+      lbl.includes(':') ? lbl.split(':')[0] : null;
     const extractName = (lbl: string): string => {
       let res = lbl;
       const colonIdx = res.indexOf(':');
@@ -561,7 +578,7 @@ export class SimulatorXcode14 extends EventEmitter implements
         continue;
       }
 
-      const [pidStr,, label] = trimmedLine.split(/\s+/);
+      const [pidStr, , label] = trimmedLine.split(/\s+/);
       const pid = parseInt(pidStr, 10);
       if (!pid || !label) {
         continue;
@@ -596,7 +613,7 @@ export class SimulatorXcode14 extends EventEmitter implements
       'RuntimeRoot',
       'System',
       'Library',
-      'LaunchDaemons'
+      'LaunchDaemons',
     );
   }
 
@@ -613,14 +630,18 @@ export class SimulatorXcode14 extends EventEmitter implements
   openUrl = safariExtensions.openUrl;
   scrubSafari = safariExtensions.scrubSafari;
   updateSafariSettings = safariExtensions.updateSafariSettings;
-  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<string | null>;
+  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<
+    string | null
+  >;
 
   isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
   enrollBiometric = biometricExtensions.enrollBiometric;
   sendBiometricMatch = biometricExtensions.sendBiometricMatch;
 
   backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
-  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (excludePatterns: string[]) => Promise<boolean>;
+  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (
+    excludePatterns: string[],
+  ) => Promise<boolean>;
   clearKeychains = keychainExtensions.clearKeychains;
 
   setGeolocation = geolocationExtensions.setGeolocation;
@@ -646,4 +667,3 @@ export class SimulatorXcode14 extends EventEmitter implements
   setReduceTransparency = settingsExtensions.setReduceTransparency;
   disableKeyboardIntroduction = settingsExtensions.disableKeyboardIntroduction;
 }
-

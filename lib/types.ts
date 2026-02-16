@@ -1,7 +1,7 @@
-import type { EventEmitter } from 'node:events';
-import type { Simctl } from 'node-simctl';
-import type { XcodeVersion } from 'appium-xcode';
-import type { AppiumLogger, StringRecord } from '@appium/types';
+import type {EventEmitter} from 'node:events';
+import type {Simctl} from 'node-simctl';
+import type {XcodeVersion} from 'appium-xcode';
+import type {AppiumLogger, StringRecord} from '@appium/types';
 
 export interface ProcessInfo {
   /**
@@ -288,13 +288,13 @@ export interface SimulatorLookupOptions {
   logger?: AppiumLogger;
 }
 
-export type Simulator = CoreSimulator
-  & InteractsWithSafariBrowser
-  & InteractsWithApps
-  & HasSettings
-  & InteractsWithApps
-  & SupportsBiometric
-  & SupportsGeolocation
-  & InteractsWithKeychain
-  & SupportsAppPermissions
-  & HasMiscFeatures;
+export type Simulator = CoreSimulator &
+  InteractsWithSafariBrowser &
+  InteractsWithApps &
+  HasSettings &
+  InteractsWithApps &
+  SupportsBiometric &
+  SupportsGeolocation &
+  InteractsWithKeychain &
+  SupportsAppPermissions &
+  HasMiscFeatures;

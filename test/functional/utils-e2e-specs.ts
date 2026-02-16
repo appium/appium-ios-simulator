@@ -1,9 +1,9 @@
 // transpile:mocha
-import { killAllSimulators } from '../../lib/utils';
-import { getSimulator } from '../../lib/simulator';
-import { Simctl } from 'node-simctl';
-import { LONG_TIMEOUT, verifyStates } from './helpers';
-import { use as chaiUse } from 'chai';
+import {killAllSimulators} from '../../lib/utils';
+import {getSimulator} from '../../lib/simulator';
+import {Simctl} from 'node-simctl';
+import {LONG_TIMEOUT, verifyStates} from './helpers';
+import {use as chaiUse} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 chaiUse(chaiAsPromised);
@@ -16,16 +16,13 @@ describe('killAllSimulators', function () {
 
   let sim: any;
 
-  before(async function () {
-  });
+  before(async function () {});
 
   beforeEach(async function () {
     await killAllSimulators();
-    const udid = await new Simctl().createDevice(
-      'ios-simulator testing',
-      DEVICE_NAME,
-      OS_VERSION,
-      {timeout: 20000});
+    const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION, {
+      timeout: 20000,
+    });
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
   });
@@ -41,4 +38,3 @@ describe('killAllSimulators', function () {
     await verifyStates(sim, false, false);
   });
 });
-

@@ -1,5 +1,5 @@
-import type { CoreSimulator, HasMiscFeatures, CertificateOptions } from '../types';
-import type { StringRecord } from '@appium/types';
+import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types';
+import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;
 
@@ -8,10 +8,7 @@ type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;
  */
 export async function shake(this: CoreSimulatorWithMiscFeatures): Promise<void> {
   this.log.info(`Performing shake gesture on ${this.udid} Simulator`);
-  await this.simctl.spawnProcess([
-    'notifyutil',
-    '-p', 'com.apple.UIKit.SimulatorShake'
-  ]);
+  await this.simctl.spawnProcess(['notifyutil', '-p', 'com.apple.UIKit.SimulatorShake']);
 }
 
 /**
@@ -25,11 +22,11 @@ export async function shake(this: CoreSimulatorWithMiscFeatures): Promise<void> 
  * @returns True if the certificate was added successfully.
  */
 export async function addCertificate(
-  this: CoreSimulatorWithMiscFeatures, payload: string, opts: CertificateOptions = {}
+  this: CoreSimulatorWithMiscFeatures,
+  payload: string,
+  opts: CertificateOptions = {},
 ): Promise<boolean> {
-  const {
-    isRoot = true,
-  } = opts;
+  const {isRoot = true} = opts;
   const methodName = isRoot ? 'addRootCertificate' : 'addCertificate';
   await this.simctl[methodName](payload, {raw: true});
   return true;
@@ -53,8 +50,8 @@ export async function addCertificate(
  * }
  */
 export async function pushNotification(
-  this: CoreSimulatorWithMiscFeatures, payload: StringRecord
+  this: CoreSimulatorWithMiscFeatures,
+  payload: StringRecord,
 ): Promise<void> {
   await this.simctl.pushNotification(payload);
 }
-

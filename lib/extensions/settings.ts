@@ -1,12 +1,19 @@
 import _ from 'lodash';
-import { NSUserDefaults, generateDefaultsCommandArgs } from '../defaults-utils';
+import {NSUserDefaults, generateDefaultsCommandArgs} from '../defaults-utils';
 import B from 'bluebird';
 import path from 'node:path';
-import { exec } from 'teen_process';
+import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
-import { fs } from '@appium/support';
-import type { CoreSimulator, HasSettings, DevicePreferences, CommonPreferences, RunOptions, LocalizationOptions } from '../types';
-import type { StringRecord } from '@appium/types';
+import {fs} from '@appium/support';
+import type {
+  CoreSimulator,
+  HasSettings,
+  DevicePreferences,
+  CommonPreferences,
+  RunOptions,
+  LocalizationOptions,
+} from '../types';
+import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithSettings = CoreSimulator & HasSettings;
 
@@ -14,7 +21,12 @@ type CoreSimulatorWithSettings = CoreSimulator & HasSettings;
 // com.apple.locationd: translates system prompts for location
 // com.apple.tccd: translates system prompts for camera, microphone, contact, photos and app tracking transparency
 // com.apple.akd: translates `Sign in with your Apple ID` system prompt
-const SERVICES_FOR_TRANSLATION = ['com.apple.SpringBoard', 'com.apple.locationd', 'com.apple.tccd', 'com.apple.akd'] as const;
+const SERVICES_FOR_TRANSLATION = [
+  'com.apple.SpringBoard',
+  'com.apple.locationd',
+  'com.apple.tccd',
+  'com.apple.akd',
+] as const;
 const GLOBAL_PREFS_PLIST = '.GlobalPreferences.plist';
 const PREFERENCES_PLIST_GUARD = new AsyncLock();
 const DOMAIN = Object.freeze({
@@ -27,9 +39,12 @@ const DOMAIN = Object.freeze({
  *
  * @param reduceMotion Whether to enable or disable the setting.
  */
-export async function setReduceMotion(this: CoreSimulatorWithSettings, reduceMotion: boolean): Promise<boolean> {
+export async function setReduceMotion(
+  this: CoreSimulatorWithSettings,
+  reduceMotion: boolean,
+): Promise<boolean> {
   return await this.updateSettings(DOMAIN.ACCESSIBILITY, {
-    ReduceMotionEnabled: Number(reduceMotion)
+    ReduceMotionEnabled: Number(reduceMotion),
   });
 }
 
@@ -40,10 +55,10 @@ export async function setReduceMotion(this: CoreSimulatorWithSettings, reduceMot
  */
 export async function setReduceTransparency(
   this: CoreSimulatorWithSettings,
-  reduceTransparency: boolean
+  reduceTransparency: boolean,
 ): Promise<boolean> {
   return await this.updateSettings(DOMAIN.ACCESSIBILITY, {
-    EnhancedBackgroundContrastEnabled: Number(reduceTransparency)
+    EnhancedBackgroundContrastEnabled: Number(reduceTransparency),
   });
 }
 
@@ -51,11 +66,13 @@ export async function setReduceTransparency(
  * Disable keyboard tutorial as 'com.apple.keyboard.preferences' domain via 'defaults' command.
  * @returns Promise that resolves to true if settings were updated
  */
-export async function disableKeyboardIntroduction(this: CoreSimulatorWithSettings): Promise<boolean> {
+export async function disableKeyboardIntroduction(
+  this: CoreSimulatorWithSettings,
+): Promise<boolean> {
   return await this.updateSettings(DOMAIN.KEYBOARD, {
     // To disable 'DidShowContinuousPathIntroduction' for iOS 15+ simulators since changing the preference via WDA
     // does not work on them. Lower than the versions also can have this preference, but nothing happen.
-    DidShowContinuousPathIntroduction: 1
+    DidShowContinuousPathIntroduction: 1,
   });
 }
 
@@ -71,16 +88,16 @@ export async function disableKeyboardIntroduction(this: CoreSimulatorWithSetting
 export async function updateSettings(
   this: CoreSimulatorWithSettings,
   domain: string,
-  updates: StringRecord
+  updates: StringRecord,
 ): Promise<boolean> {
   if (_.isEmpty(updates)) {
     return false;
   }
 
   const argChunks = generateDefaultsCommandArgs(updates);
-  await B.all(argChunks.map((args) => this.simctl.spawnProcess([
-    'defaults', 'write', domain, ...args
-  ])));
+  await B.all(
+    argChunks.map((args) => this.simctl.spawnProcess(['defaults', 'write', domain, ...args])),
+  );
   return true;
 }
 
@@ -120,7 +137,10 @@ export async function getAppearance(this: CoreSimulatorWithSettings): Promise<st
  * @since Xcode SDK 15 (but lower xcode could have this command)
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function setIncreaseContrast(this: CoreSimulatorWithSettings, _value: string): Promise<void> {
+export async function setIncreaseContrast(
+  this: CoreSimulatorWithSettings,
+  _value: string,
+): Promise<void> {
   throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
 }
 
@@ -149,7 +169,10 @@ export async function getIncreaseContrast(this: CoreSimulatorWithSettings): Prom
  * @since Xcode SDK 15 (but lower xcode could have this command)
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function setContentSize(this: CoreSimulatorWithSettings, _value: string): Promise<void> {
+export async function setContentSize(
+  this: CoreSimulatorWithSettings,
+  _value: string,
+): Promise<void> {
   throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
 }
 
@@ -178,17 +201,17 @@ export async function getContentSize(this: CoreSimulatorWithSettings): Promise<s
  */
 export async function configureLocalization(
   this: CoreSimulatorWithSettings,
-  opts: LocalizationOptions = {}
+  opts: LocalizationOptions = {},
 ): Promise<boolean> {
   if (_.isEmpty(opts)) {
     return false;
   }
 
-  const { language, locale, keyboard } = opts;
+  const {language, locale, keyboard} = opts;
   const globalPrefs: Record<string, any> = {};
   let keyboardId: string | null = null;
   if (_.isPlainObject(keyboard) && keyboard) {
-    const { name, layout, hardware } = keyboard;
+    const {name, layout, hardware} = keyboard;
     if (!name) {
       throw new Error(`The 'keyboard' field must have a valid name set`);
     }
@@ -202,14 +225,14 @@ export async function configureLocalization(
     globalPrefs.AppleKeyboards = [keyboardId];
   }
   if (_.isPlainObject(language) && language) {
-    const { name } = language;
+    const {name} = language;
     if (!name) {
       throw new Error(`The 'language' field must have a valid name set`);
     }
     globalPrefs.AppleLanguages = [name];
   }
   if (_.isPlainObject(locale) && locale) {
-    const { name, calendar } = locale;
+    const {name, calendar} = locale;
     if (!name) {
       throw new Error(`The 'locale' field must have a valid name set`);
     }
@@ -225,48 +248,64 @@ export async function configureLocalization(
 
   let previousAppleLanguages: any = null;
   if (globalPrefs.AppleLanguages) {
-    const absolutePrefsPath = path.join(this.getDir(), 'Library', 'Preferences', GLOBAL_PREFS_PLIST);
+    const absolutePrefsPath = path.join(
+      this.getDir(),
+      'Library',
+      'Preferences',
+      GLOBAL_PREFS_PLIST,
+    );
     try {
       const {stdout} = await exec('plutil', ['-convert', 'json', absolutePrefsPath, '-o', '-']);
       previousAppleLanguages = JSON.parse(stdout).AppleLanguages;
     } catch (e: any) {
-      this.log.debug(`Cannot retrieve the current value of the 'AppleLanguages' preference: ${e.message}`);
+      this.log.debug(
+        `Cannot retrieve the current value of the 'AppleLanguages' preference: ${e.message}`,
+      );
     }
   }
 
   const argChunks = generateDefaultsCommandArgs(globalPrefs, true);
-  await B.all(argChunks.map((args) => this.simctl.spawnProcess([
-    'defaults', 'write', GLOBAL_PREFS_PLIST, ...args
-  ])));
+  await B.all(
+    argChunks.map((args) =>
+      this.simctl.spawnProcess(['defaults', 'write', GLOBAL_PREFS_PLIST, ...args]),
+    ),
+  );
 
   if (keyboard && keyboardId) {
-    const argChunks = generateDefaultsCommandArgs({
-      KeyboardsCurrentAndNext: [keyboardId],
-      KeyboardLastUsed: keyboardId,
-      KeyboardLastUsedForLanguage: { [keyboard.name]: keyboardId }
-    }, true);
-    await B.all(argChunks.map((args) => this.simctl.spawnProcess([
-      'defaults', 'write', 'com.apple.Preferences', ...args
-    ])));
+    const argChunks = generateDefaultsCommandArgs(
+      {
+        KeyboardsCurrentAndNext: [keyboardId],
+        KeyboardLastUsed: keyboardId,
+        KeyboardLastUsedForLanguage: {[keyboard.name]: keyboardId},
+      },
+      true,
+    );
+    await B.all(
+      argChunks.map((args) =>
+        this.simctl.spawnProcess(['defaults', 'write', 'com.apple.Preferences', ...args]),
+      ),
+    );
   }
 
   if (globalPrefs.AppleLanguages) {
     if (_.isEqual(previousAppleLanguages, globalPrefs.AppleLanguages)) {
       this.log.info(
         `The 'AppleLanguages' preference is already set to '${globalPrefs.AppleLanguages}'. ` +
-        `Skipping services reset`
+          `Skipping services reset`,
       );
     } else if (language?.skipSyncUiDialogTranslation) {
-      this.log.info('Skipping services reset as requested. This might leave some system UI alerts untranslated');
+      this.log.info(
+        'Skipping services reset as requested. This might leave some system UI alerts untranslated',
+      );
     } else {
       this.log.info(
         `Will restart the following services in order to sync UI dialogs translation: ` +
-        `${SERVICES_FOR_TRANSLATION}. This might have unexpected side effects, ` +
-        `see https://github.com/appium/appium/issues/19440 for more details`
+          `${SERVICES_FOR_TRANSLATION}. This might have unexpected side effects, ` +
+          `see https://github.com/appium/appium/issues/19440 for more details`,
       );
-      await B.all(SERVICES_FOR_TRANSLATION.map((arg) => this.simctl.spawnProcess([
-        'launchctl', 'stop', arg
-      ])));
+      await B.all(
+        SERVICES_FOR_TRANSLATION.map((arg) => this.simctl.spawnProcess(['launchctl', 'stop', arg])),
+      );
     }
   }
 
@@ -279,9 +318,12 @@ export async function configureLocalization(
  * @param isEnabled Whether to enable or disable the setting.
  * @returns Promise that resolves to true if settings were updated
  */
-export async function setAutoFillPasswords(this: CoreSimulatorWithSettings, isEnabled: boolean): Promise<boolean> {
+export async function setAutoFillPasswords(
+  this: CoreSimulatorWithSettings,
+  isEnabled: boolean,
+): Promise<boolean> {
   return await this.updateSettings('com.apple.WebUI', {
-    AutoFillPasswords: Number(isEnabled)
+    AutoFillPasswords: Number(isEnabled),
   });
 }
 
@@ -299,22 +341,31 @@ export async function setAutoFillPasswords(this: CoreSimulatorWithSettings, isEn
 export async function updatePreferences(
   this: CoreSimulatorWithSettings,
   devicePrefs: DevicePreferences = {},
-  commonPrefs: CommonPreferences = {}
+  commonPrefs: CommonPreferences = {},
 ): Promise<boolean> {
   if (!_.isEmpty(devicePrefs)) {
-    this.log.debug(`Setting preferences of ${this.udid} Simulator to ${JSON.stringify(devicePrefs)}`);
+    this.log.debug(
+      `Setting preferences of ${this.udid} Simulator to ${JSON.stringify(devicePrefs)}`,
+    );
   }
   if (!_.isEmpty(commonPrefs)) {
     this.log.debug(`Setting common Simulator preferences to ${JSON.stringify(commonPrefs)}`);
   }
   const homeFolderPath = process.env.HOME;
   if (!homeFolderPath) {
-    this.log.warn(`Cannot get the path to HOME folder from the process environment. ` +
-      `Ignoring Simulator preferences update.`);
+    this.log.warn(
+      `Cannot get the path to HOME folder from the process environment. ` +
+        `Ignoring Simulator preferences update.`,
+    );
     return false;
   }
   verifyDevicePreferences.bind(this)(devicePrefs);
-  const plistPath = path.resolve(homeFolderPath, 'Library', 'Preferences', 'com.apple.iphonesimulator.plist');
+  const plistPath = path.resolve(
+    homeFolderPath,
+    'Library',
+    'Preferences',
+    'com.apple.iphonesimulator.plist',
+  );
   return await PREFERENCES_PLIST_GUARD.acquire(this.constructor.name, async () => {
     const defaults = new NSUserDefaults(plistPath);
     const prefsToUpdate = _.clone(commonPrefs);
@@ -324,24 +375,30 @@ export async function updatePreferences(
         const udidKey = this.udid.toUpperCase();
         if (await fs.exists(plistPath)) {
           const currentPlistContent = await defaults.asJson();
-          if (_.isPlainObject(currentPlistContent.DevicePreferences)
-              && _.isPlainObject(currentPlistContent.DevicePreferences[udidKey])) {
+          if (
+            _.isPlainObject(currentPlistContent.DevicePreferences) &&
+            _.isPlainObject(currentPlistContent.DevicePreferences[udidKey])
+          ) {
             existingDevicePrefs = currentPlistContent.DevicePreferences[udidKey];
           }
         }
         Object.assign(prefsToUpdate, {
           DevicePreferences: {
-            [udidKey]: Object.assign({}, existingDevicePrefs || {}, devicePrefs)
-          }
+            [udidKey]: Object.assign({}, existingDevicePrefs || {}, devicePrefs),
+          },
         });
       }
       await defaults.update(prefsToUpdate);
-      this.log.debug(`Updated ${this.udid} Simulator preferences at '${plistPath}' with ` +
-        JSON.stringify(prefsToUpdate));
+      this.log.debug(
+        `Updated ${this.udid} Simulator preferences at '${plistPath}' with ` +
+          JSON.stringify(prefsToUpdate),
+      );
       return true;
     } catch (e: any) {
-      this.log.warn(`Cannot update ${this.udid} Simulator preferences at '${plistPath}'. ` +
-        `Try to delete the file manually in order to reset it. Original error: ${e.message}`);
+      this.log.warn(
+        `Cannot update ${this.udid} Simulator preferences at '${plistPath}'. ` +
+          `Try to delete the file manually in order to reset it. Original error: ${e.message}`,
+      );
       return false;
     }
   });
@@ -357,14 +414,9 @@ export async function updatePreferences(
  */
 export function compileSimulatorPreferences(
   this: CoreSimulatorWithSettings,
-  opts: RunOptions = {}
+  opts: RunOptions = {},
 ): [DevicePreferences, CommonPreferences & Record<string, any>] {
-  const {
-    connectHardwareKeyboard,
-    tracePointer,
-    pasteboardAutomaticSync,
-    scaleFactor,
-  } = opts;
+  const {connectHardwareKeyboard, tracePointer, pasteboardAutomaticSync, scaleFactor} = opts;
   const commonPreferences: CommonPreferences & Record<string, any> = {
     // This option is necessary to make the Simulator window follow
     // the actual XCUIDevice orientation
@@ -374,7 +426,9 @@ export function compileSimulatorPreferences(
     DetachOnWindowClose: false,
     AttachBootedOnStart: true,
   };
-  const devicePreferences: DevicePreferences = opts.devicePreferences ? _.cloneDeep(opts.devicePreferences) : {};
+  const devicePreferences: DevicePreferences = opts.devicePreferences
+    ? _.cloneDeep(opts.devicePreferences)
+    : {};
   if (scaleFactor) {
     devicePreferences.SimulatorWindowLastScale = parseFloat(scaleFactor);
   }
@@ -401,7 +455,9 @@ export function compileSimulatorPreferences(
       // Do not add -PasteboardAutomaticSync
       break;
     default:
-      this.log.info(`['on', 'off' or 'system'] are available as the pasteboard automatic sync option. Defaulting to 'off'`);
+      this.log.info(
+        `['on', 'off' or 'system'] are available as the pasteboard automatic sync option. Defaulting to 'off'`,
+      );
       commonPreferences.PasteboardAutomaticSync = false;
   }
   return [devicePreferences, commonPreferences];
@@ -415,40 +471,56 @@ export function compileSimulatorPreferences(
  * @throws {Error} If any of the given preference values does not match the expected
  * format.
  */
-export function verifyDevicePreferences(this: CoreSimulatorWithSettings, prefs: DevicePreferences = {}): void {
+export function verifyDevicePreferences(
+  this: CoreSimulatorWithSettings,
+  prefs: DevicePreferences = {},
+): void {
   if (_.isEmpty(prefs)) {
     return;
   }
 
   if (!_.isUndefined(prefs.SimulatorWindowLastScale)) {
     if (!_.isNumber(prefs.SimulatorWindowLastScale) || prefs.SimulatorWindowLastScale <= 0) {
-      throw this.log.errorWithException(`SimulatorWindowLastScale is expected to be a positive float value. ` +
-        `'${prefs.SimulatorWindowLastScale}' is assigned instead.`);
+      throw this.log.errorWithException(
+        `SimulatorWindowLastScale is expected to be a positive float value. ` +
+          `'${prefs.SimulatorWindowLastScale}' is assigned instead.`,
+      );
     }
   }
 
   if (!_.isUndefined(prefs.SimulatorWindowCenter)) {
     // https://regex101.com/r/2ZXOij/2
     const verificationPattern = /{-?\d+(\.\d+)?,-?\d+(\.\d+)?}/;
-    if (!_.isString(prefs.SimulatorWindowCenter) || !verificationPattern.test(prefs.SimulatorWindowCenter)) {
-      throw this.log.errorWithException(`SimulatorWindowCenter is expected to match "{floatXPosition,floatYPosition}" format (without spaces). ` +
-        `'${prefs.SimulatorWindowCenter}' is assigned instead.`);
+    if (
+      !_.isString(prefs.SimulatorWindowCenter) ||
+      !verificationPattern.test(prefs.SimulatorWindowCenter)
+    ) {
+      throw this.log.errorWithException(
+        `SimulatorWindowCenter is expected to match "{floatXPosition,floatYPosition}" format (without spaces). ` +
+          `'${prefs.SimulatorWindowCenter}' is assigned instead.`,
+      );
     }
   }
 
   if (!_.isUndefined(prefs.SimulatorWindowOrientation)) {
     const acceptableValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
-    if (!prefs.SimulatorWindowOrientation || !acceptableValues.includes(prefs.SimulatorWindowOrientation)) {
-      throw this.log.errorWithException(`SimulatorWindowOrientation is expected to be one of ${acceptableValues}. ` +
-        `'${prefs.SimulatorWindowOrientation}' is assigned instead.`);
+    if (
+      !prefs.SimulatorWindowOrientation ||
+      !acceptableValues.includes(prefs.SimulatorWindowOrientation)
+    ) {
+      throw this.log.errorWithException(
+        `SimulatorWindowOrientation is expected to be one of ${acceptableValues}. ` +
+          `'${prefs.SimulatorWindowOrientation}' is assigned instead.`,
+      );
     }
   }
 
   if (!_.isUndefined(prefs.SimulatorWindowRotationAngle)) {
     if (!_.isNumber(prefs.SimulatorWindowRotationAngle)) {
-      throw this.log.errorWithException(`SimulatorWindowRotationAngle is expected to be a valid number. ` +
-        `'${prefs.SimulatorWindowRotationAngle}' is assigned instead.`);
+      throw this.log.errorWithException(
+        `SimulatorWindowRotationAngle is expected to be a valid number. ` +
+          `'${prefs.SimulatorWindowRotationAngle}' is assigned instead.`,
+      );
     }
   }
 }
-

@@ -4,14 +4,14 @@ import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as xcodeModule from 'appium-xcode';
 import {killAllSimulators, simExists} from '../../lib/utils';
-import { toBiometricDomainComponent } from '../../lib/extensions/biometric';
-import { verifyDevicePreferences } from '../../lib/extensions/settings';
-import { use as chaiUse, expect } from 'chai';
+import {toBiometricDomainComponent} from '../../lib/extensions/biometric';
+import {verifyDevicePreferences} from '../../lib/extensions/settings';
+import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as utils from '../../lib/utils';
 
-import { devices } from './device-list';
-import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
+import {devices} from './device-list';
+import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
 
 chaiUse(chaiAsPromised);
 
@@ -20,23 +20,22 @@ const XCODE_VERSION_10 = {
   versionFloat: 10.0,
   major: 10,
   minor: 0,
-  patch: undefined
+  patch: undefined,
 };
 const XCODE_VERSION_8 = {
   versionString: '8.2.1',
   versionFloat: 8.2,
   major: 8,
   minor: 2,
-  patch: 1
+  patch: 1,
 };
 const XCODE_VERSION_6 = {
   versionString: '6.1.1',
   versionFloat: 6.1,
   major: 6,
   minor: 1,
-  patch: 1
+  patch: 1,
 };
-
 
 describe('util', function () {
   let sandbox: sinon.SinonSandbox;
@@ -58,16 +57,23 @@ describe('util', function () {
 
   describe('killAllSimulators', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
-      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_10)));
-      innerExecStub = sandbox.stub()
-        .withArgs('xcrun').returns()
-        .withArgs('pgrep').throws({code: 1});
+      sandbox
+        .stub(xcodeModule, 'getVersion')
+        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_10)));
+      innerExecStub = sandbox
+        .stub()
+        .withArgs('xcrun')
+        .returns()
+        .withArgs('pgrep')
+        .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
       expect(innerExecStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
-      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_8)));
+      sandbox
+        .stub(xcodeModule, 'getVersion')
+        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_8)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns();
       innerExecStub.withArgs('pgrep').throws({code: 1});
@@ -76,7 +82,9 @@ describe('util', function () {
       expect(innerExecStub.callCount).to.equal(2);
     });
     it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
-      sandbox.stub(xcodeModule, 'getVersion').get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_6)));
+      sandbox
+        .stub(xcodeModule, 'getVersion')
+        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_6)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').throws();
       innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
@@ -122,97 +130,124 @@ describe('util', function () {
       }
     });
   });
-
 });
 
 describe('Device preferences verification', function () {
   const sim = new SimulatorXcode14('1234', XCODE_VERSION_10);
 
   describe('for SimulatorWindowLastScale option', function () {
-
     it('should pass if correct', function () {
       const validValues = [0.5, 1, 1.5];
       for (const validValue of validValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowLastScale: validValue
-        })).to.not.throw();
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowLastScale: validValue,
+          }),
+        ).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = [-1, 0.0, '', 'abc', null];
       for (const invalidValue of invalidValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowLastScale: invalidValue
-        })).to.throw(Error, /is expected to be a positive float value/);
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowLastScale: invalidValue,
+          }),
+        ).to.throw(Error, /is expected to be a positive float value/);
       }
     });
-
   });
 
   describe('for SimulatorWindowCenter option', function () {
-
     it('should pass if correct', function () {
-      const validValues = ['{0,0}', '{0.0,0}', '{0,0.0}', '{-10,0}', '{0,-10}',
-        '{-32.58,0}', '{0,-32.58}', '{-32.58,-32.58}'];
+      const validValues = [
+        '{0,0}',
+        '{0.0,0}',
+        '{0,0.0}',
+        '{-10,0}',
+        '{0,-10}',
+        '{-32.58,0}',
+        '{0,-32.58}',
+        '{-32.58,-32.58}',
+      ];
       for (const validValue of validValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowCenter: validValue
-        })).to.not.throw();
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowCenter: validValue,
+          }),
+        ).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
-      const invalidValues: any[] = ['', '{}', '{,}', '{0,}', '{,0}', '{abc}', null,
-        '{-10,-10', '{0. 0, 0}', '{ 0,0}', '{0, 0}'];
+      const invalidValues: any[] = [
+        '',
+        '{}',
+        '{,}',
+        '{0,}',
+        '{,0}',
+        '{abc}',
+        null,
+        '{-10,-10',
+        '{0. 0, 0}',
+        '{ 0,0}',
+        '{0, 0}',
+      ];
       for (const invalidValue of invalidValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowCenter: invalidValue
-        })).to.throw(Error, /is expected to match/);
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowCenter: invalidValue,
+          }),
+        ).to.throw(Error, /is expected to match/);
       }
     });
-
   });
 
   describe('for SimulatorWindowOrientation option', function () {
-
     it('should pass if correct', function () {
       const validValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
       for (const validValue of validValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowOrientation: validValue
-        })).to.not.throw();
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowOrientation: validValue,
+          }),
+        ).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = ['', null, 'portrait', 'bla', -1];
       for (const invalidValue of invalidValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowOrientation: invalidValue
-        })).to.throw(Error, /is expected to be one of/);
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowOrientation: invalidValue,
+          }),
+        ).to.throw(Error, /is expected to be one of/);
       }
     });
-
   });
 
   describe('for SimulatorWindowRotationAngle option', function () {
-
     it('should pass if correct', function () {
       const validValues = [0, -100, 100, 1.0];
       for (const validValue of validValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowRotationAngle: validValue
-        })).to.not.throw();
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowRotationAngle: validValue,
+          }),
+        ).to.not.throw();
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = ['', null, 'bla', '0'];
       for (const invalidValue of invalidValues) {
-        expect(() => verifyDevicePreferences.bind(sim)({
-          SimulatorWindowRotationAngle: invalidValue
-        })).to.throw(Error, /is expected to be a valid number/);
+        expect(() =>
+          verifyDevicePreferences.bind(sim)({
+            SimulatorWindowRotationAngle: invalidValue,
+          }),
+        ).to.throw(Error, /is expected to be a valid number/);
       }
     });
   });
@@ -232,4 +267,3 @@ describe('Device preferences verification', function () {
     });
   });
 });
-

@@ -1,11 +1,11 @@
 import _ from 'lodash';
-import { fs, timing, util } from '@appium/support';
-import { exec } from 'teen_process';
+import {fs, timing, util} from '@appium/support';
+import {exec} from 'teen_process';
 import path from 'node:path';
 import B from 'bluebird';
-import { waitForCondition } from 'asyncbox';
-import type { CoreSimulator, SupportsAppPermissions } from '../types';
-import type { StringRecord } from '@appium/types';
+import {waitForCondition} from 'asyncbox';
+import type {CoreSimulator, SupportsAppPermissions} from '../types';
+import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions;
 
@@ -25,10 +25,7 @@ const SYSTEM_SERVICE_RESTART_TIMEOUT_MS = 15000;
 // permissions properly but it kills the app process while WIX/applesimutils does not.
 // In the backward compatibility perspective,
 // we'd like to keep the app process as possible.
-const PERMISSIONS_APPLIED_VIA_SIMCTL = [
-  'location',
-  'location-always'
-];
+const PERMISSIONS_APPLIED_VIA_SIMCTL = ['location', 'location-always'];
 const SERVICES = Object.freeze({
   calendar: 'kTCCServiceCalendar',
   camera: 'kTCCServiceCamera',
@@ -57,7 +54,7 @@ export async function setPermission(
   this: CoreSimulatorWithAppPermissions,
   bundleId: string,
   permission: string,
-  value: string
+  value: string,
 ): Promise<void> {
   await this.setPermissions(bundleId, {[permission]: value});
 }
@@ -75,9 +72,11 @@ export async function setPermission(
 export async function setPermissions(
   this: CoreSimulatorWithAppPermissions,
   bundleId: string,
-  permissionsMapping: StringRecord
+  permissionsMapping: StringRecord,
 ): Promise<void> {
-  this.log.debug(`Setting access for '${bundleId}': ${JSON.stringify(permissionsMapping, null, 2)}`);
+  this.log.debug(
+    `Setting access for '${bundleId}': ${JSON.stringify(permissionsMapping, null, 2)}`,
+  );
   await setAccess.bind(this)(bundleId, permissionsMapping);
 }
 
@@ -92,7 +91,7 @@ export async function setPermissions(
 export async function getPermission(
   this: CoreSimulatorWithAppPermissions,
   bundleId: string,
-  serviceName: string
+  serviceName: string,
 ): Promise<string> {
   const result = await getAccess.bind(this)(bundleId, serviceName);
   this.log.debug(`Got ${serviceName} access status for '${bundleId}': ${result}`);
@@ -105,12 +104,12 @@ function toInternalServiceName(serviceName: string): string {
     return SERVICES[lowerName as keyof typeof SERVICES] as string;
   }
   throw new Error(
-    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(_.keys(SERVICES))}`
+    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(_.keys(SERVICES))}`,
   );
 }
 
 function formatStatus(status: string): string {
-  return (status === STATUS.UNSET || status === STATUS.NO) ? _.toUpper(status) : status;
+  return status === STATUS.UNSET || status === STATUS.NO ? _.toUpper(status) : status;
 }
 
 /**
@@ -120,13 +119,17 @@ function formatStatus(status: string): string {
  * @param query The actual query string
  * @returns Promise that resolves to sqlite command stdout
  */
-async function execSQLiteQuery(this: CoreSimulatorWithAppPermissions, db: string, query: string): Promise<string> {
+async function execSQLiteQuery(
+  this: CoreSimulatorWithAppPermissions,
+  db: string,
+  query: string,
+): Promise<string> {
   this.log.debug(`Executing SQL query "${query}" on '${db}'`);
   try {
     return (await exec('sqlite3', ['-line', db, query])).stdout;
   } catch (err: any) {
     throw new Error(
-      `Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`
+      `Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`,
     );
   }
 }
@@ -141,8 +144,8 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
   } catch {
     throw new Error(
       `${WIX_SIM_UTILS} binary has not been found in your PATH. ` +
-      `Please install it ('brew tap wix/brew && brew install wix/brew/applesimutils') to ` +
-      `be able to change application permissions`
+        `Please install it ('brew tap wix/brew && brew install wix/brew/applesimutils') to ` +
+        `be able to change application permissions`,
     );
   }
 
@@ -152,7 +155,9 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
     this.log.debug(`Command output: ${stdout}`);
     return stdout;
   } catch (e: any) {
-    throw new Error(`Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`);
+    throw new Error(
+      `Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`,
+    );
   }
 }
 
@@ -171,7 +176,7 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
 async function setAccess(
   this: CoreSimulatorWithAppPermissions,
   bundleId: string,
-  permissionsMapping: StringRecord
+  permissionsMapping: StringRecord,
 ): Promise<boolean> {
   const wixPermissions: Record<string, string> = {};
 
@@ -197,7 +202,7 @@ async function setAccess(
           break;
         default:
           throw this.log.errorWithException(
-            `${serviceName} does not support ${permissionsMapping[serviceName]}. Please specify 'yes', 'no' or 'unset'.`
+            `${serviceName} does not support ${permissionsMapping[serviceName]}. Please specify 'yes', 'no' or 'unset'.`,
           );
       }
     }
@@ -206,21 +211,27 @@ async function setAccess(
   const permissionPromises: Promise<any>[] = [];
 
   if (!_.isEmpty(grantPermissions)) {
-    this.log.debug(`Granting ${util.pluralize('permission', grantPermissions.length, false)} for ${bundleId}: ${grantPermissions}`);
+    this.log.debug(
+      `Granting ${util.pluralize('permission', grantPermissions.length, false)} for ${bundleId}: ${grantPermissions}`,
+    );
     for (const action of grantPermissions) {
       permissionPromises.push(this.simctl.grantPermission(bundleId, action));
     }
   }
 
   if (!_.isEmpty(revokePermissions)) {
-    this.log.debug(`Revoking ${util.pluralize('permission', revokePermissions.length, false)} for ${bundleId}: ${revokePermissions}`);
+    this.log.debug(
+      `Revoking ${util.pluralize('permission', revokePermissions.length, false)} for ${bundleId}: ${revokePermissions}`,
+    );
     for (const action of revokePermissions) {
       permissionPromises.push(this.simctl.revokePermission(bundleId, action));
     }
   }
 
   if (!_.isEmpty(resetPermissions)) {
-    this.log.debug(`Resetting ${util.pluralize('permission', resetPermissions.length, false)} for ${bundleId}: ${resetPermissions}`);
+    this.log.debug(
+      `Resetting ${util.pluralize('permission', resetPermissions.length, false)} for ${bundleId}: ${resetPermissions}`,
+    );
     for (const action of resetPermissions) {
       permissionPromises.push(this.simctl.resetPermission(bundleId, action));
     }
@@ -231,26 +242,33 @@ async function setAccess(
   }
 
   if (!_.isEmpty(wixPermissions)) {
-    this.log.debug(`Setting permissions for ${bundleId} wit ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`);
+    this.log.debug(
+      `Setting permissions for ${bundleId} wit ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`,
+    );
     const permissionsArg = _.toPairs(wixPermissions)
       .map((x) => `${x[0]}=${formatStatus(x[1])}`)
       .join(',');
-    const execWixFn = async () => await execWix.bind(this)([
-      '--byId', this.udid,
-      '--bundle', bundleId,
-      '--setPermissions', permissionsArg,
-    ]);
+    const execWixFn = async () =>
+      await execWix.bind(this)([
+        '--byId',
+        this.udid,
+        '--bundle',
+        bundleId,
+        '--setPermissions',
+        permissionsArg,
+      ]);
     const shouldWaitForSystemReadiness = !_.isEmpty(
-      _.intersection(SERVICES_NEED_SPRINGBOARD_RESTART, _.keys(wixPermissions))
+      _.intersection(SERVICES_NEED_SPRINGBOARD_RESTART, _.keys(wixPermissions)),
     );
     if (shouldWaitForSystemReadiness) {
       const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(
-        execWixFn, SYSTEM_SERVICE_RESTART_TIMEOUT_MS
+        execWixFn,
+        SYSTEM_SERVICE_RESTART_TIMEOUT_MS,
       );
       if (didTimeout) {
         this.log.warn(
           `The required system services did not restart after ` +
-          `${SYSTEM_SERVICE_RESTART_TIMEOUT_MS}ms timeout. This might lead to unexpected consequences later.`
+            `${SYSTEM_SERVICE_RESTART_TIMEOUT_MS}ms timeout. This might lead to unexpected consequences later.`,
         );
       }
     } else {
@@ -270,16 +288,27 @@ async function setAccess(
  * @param timeoutMs Timeout in milliseconds
  * @returns Promise that resolves to a tuple of [didTimeout, result]
  */
-async function runAndWaitForSystemReadiness<T>(this: CoreSimulator, fn: () => Promise<T>, timeoutMs: number): Promise<[boolean, T]> {
-  const waitForNewPid = async (initialPid: number | undefined, bundleId: string, timeoutMs: number) => {
-    await waitForCondition(async () => {
-      try {
-        const pid = (await this.ps()).find(({name}) => bundleId === name)?.pid;
-        return _.isInteger(pid) && initialPid !== pid;
-      } catch {
-        return false;
-      }
-    }, {waitMs: timeoutMs, intervalMs: 500});
+async function runAndWaitForSystemReadiness<T>(
+  this: CoreSimulator,
+  fn: () => Promise<T>,
+  timeoutMs: number,
+): Promise<[boolean, T]> {
+  const waitForNewPid = async (
+    initialPid: number | undefined,
+    bundleId: string,
+    timeoutMs: number,
+  ) => {
+    await waitForCondition(
+      async () => {
+        try {
+          const pid = (await this.ps()).find(({name}) => bundleId === name)?.pid;
+          return _.isInteger(pid) && initialPid !== pid;
+        } catch {
+          return false;
+        }
+      },
+      {waitMs: timeoutMs, intervalMs: 500},
+    );
   };
 
   let initialProcesses: any[] = [];
@@ -288,7 +317,8 @@ async function runAndWaitForSystemReadiness<T>(this: CoreSimulator, fn: () => Pr
   } catch {}
 
   const [initialSpringboardPid, initialSpotlightPid] = [
-    SPRINGBOARD_BUNDLE_ID, SPOTLIGHT_BUNDLE_ID
+    SPRINGBOARD_BUNDLE_ID,
+    SPOTLIGHT_BUNDLE_ID,
   ].map((bundleId) => initialProcesses.find(({name}) => bundleId === name)?.pid);
 
   const result = await fn();
@@ -325,12 +355,17 @@ async function runAndWaitForSystemReadiness<T>(this: CoreSimulator, fn: () => Pr
  * @returns The current status: yes/no/unset/limited
  * @throws {Error} If there was an error while retrieving permissions.
  */
-async function getAccess(this: CoreSimulatorWithAppPermissions, bundleId: string, serviceName: string): Promise<string> {
+async function getAccess(
+  this: CoreSimulatorWithAppPermissions,
+  bundleId: string,
+  serviceName: string,
+): Promise<string> {
   const internalServiceName = toInternalServiceName(serviceName);
   const dbPath = path.resolve(this.getDir(), 'Library', 'TCC', 'TCC.db');
   const getAccessStatus = async (statusPairs: [string, string][], statusKey: string) => {
     for (const [statusValue, status] of statusPairs) {
-      const sql = `SELECT count(*) FROM 'access' ` +
+      const sql =
+        `SELECT count(*) FROM 'access' ` +
         `WHERE client='${bundleId}' AND ${statusKey}=${statusValue} AND service='${internalServiceName}'`;
       const count = await execSQLiteQuery.bind(this)(dbPath, sql);
       if (parseInt(count.split('=')[1], 10) > 0) {
@@ -345,14 +380,20 @@ async function getAccess(this: CoreSimulatorWithAppPermissions, bundleId: string
   try {
     // iOS 14+
     return await getAccessStatus(
-      [['0', STATUS.NO], ['2', STATUS.YES], ['3', STATUS.LIMITED]],
-      'auth_value'
+      [
+        ['0', STATUS.NO],
+        ['2', STATUS.YES],
+        ['3', STATUS.LIMITED],
+      ],
+      'auth_value',
     );
   } catch {
     return await getAccessStatus(
-      [['0', STATUS.NO], ['1', STATUS.YES]],
-      'allowed'
+      [
+        ['0', STATUS.NO],
+        ['1', STATUS.YES],
+      ],
+      'allowed',
     );
   }
 }
-

@@ -1,12 +1,12 @@
-import { log } from './logger';
+import {log} from './logger';
 import _ from 'lodash';
-import { exec } from 'teen_process';
-import { waitForCondition } from 'asyncbox';
-import { getVersion } from 'appium-xcode';
-import type { XcodeVersion } from 'appium-xcode';
+import {exec} from 'teen_process';
+import {waitForCondition} from 'asyncbox';
+import {getVersion} from 'appium-xcode';
+import type {XcodeVersion} from 'appium-xcode';
 import path from 'node:path';
-import { Simctl } from 'node-simctl';
-import type { StringRecord } from '@appium/types';
+import {Simctl} from 'node-simctl';
+import type {StringRecord} from '@appium/types';
 // it's a hack needed to stub getDevices in tests
 import * as utilsModule from './utils';
 
@@ -45,7 +45,9 @@ async function pkill(appName: string, forceKill: boolean = false): Promise<numbe
  * @param timeout - Timeout in milliseconds (default: DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS).
  * @returns Promise that resolves when all simulators are killed.
  */
-export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS): Promise<void> {
+export async function killAllSimulators(
+  timeout: number = DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS,
+): Promise<void> {
   log.debug('Killing all iOS Simulators');
   const xcodeVersion = await getVersion(true);
   if (_.isString(xcodeVersion)) {
@@ -65,7 +67,7 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
   try {
     const {stdout} = await exec('pgrep', ['-f', `${appName}.app/Contents/MacOS/`]);
     if (stdout.trim()) {
-      pids.push(...(stdout.trim().split(/\s+/)));
+      pids.push(...stdout.trim().split(/\s+/));
     }
   } catch (e: any) {
     if (e.code === 1) {
@@ -73,13 +75,15 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
       return;
     }
     if (_.isEmpty(pids)) {
-      log.warn(`pgrep error ${e.code} while detecting whether ${appName} is running. Trying to kill anyway.`);
+      log.warn(
+        `pgrep error ${e.code} while detecting whether ${appName} is running. Trying to kill anyway.`,
+      );
     }
   }
   if (!_.isEmpty(pids)) {
     log.debug(`Killing processes: ${pids.join(', ')}`);
     try {
-      await exec('kill', ['-9', ...(pids.map((pid) => `${pid}`))]);
+      await exec('kill', ['-9', ...pids.map((pid) => `${pid}`)]);
     } catch {}
   }
 
@@ -99,7 +103,9 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
       const state = sim.state.toLowerCase();
       const done = ['shutdown', 'unavailable', 'disconnected'].includes(state);
       if (!done) {
-        remainingDevices.push(`${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${state}'`);
+        remainingDevices.push(
+          `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${state}'`,
+        );
       }
       return done;
     });
@@ -107,7 +113,7 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
   try {
     await waitForCondition(allSimsAreDown, {
       waitMs: timeout,
-      intervalMs: 200
+      intervalMs: 200,
     });
   } catch (err) {
     if (remainingDevices.length > 0) {
@@ -129,10 +135,11 @@ export interface SimulatorInfoOptions {
  * @param opts - Options including devicesSetPath.
  * @returns Promise that resolves to simulator info or undefined if not found.
  */
-export async function getSimulatorInfo(udid: string, opts: SimulatorInfoOptions = {}): Promise<any> {
-  const {
-    devicesSetPath
-  } = opts;
+export async function getSimulatorInfo(
+  udid: string,
+  opts: SimulatorInfoOptions = {},
+): Promise<any> {
+  const {devicesSetPath} = opts;
   // see the README for github.com/appium/node-simctl for example output of getDevices()
   const devices = _.toPairs(await utilsModule.getDevices({devicesSetPath}))
     .map((pair) => pair[1])
@@ -168,7 +175,7 @@ export function assertXcodeVersion<V extends XcodeVersion>(xcodeVersion: V): V {
   if (xcodeVersion.major < MIN_SUPPORTED_XCODE_VERSION) {
     throw new Error(
       `Tried to use an iOS simulator with xcode version ${xcodeVersion.versionString} but only Xcode version ` +
-      `${MIN_SUPPORTED_XCODE_VERSION} and up are supported`
+        `${MIN_SUPPORTED_XCODE_VERSION} and up are supported`,
     );
   }
   return xcodeVersion;
