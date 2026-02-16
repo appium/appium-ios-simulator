@@ -1,3 +1,9 @@
+## [8.0.12](https://github.com/appium/appium-ios-simulator/compare/v8.0.11...v8.0.12) (2026-02-16)
+
+### Bug Fixes
+
+* format ([#475](https://github.com/appium/appium-ios-simulator/issues/475)) ([43d520c](https://github.com/appium/appium-ios-simulator/commit/43d520c475fad9b1c6567397185499be02e90d84))
+
 ## [8.0.11](https://github.com/appium/appium-ios-simulator/compare/v8.0.10...v8.0.11) (2026-01-28)
 
 ### Miscellaneous Chores
