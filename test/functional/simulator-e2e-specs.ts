@@ -1,37 +1,34 @@
 // transpile:mocha
 import _ from 'lodash';
-import { killAllSimulators, MOBILE_SAFARI_BUNDLE_ID } from '../../lib/utils';
-import { getSimulator } from '../../lib/simulator';
-import { Simctl } from 'node-simctl';
+import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils';
+import {getSimulator} from '../../lib/simulator';
+import {Simctl} from 'node-simctl';
 import B from 'bluebird';
-import { retryInterval, waitForCondition } from 'asyncbox';
+import {retryInterval, waitForCondition} from 'asyncbox';
 import xcode from 'appium-xcode';
-import { LONG_TIMEOUT, verifyStates } from './helpers';
-import { use as chaiUse, expect } from 'chai';
+import {LONG_TIMEOUT, verifyStates} from './helpers';
+import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { getUIKitCatalogPath, UICATALOG_BUNDLE_ID } from '../setup';
+import {getUIKitCatalogPath, UICATALOG_BUNDLE_ID} from '../setup';
 
 chaiUse(chaiAsPromised);
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '26.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 17';
 
-async function deleteSimulator (udid: string, version: string): Promise<void> {
+async function deleteSimulator(udid: string, version: string): Promise<void> {
   // only want to get rid of the device if it is present
   const simctl = new Simctl();
   const devices = await simctl.getDevices();
   if (!devices[version]) {
     return;
   }
-  const devicePresent = devices[version]
-    .filter((device) => device.udid === udid)
-    .length > 0;
+  const devicePresent = devices[version].filter((device) => device.udid === udid).length > 0;
   if (devicePresent) {
     simctl.udid = udid;
     await simctl.deleteDevice();
   }
 }
-
 
 describe(`simulator ${OS_VERSION}`, function () {
   this.timeout(LONG_TIMEOUT);
@@ -49,10 +46,9 @@ describe(`simulator ${OS_VERSION}`, function () {
   beforeEach(async function () {
     await killAllSimulators();
     simctl = new Simctl();
-    simctl.udid = await simctl.createDevice('ios-simulator testing',
-      DEVICE_NAME,
-      OS_VERSION,
-      {timeout: 20000});
+    simctl.udid = await simctl.createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION, {
+      timeout: 20000,
+    });
     // just need a little more space in the logs
     console.log('\n\n'); // eslint-disable-line no-console
   });
@@ -109,10 +105,12 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     // Wait for application process
     await waitForCondition(
-      async () => (await sim.ps()).some(({name}) => name === UICATALOG_BUNDLE_ID), {
+      async () => (await sim.ps()).some(({name}) => name === UICATALOG_BUNDLE_ID),
+      {
         waitMs: 10000,
         intervalMs: 500,
-      });
+      },
+    );
 
     await sim.removeApp(UICATALOG_BUNDLE_ID);
 
@@ -207,10 +205,7 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
 
   before(async function () {
     await killAllSimulators();
-    const udid = await new Simctl().createDevice(
-      'ios-simulator testing',
-      DEVICE_NAME,
-      OS_VERSION);
+    const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION);
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
     await sim.shutdown();
@@ -243,10 +238,7 @@ describe('advanced features', function () {
     customApp = await getUIKitCatalogPath();
 
     await killAllSimulators();
-    const udid = await new Simctl().createDevice(
-      'ios-simulator testing',
-      DEVICE_NAME,
-      OS_VERSION);
+    const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION);
     sim = await getSimulator(udid);
     await sim.run({
       startupTimeout: LONG_TIMEOUT,
@@ -259,21 +251,23 @@ describe('advanced features', function () {
 
   describe('custom apps', function () {
     it('should find bundle id for UIKitCatalog', async function () {
-      if (!await sim.isAppInstalled(customApp)) {
+      if (!(await sim.isAppInstalled(customApp))) {
         await sim.installApp(customApp);
       }
-      if (!await sim.isAppRunning(customApp)) {
+      if (!(await sim.isAppRunning(customApp))) {
         await sim.launchApp(UICATALOG_BUNDLE_ID);
       }
 
-      await expect(sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')).to.eventually.eql([UICATALOG_BUNDLE_ID]);
+      await expect(sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')).to.eventually.eql([
+        UICATALOG_BUNDLE_ID,
+      ]);
     });
 
     it('should scrub custom app', async function () {
-      if (!await sim.isAppInstalled(customApp)) {
+      if (!(await sim.isAppInstalled(customApp))) {
         await sim.installApp(customApp);
       }
-      if (!await sim.isAppRunning(customApp)) {
+      if (!(await sim.isAppRunning(customApp))) {
         await sim.launchApp(UICATALOG_BUNDLE_ID);
       }
       await sim.scrubApp(UICATALOG_BUNDLE_ID);
@@ -307,19 +301,21 @@ describe('advanced features', function () {
         return this.skip();
       }
 
-      expect(await sim.configureLocalization({
-        language: {
-          name: 'en'
-        },
-        locale: {
-          name: 'en_US',
-          calendar: 'gregorian',
-        },
-        keyboard: {
-          name: 'en_US',
-          layout: 'QWERTY',
-        }
-      })).to.be.true;
+      expect(
+        await sim.configureLocalization({
+          language: {
+            name: 'en',
+          },
+          locale: {
+            name: 'en_US',
+            calendar: 'gregorian',
+          },
+          keyboard: {
+            name: 'en_US',
+            layout: 'QWERTY',
+          },
+        }),
+      ).to.be.true;
     });
   });
 
@@ -410,7 +406,6 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
   const DEVICES_COUNT = 2;
 
   before(async function () {
-
     xcodeVersion = await xcode.getVersion(true);
     if (xcodeVersion.major < 9) {
       return this.skip();
@@ -420,10 +415,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
 
     const simctl = new Simctl();
     for (let i = 0; i < DEVICES_COUNT; i++) {
-      const udid = await simctl.createDevice(
-        `ios-simulator_${i}_testing`,
-        DEVICE_NAME,
-        OS_VERSION);
+      const udid = await simctl.createDevice(`ios-simulator_${i}_testing`, DEVICE_NAME, OS_VERSION);
       simulatorsMapping[udid] = await getSimulator(udid);
     }
   });
@@ -455,7 +447,9 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
     });
 
     // Should be called before launching simulator
-    await expect(simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog')).to.eventually.eql([]);
+    await expect(
+      simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'),
+    ).to.eventually.eql([]);
 
     for (const sim of _.values(simulatorsMapping)) {
       await sim.run({startupTimeout: LONG_TIMEOUT});
@@ -479,10 +473,7 @@ describe('getWebInspectorSocket', function () {
 
   before(async function () {
     await killAllSimulators();
-    const udid = await new Simctl().createDevice(
-      'ios-simulator testing',
-      DEVICE_NAME,
-      OS_VERSION);
+    const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION);
     sim = await getSimulator(udid);
     await sim.run({
       startupTimeout: LONG_TIMEOUT,
@@ -514,7 +505,8 @@ describe('getWebInspectorSocket', function () {
       const udid = await new Simctl().createDevice(
         'ios-simulator testing',
         DEVICE_NAME,
-        OS_VERSION);
+        OS_VERSION,
+      );
       sim2 = await getSimulator(udid);
       await sim2.run({
         startupTimeout: LONG_TIMEOUT,
@@ -546,4 +538,3 @@ describe('getWebInspectorSocket', function () {
     });
   });
 });
-

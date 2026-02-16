@@ -1,9 +1,9 @@
-import { SimulatorXcode14 } from './simulator-xcode-14';
-import { SimulatorXcode15 } from './simulator-xcode-15';
-import { getSimulatorInfo, assertXcodeVersion, MIN_SUPPORTED_XCODE_VERSION } from './utils';
+import {SimulatorXcode14} from './simulator-xcode-14';
+import {SimulatorXcode15} from './simulator-xcode-15';
+import {getSimulatorInfo, assertXcodeVersion, MIN_SUPPORTED_XCODE_VERSION} from './utils';
 import * as xcode from 'appium-xcode';
-import { log } from './logger';
-import type { Simulator, SimulatorLookupOptions } from './types';
+import {log} from './logger';
+import type {Simulator, SimulatorLookupOptions} from './types';
 
 /**
  * Finds and returns the corresponding Simulator instance for the given ID.
@@ -15,20 +15,17 @@ import type { Simulator, SimulatorLookupOptions } from './types';
  *   [node-simctl](github.com/appium/node-simctl).
  * @return Simulator object associated with the udid passed in.
  */
-export async function getSimulator(udid: string, opts: SimulatorLookupOptions = {}): Promise<Simulator> {
+export async function getSimulator(
+  udid: string,
+  opts: SimulatorLookupOptions = {},
+): Promise<Simulator> {
   let platform = opts.platform ?? 'iOS';
-  const {
-    checkExistence = true,
-    devicesSetPath,
-    logger,
-  } = opts;
+  const {checkExistence = true, devicesSetPath, logger} = opts;
 
-  const xcodeVersion = assertXcodeVersion(
-    await xcode.getVersion(true) as xcode.XcodeVersion
-  );
+  const xcodeVersion = assertXcodeVersion((await xcode.getVersion(true)) as xcode.XcodeVersion);
   if (checkExistence) {
     const simulatorInfo = await getSimulatorInfo(udid, {
-      devicesSetPath
+      devicesSetPath,
     });
 
     if (!simulatorInfo) {
@@ -39,7 +36,7 @@ export async function getSimulator(udid: string, opts: SimulatorLookupOptions = 
   }
 
   (logger ?? log).info(
-    `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`
+    `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`,
   );
   let SimClass: typeof SimulatorXcode14 | typeof SimulatorXcode15;
   switch (xcodeVersion.major) {
@@ -58,4 +55,3 @@ export async function getSimulator(udid: string, opts: SimulatorLookupOptions = 
   }
   return result;
 }
-

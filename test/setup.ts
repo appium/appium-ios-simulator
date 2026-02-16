@@ -1,8 +1,13 @@
 import path from 'node:path';
-import { fs, net, tempDir, zip } from '@appium/support';
+import {fs, net, tempDir, zip} from '@appium/support';
 
-const UICATALOG_URL = 'https://github.com/appium/ios-uicatalog/releases/download/v4.0.1/UIKitCatalog-iphonesimulator.zip';
-const UICATALOG_CACHE_PATH = path.resolve(__dirname, 'fixtures', 'UIKitCatalog-iphonesimulator.app');
+const UICATALOG_URL =
+  'https://github.com/appium/ios-uicatalog/releases/download/v4.0.1/UIKitCatalog-iphonesimulator.zip';
+const UICATALOG_CACHE_PATH = path.resolve(
+  __dirname,
+  'fixtures',
+  'UIKitCatalog-iphonesimulator.app',
+);
 export const UICATALOG_BUNDLE_ID = 'com.example.apple-samplecode.UICatalog';
 
 // Cache the download promises to prevent concurrent downloads
@@ -33,7 +38,11 @@ async function findApps(searchPath: string): Promise<string[]> {
  * @returns {Promise<string>} The path to the cached app directory
  * @throws {Error} If the download or extraction fails
  */
-async function downloadAndExtractApp(url: string, cachePath: string, zipFileName: string): Promise<string> {
+async function downloadAndExtractApp(
+  url: string,
+  cachePath: string,
+  zipFileName: string,
+): Promise<string> {
   // If a download is already in progress, wait for it first
   // This prevents returning a partially downloaded file
   if (downloadPromises.has(cachePath)) {
@@ -108,7 +117,6 @@ export async function getUIKitCatalogPath(): Promise<string> {
   return downloadAndExtractApp(
     UICATALOG_URL,
     UICATALOG_CACHE_PATH,
-    'UIKitCatalog-iphonesimulator.zip'
+    'UIKitCatalog-iphonesimulator.zip',
   );
 }
-

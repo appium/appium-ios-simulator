@@ -1,9 +1,9 @@
-import { fs } from '@appium/support';
-import { exec } from 'teen_process';
+import {fs} from '@appium/support';
+import {exec} from 'teen_process';
 import path from 'node:path';
 import _ from 'lodash';
 import B from 'bluebird';
-import { SimulatorXcode14 } from './simulator-xcode-14';
+import {SimulatorXcode14} from './simulator-xcode-14';
 
 export class SimulatorXcode15 extends SimulatorXcode14 {
   private _systemAppBundleIds?: Set<string>;
@@ -18,7 +18,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
   isAppInstalled = async (bundleId: string): Promise<boolean> => {
     try {
       const appContainer = await this.simctl.getAppContainer(bundleId);
-      return appContainer.endsWith('.app') && await fs.exists(appContainer);
+      return appContainer.endsWith('.app') && (await fs.exists(appContainer));
     } catch {
       // get_app_container subcommand fails for system applications,
       // as well as the hidden appinfo command
@@ -120,7 +120,9 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
       const infoPlistPath = path.resolve(appRoot, 'Info.plist');
       try {
         const {stdout} = await exec('/usr/libexec/PlistBuddy', [
-          '-c', 'print CFBundleIdentifier', infoPlistPath
+          '-c',
+          'print CFBundleIdentifier',
+          infoPlistPath,
         ]);
         return _.trim(stdout);
       } catch {
@@ -135,4 +137,3 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
     return this._systemAppBundleIds;
   }
 }
-

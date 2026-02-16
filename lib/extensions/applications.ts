@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import path from 'node:path';
-import { fs, plist, util } from '@appium/support';
+import {fs, plist, util} from '@appium/support';
 import B from 'bluebird';
-import { waitForCondition } from 'asyncbox';
-import type { CoreSimulator, InteractsWithApps, LaunchAppOptions } from '../types';
+import {waitForCondition} from 'asyncbox';
+import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types';
 
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
 
@@ -24,7 +24,7 @@ export async function installApp(this: CoreSimulatorWithApps, app: string): Prom
  */
 export async function getUserInstalledBundleIdsByBundleName(
   this: CoreSimulatorWithApps,
-  bundleName: string
+  bundleName: string,
 ): Promise<string[]> {
   const appsRoot = path.resolve(this.getDir(), 'Containers', 'Bundle', 'Application');
   // glob all Info.plist from simdir/data/Containers/Bundle/Application
@@ -38,25 +38,27 @@ export async function getUserInstalledBundleIdsByBundleName(
 
   const bundleInfoPromises: Promise<any>[] = [];
   for (const infoPlist of infoPlists) {
-    bundleInfoPromises.push((async () => {
-      try {
-        return await plist.parsePlistFile(infoPlist);
-      } catch {
-        return null;
-      }
-    })());
+    bundleInfoPromises.push(
+      (async () => {
+        try {
+          return await plist.parsePlistFile(infoPlist);
+        } catch {
+          return null;
+        }
+      })(),
+    );
   }
   const bundleInfos = (await B.all(bundleInfoPromises)).filter(_.isPlainObject);
   const bundleIds = bundleInfos
-    .filter(({ CFBundleName }) => CFBundleName === bundleName)
-    .map(({ CFBundleIdentifier }) => CFBundleIdentifier);
+    .filter(({CFBundleName}) => CFBundleName === bundleName)
+    .map(({CFBundleIdentifier}) => CFBundleIdentifier);
   if (_.isEmpty(bundleIds)) {
     return [];
   }
 
   this.log.debug(
     `The simulator has ${util.pluralize('bundle', bundleIds.length, true)} which ` +
-    `have '${bundleName}' as their 'CFBundleName': ${JSON.stringify(bundleIds)}`
+      `have '${bundleName}' as their 'CFBundleName': ${JSON.stringify(bundleIds)}`,
   );
   return bundleIds;
 }
@@ -67,7 +69,10 @@ export async function getUserInstalledBundleIdsByBundleName(
  * @param bundleId The bundle id of the application to be checked.
  * @return True if the given application is installed.
  */
-export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
+export async function isAppInstalled(
+  this: CoreSimulatorWithApps,
+  bundleId: string,
+): Promise<boolean> {
   try {
     const appContainer = await this.simctl.getAppContainer(bundleId);
     if (!appContainer.endsWith('.app')) {
@@ -105,13 +110,10 @@ export async function removeApp(this: CoreSimulatorWithApps, bundleId: string): 
 export async function launchApp(
   this: CoreSimulatorWithApps,
   bundleId: string,
-  opts: LaunchAppOptions = {}
+  opts: LaunchAppOptions = {},
 ): Promise<void> {
   await this.simctl.launchApp(bundleId);
-  const {
-    wait = false,
-    timeoutMs = 10000,
-  } = opts;
+  const {wait = false, timeoutMs = 10000} = opts;
   if (!wait) {
     return;
   }
@@ -119,7 +121,7 @@ export async function launchApp(
   try {
     await waitForCondition(async () => await this.isAppRunning(bundleId), {
       waitMs: timeoutMs,
-      intervalMs: 300
+      intervalMs: 300,
     });
   } catch {
     throw new Error(`App '${bundleId}' is not runnning after ${timeoutMs}ms timeout.`);
@@ -140,7 +142,10 @@ export async function terminateApp(this: CoreSimulatorWithApps, bundleId: string
  *
  * @param bundleId The bundle ID of the application to be checked.
  */
-export async function isAppRunning(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
+export async function isAppRunning(
+  this: CoreSimulatorWithApps,
+  bundleId: string,
+): Promise<boolean> {
   return (await this.ps()).some(({name}) => name === bundleId);
 }
 
@@ -158,7 +163,9 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
     nodir: true,
     absolute: true,
   });
-  this.log.info(`Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`);
+  this.log.info(
+    `Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`,
+  );
   if (_.isEmpty(appFiles)) {
     return;
   }
@@ -168,4 +175,3 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
   } catch {}
   await B.all(appFiles.map((p) => fs.rimraf(p)));
 }
-

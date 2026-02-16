@@ -1,12 +1,12 @@
-import { getSimulator } from '../../lib/simulator';
+import {getSimulator} from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
 import * as utils from '../../lib/utils';
 import sinon from 'sinon';
-import { devices } from './device-list';
+import {devices} from './device-list';
 import B from 'bluebird';
-import { SimulatorXcode14 } from '../../lib/simulator-xcode-14';
-import { SimulatorXcode15 } from '../../lib/simulator-xcode-15';
-import { use as chaiUse, expect } from 'chai';
+import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
+import {SimulatorXcode15} from '../../lib/simulator-xcode-15';
+import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as xcodeModule from 'appium-xcode';
 
@@ -44,7 +44,9 @@ describe('simulator', function () {
       expect(sim.constructor.name).to.eql(SimulatorXcode14.name);
     });
 
-    const xcodeVersions: Array<[number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15]> = [
+    const xcodeVersions: Array<
+      [number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15]
+    > = [
       [14, 0, '14.0.0', SimulatorXcode14],
       [15, 0, '15.0.0', SimulatorXcode15],
     ];
@@ -64,7 +66,7 @@ describe('simulator', function () {
       assertXcodeVersionStub.callsFake(() => {
         throw new Error(
           `Tried to use an iOS simulator with xcode version ${xcodeVersion.versionString} ` +
-          `but only Xcode version 14 and up are supported`
+            `but only Xcode version 14 and up are supported`,
         );
       });
       await expect(getSimulator(UDID)).to.eventually.be.rejected;
@@ -83,10 +85,13 @@ describe('simulator', function () {
       const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
-      const sims = (await B.all([
-        'F33783B2-9EE9-4A99-866E-E126ADBAD410',
-        'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
-      ].map((udid) => getSimulator(udid)))).map((sim) => {
+      const sims = (
+        await B.all(
+          ['F33783B2-9EE9-4A99-866E-E126ADBAD410', 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'].map(
+            (udid) => getSimulator(udid),
+          ),
+        )
+      ).map((sim) => {
         sinon.stub(sim.simctl, 'getDevices').returns(B.resolve(devices));
         return sim;
       });
@@ -122,15 +127,23 @@ launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/
 launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
 
     beforeEach(function () {
-      innerExecStub = sandbox.stub().callsFake(() => ({ stdout } as any));
+      innerExecStub = sandbox.stub().callsFake(() => ({stdout}) as any);
       sandbox.stub(teenProcess, 'exec').get(() => innerExecStub);
       const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
 
     const testParams = [
-      {udid: '0829568F-7479-4ADE-9E51-B208DC99C107', line: 'first', expected: '/private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket'},
-      {udid: 'B5048708-566E-45D5-9885-C878EF7D6D13', line: 'second', expected: '/private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket'},
+      {
+        udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
+        line: 'first',
+        expected: '/private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket',
+      },
+      {
+        udid: 'B5048708-566E-45D5-9885-C878EF7D6D13',
+        line: 'second',
+        expected: '/private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket',
+      },
     ];
 
     testParams.forEach(({udid, line, expected}) => {
@@ -168,9 +181,13 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it('should configure locale', async function () {
         const options = {locale: {name: 'en_US', calendar: 'gregorian'}};
         expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
-          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLocale', '<string>en_US@calendar=gregorian</string>']
-        );
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          '.GlobalPreferences.plist',
+          'AppleLocale',
+          '<string>en_US@calendar=gregorian</string>',
+        ]);
         expect(spawnProcessSpy.callCount).to.eql(1);
       });
     });
@@ -179,18 +196,34 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it('should configure keyboard', async function () {
         const options = {keyboard: {name: 'en_US', layout: 'QWERTY'}};
         expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
-          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>']
-        );
-        expect(spawnProcessSpy.secondCall.args[0]).to.eql(
-          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardsCurrentAndNext', '<array><string>en_US@sw=QWERTY</string></array>']
-        );
-        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(
-          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsed', '<string>en_US@sw=QWERTY</string>']
-        );
-        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(
-          ['defaults', 'write', 'com.apple.Preferences', 'KeyboardLastUsedForLanguage', '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>']
-        );
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          '.GlobalPreferences.plist',
+          'AppleKeyboards',
+          '<array><string>en_US@sw=QWERTY</string></array>',
+        ]);
+        expect(spawnProcessSpy.secondCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          'com.apple.Preferences',
+          'KeyboardsCurrentAndNext',
+          '<array><string>en_US@sw=QWERTY</string></array>',
+        ]);
+        expect(spawnProcessSpy.thirdCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          'com.apple.Preferences',
+          'KeyboardLastUsed',
+          '<string>en_US@sw=QWERTY</string>',
+        ]);
+        expect(spawnProcessSpy.getCall(3).args[0]).to.eql([
+          'defaults',
+          'write',
+          'com.apple.Preferences',
+          'KeyboardLastUsedForLanguage',
+          '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>',
+        ]);
         expect(spawnProcessSpy.callCount).to.eql(4);
       });
     });
@@ -198,49 +231,62 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     describe('language', function () {
       const stdout = JSON.stringify({AppleLanguages: ['en']});
       beforeEach(function () {
-        sandbox.stub(teenProcess, 'exec').get(() => sandbox.stub().callsFake(() => ({ stdout } as any)));
-        sandbox.stub(sim, 'getDir').callsFake(() => (''));
+        sandbox
+          .stub(teenProcess, 'exec')
+          .get(() => sandbox.stub().callsFake(() => ({stdout}) as any));
+        sandbox.stub(sim, 'getDir').callsFake(() => '');
       });
 
       it('should configure language and restart services', async function () {
         const options = {language: {name: 'ja'}};
         expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
-          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
-        );
-        expect(spawnProcessSpy.secondCall.args[0]).to.eql(
-          ['launchctl', 'stop', 'com.apple.SpringBoard']
-        );
-        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(
-          ['launchctl', 'stop', 'com.apple.locationd']
-        );
-        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(
-          ['launchctl', 'stop', 'com.apple.tccd']
-        );
-        expect(spawnProcessSpy.getCall(4).args[0]).to.eql(
-          ['launchctl', 'stop', 'com.apple.akd']
-        );
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          '.GlobalPreferences.plist',
+          'AppleLanguages',
+          '<array><string>ja</string></array>',
+        ]);
+        expect(spawnProcessSpy.secondCall.args[0]).to.eql([
+          'launchctl',
+          'stop',
+          'com.apple.SpringBoard',
+        ]);
+        expect(spawnProcessSpy.thirdCall.args[0]).to.eql([
+          'launchctl',
+          'stop',
+          'com.apple.locationd',
+        ]);
+        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(['launchctl', 'stop', 'com.apple.tccd']);
+        expect(spawnProcessSpy.getCall(4).args[0]).to.eql(['launchctl', 'stop', 'com.apple.akd']);
         expect(spawnProcessSpy.callCount).to.eql(5);
       });
 
       it('should confirm skip restarting services if already applied', async function () {
         const options = {language: {name: 'en'}};
         expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
-          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>en</string></array>']
-        );
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          '.GlobalPreferences.plist',
+          'AppleLanguages',
+          '<array><string>en</string></array>',
+        ]);
         expect(spawnProcessSpy.callCount).to.eql(1);
       });
 
       it('should confirm skip restarting services if skipSyncUiDialogTranslation is true', async function () {
         const options = {language: {name: 'ja', skipSyncUiDialogTranslation: true}};
         expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql(
-          ['defaults', 'write', '.GlobalPreferences.plist', 'AppleLanguages', '<array><string>ja</string></array>']
-        );
+        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+          'defaults',
+          'write',
+          '.GlobalPreferences.plist',
+          'AppleLanguages',
+          '<array><string>ja</string></array>',
+        ]);
         expect(spawnProcessSpy.callCount).to.eql(1);
       });
     });
   });
 });
-

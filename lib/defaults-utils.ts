@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
-import { exec } from 'teen_process';
+import {DOMParser, XMLSerializer} from '@xmldom/xmldom';
+import {exec} from 'teen_process';
 import B from 'bluebird';
-import { log } from './logger';
+import {log} from './logger';
 
 /**
  * Serializes the given value to plist-compatible
@@ -48,8 +48,10 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
   }
 
   if (!xmlDoc) {
-    throw new TypeError(`The defaults value ${JSON.stringify(value)} cannot be written, ` +
-      `because it is not known how to handle its type`);
+    throw new TypeError(
+      `The defaults value ${JSON.stringify(value)} cannot be written, ` +
+        `because it is not known how to handle its type`,
+    );
   }
 
   return serialize
@@ -70,7 +72,10 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
  * @returns Each item in the array
  * is the `defaults write <plist>` command suffix
  */
-export function generateDefaultsCommandArgs(valuesMap: Record<string, any>, replace: boolean = false): string[][] {
+export function generateDefaultsCommandArgs(
+  valuesMap: Record<string, any>,
+  replace: boolean = false,
+): string[][] {
   const resultArgs: string[][] = [];
   for (const [key, value] of _.toPairs(valuesMap)) {
     try {
@@ -119,7 +124,9 @@ export class NSUserDefaults {
       const {stdout} = await exec('plutil', ['-convert', 'json', '-o', '-', this.plist]);
       return JSON.parse(stdout);
     } catch (e: any) {
-      throw new Error(`'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`);
+      throw new Error(
+        `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
+      );
     }
   }
 
@@ -146,8 +153,9 @@ export class NSUserDefaults {
     try {
       await B.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
     } catch (e: any) {
-      throw new Error(`Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`);
+      throw new Error(
+        `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
+      );
     }
   }
 }
-

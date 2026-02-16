@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import type { CoreSimulator, SupportsBiometric } from '../types';
+import type {CoreSimulator, SupportsBiometric} from '../types';
 
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
@@ -15,10 +15,12 @@ const BIOMETRICS: Record<string, string> = {
 export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Promise<boolean> {
   const {stdout} = await this.simctl.spawnProcess([
     'notifyutil',
-    '-g', ENROLLMENT_NOTIFICATION_RECEIVER
+    '-g',
+    ENROLLMENT_NOTIFICATION_RECEIVER,
   ]);
-  const match = (new RegExp(`${_.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`))
-    .exec(stdout);
+  const match = new RegExp(`${_.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
+    stdout,
+  );
   if (!match) {
     throw new Error(`Cannot parse biometric enrollment state from '${stdout}'`);
   }
@@ -29,18 +31,24 @@ export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Pro
 /**
  * @param isEnabled Whether to enable biometric enrollment
  */
-export async function enrollBiometric(this: CoreSimulatorWithBiometric, isEnabled: boolean = true): Promise<void> {
-  this.log.debug(`Setting biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`);
+export async function enrollBiometric(
+  this: CoreSimulatorWithBiometric,
+  isEnabled: boolean = true,
+): Promise<void> {
+  this.log.debug(
+    `Setting biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`,
+  );
   await this.simctl.spawnProcess([
     'notifyutil',
-    '-s', ENROLLMENT_NOTIFICATION_RECEIVER, isEnabled ? '1' : '0'
+    '-s',
+    ENROLLMENT_NOTIFICATION_RECEIVER,
+    isEnabled ? '1' : '0',
   ]);
-  await this.simctl.spawnProcess([
-    'notifyutil',
-    '-p', ENROLLMENT_NOTIFICATION_RECEIVER
-  ]);
-  if (await this.isBiometricEnrolled() !== isEnabled) {
-    throw new Error(`Cannot set biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`);
+  await this.simctl.spawnProcess(['notifyutil', '-p', ENROLLMENT_NOTIFICATION_RECEIVER]);
+  if ((await this.isBiometricEnrolled()) !== isEnabled) {
+    throw new Error(
+      `Cannot set biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`,
+    );
   }
 }
 
@@ -54,17 +62,14 @@ export async function enrollBiometric(this: CoreSimulatorWithBiometric, isEnable
 export async function sendBiometricMatch(
   this: CoreSimulatorWithBiometric,
   shouldMatch: boolean = true,
-  biometricName: string = 'touchId'
+  biometricName: string = 'touchId',
 ): Promise<void> {
   const domainComponent = toBiometricDomainComponent(biometricName);
   const domain = `com.apple.BiometricKit_Sim.${domainComponent}.${shouldMatch ? '' : 'no'}match`;
-  await this.simctl.spawnProcess([
-    'notifyutil',
-    '-p', domain
-  ]);
+  await this.simctl.spawnProcess(['notifyutil', '-p', domain]);
   this.log.info(
     `Sent notification ${domain} to ${shouldMatch ? 'match' : 'not match'} ${biometricName} biometric ` +
-    `for ${this.udid} Simulator`
+      `for ${this.udid} Simulator`,
   );
 }
 
@@ -74,8 +79,9 @@ export async function sendBiometricMatch(
  */
 export function toBiometricDomainComponent(name: string): string {
   if (!BIOMETRICS[name]) {
-    throw new Error(`'${name}' is not a valid biometric. Use one of: ${JSON.stringify(_.keys(BIOMETRICS))}`);
+    throw new Error(
+      `'${name}' is not a valid biometric. Use one of: ${JSON.stringify(_.keys(BIOMETRICS))}`,
+    );
   }
   return BIOMETRICS[name];
 }
-
