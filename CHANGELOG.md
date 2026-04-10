@@ -1,3 +1,9 @@
+## [8.0.13](https://github.com/appium/appium-ios-simulator/compare/v8.0.12...v8.0.13) (2026-04-10)
+
+### Miscellaneous Chores
+
+* **deps-dev:** Bump typescript from 5.9.3 to 6.0.2 ([#476](https://github.com/appium/appium-ios-simulator/issues/476)) ([3943b85](https://github.com/appium/appium-ios-simulator/commit/3943b855d3c62c6a6c5cefd195b4a5915558ab01))
+
 ## [8.0.12](https://github.com/appium/appium-ios-simulator/compare/v8.0.11...v8.0.12) (2026-02-16)
 
 ### Bug Fixes
