@@ -1,11 +1,9 @@
-// transpile:mocha
 import _ from 'lodash';
 import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils';
 import {getSimulator} from '../../lib/simulator';
 import {Simctl} from 'node-simctl';
 import B from 'bluebird';
 import {retryInterval, waitForCondition} from 'asyncbox';
-import xcode from 'appium-xcode';
 import {LONG_TIMEOUT, verifyStates} from './helpers';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -35,11 +33,9 @@ describe(`simulator ${OS_VERSION}`, function () {
   this.retries(2);
 
   let simctl: Simctl;
-  let xcodeVersion: any;
   let customApp: string;
 
   before(async function () {
-    xcodeVersion = await xcode.getVersion(true);
     customApp = await getUIKitCatalogPath();
   });
 
@@ -170,10 +166,6 @@ describe(`simulator ${OS_VERSION}`, function () {
   });
 
   it('should properly start simulator in headless mode on Xcode9+', async function () {
-    if (xcodeVersion.major < 9) {
-      return this.skip();
-    }
-
     if (!simctl.udid) {
       throw new Error('simctl.udid is null');
     }
@@ -228,13 +220,11 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
 
 describe('advanced features', function () {
   let sim: any;
-  let xcodeVersion: any;
   let customApp: string;
 
   this.timeout(LONG_TIMEOUT);
 
   before(async function () {
-    xcodeVersion = await xcode.getVersion(true);
     customApp = await getUIKitCatalogPath();
 
     await killAllSimulators();
@@ -279,17 +269,11 @@ describe('advanced features', function () {
 
   describe('biometric (touch Id/face Id enrollment)', function () {
     it(`should properly enroll biometric to enabled state`, async function () {
-      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
-        return this.skip();
-      }
       await sim.enrollBiometric(true);
       expect(await sim.isBiometricEnrolled()).to.be.true;
     });
 
     it(`should properly enroll biometric to disabled state`, async function () {
-      if (process.env.DEVICE && parseFloat(process.env.DEVICE) < 11) {
-        return this.skip();
-      }
       await sim.enrollBiometric(false);
       expect(await sim.isBiometricEnrolled()).to.be.false;
     });
@@ -354,10 +338,6 @@ describe('advanced features', function () {
 
   describe('Safari', function () {
     it('should scrub Safari', async function () {
-      if (xcodeVersion.major === 13 && process.env.CI) {
-        // the test is unstable in CI env
-        return this.skip();
-      }
       await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
       await sim.scrubSafari();
       await expect(sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID)).to.eventually.be.false;
@@ -402,15 +382,9 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
   this.retries(2);
 
   let simulatorsMapping: Record<string, any> = {};
-  let xcodeVersion: any;
   const DEVICES_COUNT = 2;
 
   before(async function () {
-    xcodeVersion = await xcode.getVersion(true);
-    if (xcodeVersion.major < 9) {
-      return this.skip();
-    }
-
     await killAllSimulators();
 
     const simctl = new Simctl();
@@ -486,22 +460,13 @@ describe('getWebInspectorSocket', function () {
   it('should get a socket when appropriate', async function () {
     const socket = await sim.getWebInspectorSocket();
 
-    if (parseFloat(OS_VERSION) < 11.3) {
-      expect(socket).to.be.null;
-    } else {
-      expect(socket).to.include('/private/tmp/com.apple.launchd');
-      expect(socket).to.include('com.apple.webinspectord_sim.socket');
-    }
+    expect(socket).to.include('com.apple.launchd');
+    expect(socket).to.include('com.apple.webinspectord_sim.socket');
   });
   describe('two simulators', function () {
     let sim2: any;
 
     before(async function () {
-      if (parseFloat(OS_VERSION) < 11.3) {
-        // no need to do this below 11.3, since there will not be a socket
-        return this.skip();
-      }
-
       const udid = await new Simctl().createDevice(
         'ios-simulator testing',
         DEVICE_NAME,

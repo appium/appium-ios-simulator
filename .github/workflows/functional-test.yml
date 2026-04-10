@@ -19,10 +19,10 @@ jobs:
     strategy:
       matrix:
         include:
-        - xcodeVersion: '15.4'
-          iosVersion: '17.5'
-          deviceName: 'iPhone 15'
-          platform: macos-14
+        - xcodeVersion: '26.4'
+          iosVersion: '26.4'
+          deviceName: 'iPhone 17'
+          platform: macos-26
         - xcodeVersion: '16.4'
           iosVersion: '18.5'
           deviceName: 'iPhone 16'
