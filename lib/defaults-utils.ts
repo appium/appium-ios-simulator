@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {DOMParser, XMLSerializer} from '@xmldom/xmldom';
+import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
 import B from 'bluebird';
 import {log} from './logger';
@@ -21,19 +21,21 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
 
   if (_.isPlainObject(value)) {
     xmlDoc = new DOMParser().parseFromString('<dict></dict>', 'text/xml');
+    const documentElement = requireDocumentElement(xmlDoc);
     for (const [subKey, subValue] of _.toPairs(value)) {
       const keyEl = xmlDoc.createElement('key');
       const keyTextEl = xmlDoc.createTextNode(subKey);
       keyEl.appendChild(keyTextEl);
-      xmlDoc.documentElement.appendChild(keyEl);
+      documentElement.appendChild(keyEl);
       const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
-      xmlDoc.documentElement.appendChild(subValueEl);
+      documentElement.appendChild(subValueEl);
     }
   } else if (_.isArray(value)) {
     xmlDoc = new DOMParser().parseFromString('<array></array>', 'text/xml');
+    const documentElement = requireDocumentElement(xmlDoc);
     for (const subValue of value) {
       const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
-      xmlDoc.documentElement.appendChild(subValueEl);
+      documentElement.appendChild(subValueEl);
     }
   } else if (_.isBoolean(value)) {
     xmlDoc = new DOMParser().parseFromString(value ? '<true/>' : '<false/>', 'text/xml');
@@ -44,7 +46,7 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
   } else if (_.isString(value)) {
     xmlDoc = new DOMParser().parseFromString(`<string></string>`, 'text/xml');
     const valueTextEl = xmlDoc.createTextNode(value);
-    xmlDoc.documentElement.appendChild(valueTextEl);
+    requireDocumentElement(xmlDoc).appendChild(valueTextEl);
   }
 
   if (!xmlDoc) {
@@ -54,9 +56,8 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
     );
   }
 
-  return serialize
-    ? new XMLSerializer().serializeToString(xmlDoc.documentElement)
-    : xmlDoc.documentElement;
+  const documentElement = requireDocumentElement(xmlDoc);
+  return serialize ? new XMLSerializer().serializeToString(documentElement) : documentElement;
 }
 
 /**
@@ -158,4 +159,12 @@ export class NSUserDefaults {
       );
     }
   }
+}
+
+function requireDocumentElement(xmlDoc: Document): Element {
+  const {documentElement} = xmlDoc;
+  if (!documentElement) {
+    throw new Error('Cannot parse XML document element');
+  }
+  return documentElement;
 }
