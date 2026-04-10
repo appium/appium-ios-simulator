@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
 
     env:
-      CI: true
+      CI:  true
       _FORCE_LOGS: 1
       MOBILE_OS_VERSION: ${{ matrix.iosVersion }}
       MOBILE_DEVICE_NAME: ${{ matrix.deviceName }}

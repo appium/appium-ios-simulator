@@ -1,41 +1,41 @@
 import _ from 'lodash';
-import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
-import { exec } from 'teen_process';
+import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
+import {exec} from 'teen_process';
 import B from 'bluebird';
-import { log } from './logger';
+import {log} from './logger';
 
 /**
  * Serializes the given value to plist-compatible
  * XML representation, which is ready for further usage
  * with `defaults` command line tool arguments
  *
- * @param {any} value The value to be serialized
- * @param {boolean} serialize [true] Whether to serialize the resulting
+ * @param value The value to be serialized
+ * @param serialize Whether to serialize the resulting
  * XML to string or to return raw HTMLElement instance
- * @returns {HTMLElement|string} Either string or raw node representation of
+ * @returns Either string or raw node representation of
  * the given value
  * @throws {TypeError} If it is not known how to serialize the given value
  */
-export function toXmlArg (value, serialize = true) {
-  let xmlDoc = null;
+export function toXmlArg(value: any, serialize: boolean = true): string | Element {
+  let xmlDoc: Document | null = null;
 
   if (_.isPlainObject(value)) {
     xmlDoc = new DOMParser().parseFromString('<dict></dict>', 'text/xml');
+    const documentElement = requireDocumentElement(xmlDoc);
     for (const [subKey, subValue] of _.toPairs(value)) {
       const keyEl = xmlDoc.createElement('key');
       const keyTextEl = xmlDoc.createTextNode(subKey);
       keyEl.appendChild(keyTextEl);
-      xmlDoc.documentElement.appendChild(keyEl);
-      // @ts-ignore The typecast here is fine
-      const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false), true);
-      xmlDoc.documentElement.appendChild(subValueEl);
+      documentElement.appendChild(keyEl);
+      const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
+      documentElement.appendChild(subValueEl);
     }
   } else if (_.isArray(value)) {
     xmlDoc = new DOMParser().parseFromString('<array></array>', 'text/xml');
+    const documentElement = requireDocumentElement(xmlDoc);
     for (const subValue of value) {
-      // @ts-ignore The typecast here is fine
-      const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false), true);
-      xmlDoc.documentElement.appendChild(subValueEl);
+      const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
+      documentElement.appendChild(subValueEl);
     }
   } else if (_.isBoolean(value)) {
     xmlDoc = new DOMParser().parseFromString(value ? '<true/>' : '<false/>', 'text/xml');
@@ -46,17 +46,18 @@ export function toXmlArg (value, serialize = true) {
   } else if (_.isString(value)) {
     xmlDoc = new DOMParser().parseFromString(`<string></string>`, 'text/xml');
     const valueTextEl = xmlDoc.createTextNode(value);
-    xmlDoc.documentElement.appendChild(valueTextEl);
+    requireDocumentElement(xmlDoc).appendChild(valueTextEl);
   }
 
   if (!xmlDoc) {
-    throw new TypeError(`The defaults value ${JSON.stringify(value)} cannot be written, ` +
-      `because it is not known how to handle its type`);
+    throw new TypeError(
+      `The defaults value ${JSON.stringify(value)} cannot be written, ` +
+        `because it is not known how to handle its type`,
+    );
   }
 
-  return serialize
-    ? new XMLSerializer().serializeToString(xmlDoc.documentElement)
-    : xmlDoc.documentElement;
+  const documentElement = requireDocumentElement(xmlDoc);
+  return serialize ? new XMLSerializer().serializeToString(documentElement) : documentElement;
 }
 
 /**
@@ -65,39 +66,38 @@ export function toXmlArg (value, serialize = true) {
  * See https://shadowfile.inode.link/blog/2018/06/advanced-defaults1-usage/
  * for more details.
  *
- * @param {Object} valuesMap Preferences mapping
- * @param {Boolean} replace [false] Whether to generate arguments that replace
+ * @param valuesMap Preferences mapping
+ * @param replace Whether to generate arguments that replace
  * complex typed values like arrays or dictionaries in the current plist or
  * update them (the default settings)
- * @returns {string[][]} Each item in the array
+ * @returns Each item in the array
  * is the `defaults write <plist>` command suffix
  */
-export function generateDefaultsCommandArgs (valuesMap, replace = false) {
-  /** @type {string[][]} */
-  const resultArgs = [];
+export function generateDefaultsCommandArgs(
+  valuesMap: Record<string, any>,
+  replace: boolean = false,
+): string[][] {
+  const resultArgs: string[][] = [];
   for (const [key, value] of _.toPairs(valuesMap)) {
     try {
       if (!replace && _.isPlainObject(value)) {
         const dictArgs = [key, '-dict-add'];
         for (const [subKey, subValue] of _.toPairs(value)) {
-          // @ts-ignore The typecast here is fine
-          dictArgs.push(subKey, toXmlArg(subValue));
+          dictArgs.push(subKey, toXmlArg(subValue) as string);
         }
         resultArgs.push(dictArgs);
       } else if (!replace && _.isArray(value)) {
         const arrayArgs = [key, '-array-add'];
         for (const subValue of value) {
-          // @ts-ignore The typecast here is fine
-          arrayArgs.push(toXmlArg(subValue));
+          arrayArgs.push(toXmlArg(subValue) as string);
         }
         resultArgs.push(arrayArgs);
       } else {
-        // @ts-ignore The typecast here is fine
-        resultArgs.push([key, toXmlArg(value)]);
+        resultArgs.push([key, toXmlArg(value) as string]);
       }
     } catch (e) {
       if (e instanceof TypeError) {
-        log.warn(e.message);
+        log.warn((e as Error).message);
       } else {
         throw e;
       }
@@ -107,7 +107,9 @@ export function generateDefaultsCommandArgs (valuesMap, replace = false) {
 }
 
 export class NSUserDefaults {
-  constructor (plist) {
+  plist: string;
+
+  constructor(plist: string) {
     this.plist = plist;
   }
 
@@ -115,15 +117,17 @@ export class NSUserDefaults {
    * Reads the content of the given plist file using plutil command line tool
    * and serializes it to a JSON representation
    *
-   * @returns {Promise<Record<string, any>>} The serialized plist content
+   * @returns The serialized plist content
    * @throws {Error} If there was an error during serialization
    */
-  async asJson () {
+  async asJson(): Promise<Record<string, any>> {
     try {
       const {stdout} = await exec('plutil', ['-convert', 'json', '-o', '-', this.plist]);
       return JSON.parse(stdout);
-    } catch (e) {
-      throw new Error(`'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`);
+    } catch (e: any) {
+      throw new Error(
+        `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
+      );
     }
   }
 
@@ -131,14 +135,14 @@ export class NSUserDefaults {
    * Updates the content of the given plist file.
    * If the plist does not exist yet then it is going to be created.
    *
-   * @param {Object} valuesMap Mapping of preference values to update.
+   * @param valuesMap Mapping of preference values to update.
    * If any of item values are of dictionary type then only the first level dictionary gets
    * updated. Everything below this level will be replaced. This is the known limitation
    * of the `defaults` command line tool. A workaround for it would be to read the current
    * preferences mapping first and merge it with this value.
    * @throws {Error} If there was an error while updating the plist
    */
-  async update (valuesMap) {
+  async update(valuesMap: Record<string, any>): Promise<void> {
     if (!_.isPlainObject(valuesMap)) {
       throw new TypeError(`plist values must be a map. '${valuesMap}' is given instead`);
     }
@@ -149,8 +153,18 @@ export class NSUserDefaults {
     const commandArgs = generateDefaultsCommandArgs(valuesMap);
     try {
       await B.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
-    } catch (e) {
-      throw new Error(`Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`);
+    } catch (e: any) {
+      throw new Error(
+        `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
+      );
     }
   }
+}
+
+function requireDocumentElement(xmlDoc: Document): Element {
+  const {documentElement} = xmlDoc;
+  if (!documentElement) {
+    throw new Error('Cannot parse XML document element');
+  }
+  return documentElement;
 }
