@@ -1,6 +1,12 @@
 name: Functional Tests
 
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+    - master
+    paths-ignore:
+    - 'docs/**'
+    - '*.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -13,22 +19,18 @@ jobs:
     strategy:
       matrix:
         include:
-        - xcodeVersion: '26.0'
-          iosVersion: '26.0'
+        - xcodeVersion: '26.4'
+          iosVersion: '26.4'
           deviceName: 'iPhone 17'
           platform: macos-26
         - xcodeVersion: '16.4'
           iosVersion: '18.5'
           deviceName: 'iPhone 16'
           platform: macos-15
-        - xcodeVersion: '15.4'
-          iosVersion: '17.5'
-          deviceName: 'iPhone 15'
-          platform: macos-14
       fail-fast: false
 
     env:
-      CI:  true
+      CI: true
       _FORCE_LOGS: 1
       MOBILE_OS_VERSION: ${{ matrix.iosVersion }}
       MOBILE_DEVICE_NAME: ${{ matrix.deviceName }}
@@ -36,8 +38,8 @@ jobs:
     # https://github.com/actions/runner-images/tree/main/images/macos
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v6
+    - uses: actions/setup-node@v6
       with:
         node-version: lts/*
         check-latest: true
