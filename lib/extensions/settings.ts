@@ -136,11 +136,11 @@ export async function getAppearance(this: CoreSimulatorWithSettings): Promise<st
  *                       Acceptable value is 'enabled' or 'disabled' with Xcode 16.2.
  * @since Xcode SDK 15 (but lower xcode could have this command)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function setIncreaseContrast(
   this: CoreSimulatorWithSettings,
-  _value: string,
+  value: string,
 ): Promise<void> {
+  void value;
   throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
 }
 
@@ -168,11 +168,11 @@ export async function getIncreaseContrast(this: CoreSimulatorWithSettings): Prom
  *                       accessibility-extra-extra-extra-large with Xcode 16.2.
  * @since Xcode SDK 15 (but lower xcode could have this command)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function setContentSize(
   this: CoreSimulatorWithSettings,
-  _value: string,
+  value: string,
 ): Promise<void> {
+  void value;
   throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
 }
 
