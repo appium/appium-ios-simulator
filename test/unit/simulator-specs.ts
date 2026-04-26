@@ -3,7 +3,6 @@ import * as teenProcess from 'teen_process';
 import * as utils from '../../lib/utils';
 import sinon from 'sinon';
 import {devices} from './device-list';
-import B from 'bluebird';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
 import {SimulatorXcode15} from '../../lib/simulator-xcode-15';
 import {use as chaiUse, expect} from 'chai';
@@ -27,7 +26,7 @@ describe('simulator', function () {
     getDevicesStub = sandbox.stub(utils, 'getDevices');
     getDevicesStub.resolves(devices);
     getVersionStub = sandbox.stub(xcodeModule, 'getVersion');
-    getVersionStub.withArgs(true).returns(B.resolve({major: 14, versionString: '14.0.0'}));
+    getVersionStub.withArgs(true).returns(Promise.resolve({major: 14, versionString: '14.0.0'}));
   });
   afterEach(function () {
     sandbox.verify();
@@ -86,17 +85,17 @@ describe('simulator', function () {
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sims = (
-        await B.all(
+        await Promise.all(
           ['F33783B2-9EE9-4A99-866E-E126ADBAD410', 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'].map(
             (udid) => getSimulator(udid),
           ),
         )
       ).map((sim) => {
-        sinon.stub(sim.simctl, 'getDevices').returns(B.resolve(devices));
+        sinon.stub(sim.simctl, 'getDevices').returns(Promise.resolve(devices));
         return sim;
       });
 
-      const stats = await B.all(sims.map((sim) => sim.stat()));
+      const stats = await Promise.all(sims.map((sim) => sim.stat()));
       expect(stats[0].state).to.equal('Shutdown');
       expect(stats[0].name).to.equal('Resizable iPhone');
       expect(stats[1].state).to.equal('Shutdown');

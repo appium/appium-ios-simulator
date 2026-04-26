@@ -1,5 +1,4 @@
 import sinon from 'sinon';
-import B from 'bluebird';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as xcodeModule from 'appium-xcode';
@@ -59,7 +58,7 @@ describe('util', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
-        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_10)));
+        .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_10)));
       innerExecStub = sandbox
         .stub()
         .withArgs('xcrun')
@@ -73,7 +72,7 @@ describe('util', function () {
     it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
-        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_8)));
+        .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_8)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns();
       innerExecStub.withArgs('pgrep').throws({code: 1});
@@ -84,7 +83,7 @@ describe('util', function () {
     it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
-        .get(() => sandbox.stub().withArgs(true).returns(B.resolve(XCODE_VERSION_6)));
+        .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').throws();
       innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
@@ -105,7 +104,7 @@ describe('util', function () {
 
   describe('simExists', function () {
     it('returns true if device is found', async function () {
-      const results = await B.all([
+      const results = await Promise.all([
         simExists('8F4A3349-3ABF-4597-953A-285C5C0FFD00'),
         simExists('7DEA409E-159A-4730-B1C6-7C18279F72B8'),
         simExists('F33783B2-9EE9-4A99-866E-E126ADBAD410'),
@@ -123,7 +122,7 @@ describe('util', function () {
       existence.push(simExists('asdf'));
       existence.push(simExists(4 as any));
 
-      const results = await B.all(existence);
+      const results = await Promise.all(existence);
 
       for (const result of results) {
         expect(result).to.be.false;

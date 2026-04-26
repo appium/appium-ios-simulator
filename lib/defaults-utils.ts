@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
-import B from 'bluebird';
 import {log} from './logger';
 
 export class NSUserDefaults {
@@ -50,7 +49,7 @@ export class NSUserDefaults {
 
     const commandArgs = generateDefaultsCommandArgs(valuesMap);
     try {
-      await B.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
+      await Promise.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
     } catch (e: any) {
       throw new Error(
         `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,

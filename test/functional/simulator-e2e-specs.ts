@@ -2,7 +2,6 @@ import _ from 'lodash';
 import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils';
 import {getSimulator} from '../../lib/simulator';
 import {Simctl} from 'node-simctl';
-import B from 'bluebird';
 import {retryInterval, waitForCondition} from 'asyncbox';
 import {LONG_TIMEOUT, verifyStates} from './helpers';
 import {use as chaiUse, expect} from 'chai';
@@ -201,7 +200,7 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
     sim = await getSimulator(udid);
     await sim.run({startupTimeout: LONG_TIMEOUT});
     await sim.shutdown();
-    await B.delay(4000);
+    await new Promise((resolve) => setTimeout(resolve, 4000));
   });
   after(async function () {
     await killAllSimulators();
@@ -417,7 +416,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
 
     // they all should be off
     await retryInterval(30, 1000, async function () {
-      await B.map(simulators, (sim) => verifyStates(sim, false, false));
+      await Promise.all(simulators.map((sim) => verifyStates(sim, false, false)));
     });
 
     // Should be called before launching simulator
@@ -429,14 +428,14 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
       await sim.run({startupTimeout: LONG_TIMEOUT});
     }
     await retryInterval(30, 1000, async function () {
-      await B.map(simulators, (sim) => verifyStates(sim, true, true));
+      await Promise.all(simulators.map((sim) => verifyStates(sim, true, true)));
     });
 
     for (const sim of _.values(simulatorsMapping)) {
       await sim.shutdown();
     }
     await retryInterval(30, 1000, async function () {
-      await B.map(simulators, (sim) => verifyStates(sim, false, true));
+      await Promise.all(simulators.map((sim) => verifyStates(sim, false, true)));
     });
   });
 });

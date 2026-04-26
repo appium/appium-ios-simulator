@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
-import B from 'bluebird';
 import {waitForCondition} from 'asyncbox';
 import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types';
 
@@ -48,7 +47,7 @@ export async function getUserInstalledBundleIdsByBundleName(
       })(),
     );
   }
-  const bundleInfos = (await B.all(bundleInfoPromises)).filter(_.isPlainObject);
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter(_.isPlainObject);
   const bundleIds = bundleInfos
     .filter(({CFBundleName}) => CFBundleName === bundleName)
     .map(({CFBundleIdentifier}) => CFBundleIdentifier);
@@ -173,5 +172,5 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
   try {
     await this.terminateApp(bundleId);
   } catch {}
-  await B.all(appFiles.map((p) => fs.rimraf(p)));
+  await Promise.all(appFiles.map((p) => fs.rimraf(p)));
 }

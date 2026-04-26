@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import path from 'node:path';
 import {fs, timing} from '@appium/support';
-import B from 'bluebird';
 import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils';
 import {waitForCondition} from 'asyncbox';
 import {exec} from 'teen_process';
@@ -103,7 +102,7 @@ export async function scrubSafari(
   if (!keepPrefs) {
     deletePromises.push(fs.rimraf(path.join(libraryDir, 'Preferences', '*.plist')));
   }
-  await B.all(deletePromises);
+  await Promise.all(deletePromises);
 }
 
 /**

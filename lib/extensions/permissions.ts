@@ -2,7 +2,6 @@ import _ from 'lodash';
 import {fs, timing, util} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
-import B from 'bluebird';
 import {waitForCondition} from 'asyncbox';
 import type {CoreSimulator, SupportsAppPermissions} from '../types';
 import type {StringRecord} from '@appium/types';
@@ -238,7 +237,7 @@ async function setAccess(
   }
 
   if (!_.isEmpty(permissionPromises)) {
-    await B.all(permissionPromises);
+    await Promise.all(permissionPromises);
   }
 
   if (!_.isEmpty(wixPermissions)) {

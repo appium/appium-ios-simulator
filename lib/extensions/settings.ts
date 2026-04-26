@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import {NSUserDefaults, generateDefaultsCommandArgs} from '../defaults-utils';
-import B from 'bluebird';
 import path from 'node:path';
 import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
@@ -95,7 +94,7 @@ export async function updateSettings(
   }
 
   const argChunks = generateDefaultsCommandArgs(updates);
-  await B.all(
+  await Promise.all(
     argChunks.map((args) => this.simctl.spawnProcess(['defaults', 'write', domain, ...args])),
   );
   return true;
@@ -265,7 +264,7 @@ export async function configureLocalization(
   }
 
   const argChunks = generateDefaultsCommandArgs(globalPrefs, true);
-  await B.all(
+  await Promise.all(
     argChunks.map((args) =>
       this.simctl.spawnProcess(['defaults', 'write', GLOBAL_PREFS_PLIST, ...args]),
     ),
@@ -280,7 +279,7 @@ export async function configureLocalization(
       },
       true,
     );
-    await B.all(
+    await Promise.all(
       argChunks.map((args) =>
         this.simctl.spawnProcess(['defaults', 'write', 'com.apple.Preferences', ...args]),
       ),
@@ -303,7 +302,7 @@ export async function configureLocalization(
           `${SERVICES_FOR_TRANSLATION}. This might have unexpected side effects, ` +
           `see https://github.com/appium/appium/issues/19440 for more details`,
       );
-      await B.all(
+      await Promise.all(
         SERVICES_FOR_TRANSLATION.map((arg) => this.simctl.spawnProcess(['launchctl', 'stop', arg])),
       );
     }

@@ -7,7 +7,6 @@ import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import _ from 'lodash';
 import path from 'node:path';
-import B from 'bluebird';
 import {getPath as getXcodePath} from 'appium-xcode';
 import {Simctl} from 'node-simctl';
 import * as appExtensions from './extensions/applications';
@@ -358,7 +357,7 @@ export class SimulatorXcode14
       shouldPreboot: true,
     });
     try {
-      await new B<void>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         // Historically this call was always asynchronous,
         // e.g. it was not waiting until Simulator is fully booted.
         // So we preserve that behavior, and if no errors are received for a while
