@@ -1,7 +1,7 @@
-import _ from 'lodash';
 import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
 import {log} from './logger';
+import {isPlainObject} from './utils';
 
 export class NSUserDefaults {
   plist: string;
@@ -40,10 +40,10 @@ export class NSUserDefaults {
    * @throws {Error} If there was an error while updating the plist
    */
   async update(valuesMap: Record<string, any>): Promise<void> {
-    if (!_.isPlainObject(valuesMap)) {
+    if (!isPlainObject(valuesMap)) {
       throw new TypeError(`plist values must be a map. '${valuesMap}' is given instead`);
     }
-    if (_.isEmpty(valuesMap)) {
+    if (Object.keys(valuesMap).length === 0) {
       return;
     }
 
@@ -73,10 +73,10 @@ export class NSUserDefaults {
 export function toXmlArg(value: any, serialize: boolean = true): string | Element {
   let xmlDoc: Document | null = null;
 
-  if (_.isPlainObject(value)) {
+  if (isPlainObject(value)) {
     xmlDoc = new DOMParser().parseFromString('<dict></dict>', 'text/xml');
     const documentElement = requireDocumentElement(xmlDoc);
-    for (const [subKey, subValue] of _.toPairs(value)) {
+    for (const [subKey, subValue] of Object.entries(value)) {
       const keyEl = xmlDoc.createElement('key');
       const keyTextEl = xmlDoc.createTextNode(subKey);
       keyEl.appendChild(keyTextEl);
@@ -84,20 +84,20 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
       const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
       documentElement.appendChild(subValueEl);
     }
-  } else if (_.isArray(value)) {
+  } else if (Array.isArray(value)) {
     xmlDoc = new DOMParser().parseFromString('<array></array>', 'text/xml');
     const documentElement = requireDocumentElement(xmlDoc);
     for (const subValue of value) {
       const subValueEl = xmlDoc.importNode(toXmlArg(subValue, false) as Element, true);
       documentElement.appendChild(subValueEl);
     }
-  } else if (_.isBoolean(value)) {
+  } else if (typeof value === 'boolean') {
     xmlDoc = new DOMParser().parseFromString(value ? '<true/>' : '<false/>', 'text/xml');
-  } else if (_.isInteger(value)) {
+  } else if (Number.isInteger(value)) {
     xmlDoc = new DOMParser().parseFromString(`<integer>${value}</integer>`, 'text/xml');
-  } else if (_.isNumber(value)) {
+  } else if (typeof value === 'number') {
     xmlDoc = new DOMParser().parseFromString(`<real>${value}</real>`, 'text/xml');
-  } else if (_.isString(value)) {
+  } else if (typeof value === 'string') {
     xmlDoc = new DOMParser().parseFromString(`<string></string>`, 'text/xml');
     const valueTextEl = xmlDoc.createTextNode(value);
     requireDocumentElement(xmlDoc).appendChild(valueTextEl);
@@ -132,15 +132,15 @@ export function generateDefaultsCommandArgs(
   replace: boolean = false,
 ): string[][] {
   const resultArgs: string[][] = [];
-  for (const [key, value] of _.toPairs(valuesMap)) {
+  for (const [key, value] of Object.entries(valuesMap)) {
     try {
-      if (!replace && _.isPlainObject(value)) {
+      if (!replace && isPlainObject(value)) {
         const dictArgs = [key, '-dict-add'];
-        for (const [subKey, subValue] of _.toPairs(value)) {
+        for (const [subKey, subValue] of Object.entries(value)) {
           dictArgs.push(subKey, toXmlArg(subValue) as string);
         }
         resultArgs.push(dictArgs);
-      } else if (!replace && _.isArray(value)) {
+      } else if (!replace && Array.isArray(value)) {
         const arrayArgs = [key, '-array-add'];
         for (const subValue of value) {
           arrayArgs.push(toXmlArg(subValue) as string);
@@ -167,3 +167,4 @@ function requireDocumentElement(xmlDoc: Document): Element {
   }
   return documentElement;
 }
+

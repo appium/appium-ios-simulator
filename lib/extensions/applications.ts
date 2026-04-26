@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
 import {waitForCondition} from 'asyncbox';
@@ -31,7 +30,7 @@ export async function getUserInstalledBundleIdsByBundleName(
     cwd: appsRoot,
     absolute: true,
   });
-  if (_.isEmpty(infoPlists)) {
+  if (infoPlists.length === 0) {
     return [];
   }
 
@@ -47,11 +46,13 @@ export async function getUserInstalledBundleIdsByBundleName(
       })(),
     );
   }
-  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter(_.isPlainObject);
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter(
+    (item) => item !== null && typeof item === 'object' && !Array.isArray(item),
+  );
   const bundleIds = bundleInfos
     .filter(({CFBundleName}) => CFBundleName === bundleName)
     .map(({CFBundleIdentifier}) => CFBundleIdentifier);
-  if (_.isEmpty(bundleIds)) {
+  if (bundleIds.length === 0) {
     return [];
   }
 
@@ -165,7 +166,7 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
   this.log.info(
     `Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`,
   );
-  if (_.isEmpty(appFiles)) {
+  if (appFiles.length === 0) {
     return;
   }
 

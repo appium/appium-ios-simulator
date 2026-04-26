@@ -5,7 +5,6 @@ import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
-import _ from 'lodash';
 import path from 'node:path';
 import {getPath as getXcodePath} from 'appium-xcode';
 import {Simctl} from 'node-simctl';
@@ -243,7 +242,7 @@ export class SimulatorXcode14
    */
   async stat(): Promise<DeviceStat | StringRecord<never>> {
     const devices = await this.simctl.getDevices();
-    for (const [sdk, deviceArr] of _.toPairs(devices)) {
+    for (const [sdk, deviceArr] of Object.entries(devices)) {
       for (const device of deviceArr as any[]) {
         if (device.udid === this.udid) {
           device.sdk = sdk;
@@ -296,7 +295,7 @@ export class SimulatorXcode14
       await this.simctl.getEnv('dummy');
       return false;
     } catch (e: any) {
-      return _.includes(e.stderr, 'Current state: Shutdown');
+      return String(e.stderr).includes('Current state: Shutdown');
     }
   }
 
@@ -326,7 +325,7 @@ export class SimulatorXcode14
    * @returns True if UI client is running or false otherwise.
    */
   async isUIClientRunning(): Promise<boolean> {
-    return !_.isNull(await this.getUIClientPid());
+    return (await this.getUIClientPid()) !== null;
   }
 
   /**
@@ -364,7 +363,7 @@ export class SimulatorXcode14
         // then we assume the Simulator booting is still in progress.
         setTimeout(resolve, 3000);
         bootEventsEmitter.once('failure', (err: Error) => {
-          if (_.includes(err?.message, 'state: Booted')) {
+          if (String(err?.message).includes('state: Booted')) {
             resolve();
           } else {
             reject(err);
@@ -452,16 +451,16 @@ export class SimulatorXcode14
    * @param opts - Simulator startup options.
    */
   async startUIClient(opts: StartUiClientOptions = {}): Promise<void> {
-    opts = _.cloneDeep(opts);
-    _.defaultsDeep(opts, {
+    const startUiOpts = {
       startupTimeout: this.startupTimeout,
-    });
+      ...opts,
+    };
 
     const simulatorApp = path.resolve(await getXcodePath(), 'Applications', SIMULATOR_APP_NAME);
     const args = ['-Fn', simulatorApp];
     this.log.info(`Starting Simulator UI: ${util.quote(['open', ...args])}`);
     try {
-      await exec('open', args, {timeout: opts.startupTimeout});
+      await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
       throw new Error(
         `Got an unexpected error while opening Simulator UI: ` + err.stderr ||
@@ -478,21 +477,21 @@ export class SimulatorXcode14
    * @param opts - One or more of available Simulator options.
    */
   async run(opts: RunOptions = {}): Promise<void> {
-    opts = _.cloneDeep(opts);
-    _.defaultsDeep(opts, {
+    const runOpts: RunOptions = {
       isHeadless: false,
       startupTimeout: this.startupTimeout,
-    });
+      ...structuredClone(opts),
+    };
 
     const [devicePreferences, commonPreferences] =
-      settingsExtensions.compileSimulatorPreferences.bind(this)(opts);
+      settingsExtensions.compileSimulatorPreferences.bind(this)(runOpts);
     await settingsExtensions.updatePreferences.bind(this)(devicePreferences, commonPreferences);
 
     const timer = new timing.Timer().start();
     const shouldWaitForBoot = await STARTUP_LOCK.acquire(this.uiClientBundleId, async () => {
       const isServerRunning = await this.isRunning();
       const uiClientPid = await this.getUIClientPid();
-      if (opts.isHeadless) {
+      if (runOpts.isHeadless) {
         if (isServerRunning && !uiClientPid) {
           this.log.info(`Simulator with UDID '${this.udid}' is already booted in headless mode.`);
           return false;
@@ -535,13 +534,13 @@ export class SimulatorXcode14
           );
           await this.shutdown({timeout: SIMULATOR_SHUTDOWN_TIMEOUT});
         }
-        await this.launchWindow(Boolean(uiClientPid), opts);
+        await this.launchWindow(Boolean(uiClientPid), runOpts);
       }
       return true;
     });
 
-    if (shouldWaitForBoot && opts.startupTimeout) {
-      await this.waitForBoot(opts.startupTimeout);
+    if (shouldWaitForBoot && runOpts.startupTimeout) {
+      await this.waitForBoot(runOpts.startupTimeout);
       this.log.info(
         `Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`,
       );
@@ -623,7 +622,7 @@ export class SimulatorXcode14
 
     const result: ProcessInfo[] = [];
     for (const line of stdout.split('\n')) {
-      const trimmedLine = _.trim(line);
+      const trimmedLine = line.trim();
       if (!trimmedLine) {
         continue;
       }

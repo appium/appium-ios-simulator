@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import path from 'node:path';
 import {fs, timing} from '@appium/support';
 import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils';
@@ -125,7 +124,7 @@ export async function updateSafariSettings(
   this: CoreSimulatorWithSafariBrowser,
   updates: StringRecord,
 ): Promise<boolean> {
-  if (_.isEmpty(updates)) {
+  if (Object.keys(updates).length === 0) {
     return false;
   }
 

@@ -1,9 +1,9 @@
-import _ from 'lodash';
 import {NSUserDefaults, generateDefaultsCommandArgs} from '../defaults-utils';
 import path from 'node:path';
 import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
 import {fs} from '@appium/support';
+import {isPlainObject} from '../utils';
 import type {
   CoreSimulator,
   HasSettings,
@@ -89,7 +89,7 @@ export async function updateSettings(
   domain: string,
   updates: StringRecord,
 ): Promise<boolean> {
-  if (_.isEmpty(updates)) {
+  if (Object.keys(updates).length === 0) {
     return false;
   }
 
@@ -110,7 +110,7 @@ export async function updateSettings(
  * @since Xcode SDK 11.4
  */
 export async function setAppearance(this: CoreSimulatorWithSettings, value: string): Promise<void> {
-  await this.simctl.setAppearance(_.toLower(value));
+  await this.simctl.setAppearance(value.toLowerCase());
 }
 
 /**
@@ -202,14 +202,14 @@ export async function configureLocalization(
   this: CoreSimulatorWithSettings,
   opts: LocalizationOptions = {},
 ): Promise<boolean> {
-  if (_.isEmpty(opts)) {
+  if (Object.keys(opts).length === 0) {
     return false;
   }
 
   const {language, locale, keyboard} = opts;
   const globalPrefs: Record<string, any> = {};
   let keyboardId: string | null = null;
-  if (_.isPlainObject(keyboard) && keyboard) {
+  if (isPlainObject(keyboard)) {
     const {name, layout, hardware} = keyboard;
     if (!name) {
       throw new Error(`The 'keyboard' field must have a valid name set`);
@@ -223,14 +223,14 @@ export async function configureLocalization(
     }
     globalPrefs.AppleKeyboards = [keyboardId];
   }
-  if (_.isPlainObject(language) && language) {
+  if (isPlainObject(language)) {
     const {name} = language;
     if (!name) {
       throw new Error(`The 'language' field must have a valid name set`);
     }
     globalPrefs.AppleLanguages = [name];
   }
-  if (_.isPlainObject(locale) && locale) {
+  if (isPlainObject(locale)) {
     const {name, calendar} = locale;
     if (!name) {
       throw new Error(`The 'locale' field must have a valid name set`);
@@ -241,7 +241,7 @@ export async function configureLocalization(
     }
     globalPrefs.AppleLocale = localeId;
   }
-  if (_.isEmpty(globalPrefs)) {
+  if (Object.keys(globalPrefs).length === 0) {
     return false;
   }
 
@@ -287,7 +287,7 @@ export async function configureLocalization(
   }
 
   if (globalPrefs.AppleLanguages) {
-    if (_.isEqual(previousAppleLanguages, globalPrefs.AppleLanguages)) {
+    if (JSON.stringify(previousAppleLanguages) === JSON.stringify(globalPrefs.AppleLanguages)) {
       this.log.info(
         `The 'AppleLanguages' preference is already set to '${globalPrefs.AppleLanguages}'. ` +
           `Skipping services reset`,
@@ -342,12 +342,12 @@ export async function updatePreferences(
   devicePrefs: DevicePreferences = {},
   commonPrefs: CommonPreferences = {},
 ): Promise<boolean> {
-  if (!_.isEmpty(devicePrefs)) {
+  if (Object.keys(devicePrefs).length > 0) {
     this.log.debug(
       `Setting preferences of ${this.udid} Simulator to ${JSON.stringify(devicePrefs)}`,
     );
   }
-  if (!_.isEmpty(commonPrefs)) {
+  if (Object.keys(commonPrefs).length > 0) {
     this.log.debug(`Setting common Simulator preferences to ${JSON.stringify(commonPrefs)}`);
   }
   const homeFolderPath = process.env.HOME;
@@ -367,16 +367,16 @@ export async function updatePreferences(
   );
   return await PREFERENCES_PLIST_GUARD.acquire(this.constructor.name, async () => {
     const defaults = new NSUserDefaults(plistPath);
-    const prefsToUpdate = _.clone(commonPrefs);
+    const prefsToUpdate = {...commonPrefs};
     try {
-      if (!_.isEmpty(devicePrefs)) {
+      if (Object.keys(devicePrefs).length > 0) {
         let existingDevicePrefs: any;
         const udidKey = this.udid.toUpperCase();
         if (await fs.exists(plistPath)) {
           const currentPlistContent = await defaults.asJson();
           if (
-            _.isPlainObject(currentPlistContent.DevicePreferences) &&
-            _.isPlainObject(currentPlistContent.DevicePreferences[udidKey])
+            isPlainObject(currentPlistContent.DevicePreferences) &&
+            isPlainObject(currentPlistContent.DevicePreferences[udidKey])
           ) {
             existingDevicePrefs = currentPlistContent.DevicePreferences[udidKey];
           }
@@ -426,22 +426,26 @@ export function compileSimulatorPreferences(
     AttachBootedOnStart: true,
   };
   const devicePreferences: DevicePreferences = opts.devicePreferences
-    ? _.cloneDeep(opts.devicePreferences)
+    ? structuredClone(opts.devicePreferences)
     : {};
   if (scaleFactor) {
     devicePreferences.SimulatorWindowLastScale = parseFloat(scaleFactor);
   }
-  if (_.isBoolean(connectHardwareKeyboard) || _.isNil(connectHardwareKeyboard)) {
+  if (
+    typeof connectHardwareKeyboard === 'boolean' ||
+    connectHardwareKeyboard === null ||
+    connectHardwareKeyboard === undefined
+  ) {
     devicePreferences.ConnectHardwareKeyboard = connectHardwareKeyboard ?? false;
     commonPreferences.ConnectHardwareKeyboard = connectHardwareKeyboard ?? false;
   }
-  if (_.isBoolean(tracePointer)) {
+  if (typeof tracePointer === 'boolean') {
     commonPreferences.ShowSingleTouches = tracePointer;
     commonPreferences.ShowPinches = tracePointer;
     commonPreferences.ShowPinchPivotPoint = tracePointer;
     commonPreferences.HighlightEdgeGestures = tracePointer;
   }
-  switch (_.lowerCase(pasteboardAutomaticSync || '')) {
+  switch ((pasteboardAutomaticSync || '').toLowerCase()) {
     case 'on':
       commonPreferences.PasteboardAutomaticSync = true;
       break;
@@ -474,12 +478,15 @@ export function verifyDevicePreferences(
   this: CoreSimulatorWithSettings,
   prefs: DevicePreferences = {},
 ): void {
-  if (_.isEmpty(prefs)) {
+  if (Object.keys(prefs).length === 0) {
     return;
   }
 
-  if (!_.isUndefined(prefs.SimulatorWindowLastScale)) {
-    if (!_.isNumber(prefs.SimulatorWindowLastScale) || prefs.SimulatorWindowLastScale <= 0) {
+  if (prefs.SimulatorWindowLastScale !== undefined) {
+    if (
+      typeof prefs.SimulatorWindowLastScale !== 'number' ||
+      prefs.SimulatorWindowLastScale <= 0
+    ) {
       throw this.log.errorWithException(
         `SimulatorWindowLastScale is expected to be a positive float value. ` +
           `'${prefs.SimulatorWindowLastScale}' is assigned instead.`,
@@ -487,11 +494,11 @@ export function verifyDevicePreferences(
     }
   }
 
-  if (!_.isUndefined(prefs.SimulatorWindowCenter)) {
+  if (prefs.SimulatorWindowCenter !== undefined) {
     // https://regex101.com/r/2ZXOij/2
     const verificationPattern = /{-?\d+(\.\d+)?,-?\d+(\.\d+)?}/;
     if (
-      !_.isString(prefs.SimulatorWindowCenter) ||
+      typeof prefs.SimulatorWindowCenter !== 'string' ||
       !verificationPattern.test(prefs.SimulatorWindowCenter)
     ) {
       throw this.log.errorWithException(
@@ -501,7 +508,7 @@ export function verifyDevicePreferences(
     }
   }
 
-  if (!_.isUndefined(prefs.SimulatorWindowOrientation)) {
+  if (prefs.SimulatorWindowOrientation !== undefined) {
     const acceptableValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
     if (
       !prefs.SimulatorWindowOrientation ||
@@ -514,8 +521,8 @@ export function verifyDevicePreferences(
     }
   }
 
-  if (!_.isUndefined(prefs.SimulatorWindowRotationAngle)) {
-    if (!_.isNumber(prefs.SimulatorWindowRotationAngle)) {
+  if (prefs.SimulatorWindowRotationAngle !== undefined) {
+    if (typeof prefs.SimulatorWindowRotationAngle !== 'number') {
       throw this.log.errorWithException(
         `SimulatorWindowRotationAngle is expected to be a valid number. ` +
           `'${prefs.SimulatorWindowRotationAngle}' is assigned instead.`,
@@ -523,3 +530,4 @@ export function verifyDevicePreferences(
     }
   }
 }
+

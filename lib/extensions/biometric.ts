@@ -1,5 +1,5 @@
-import _ from 'lodash';
 import type {CoreSimulator, SupportsBiometric} from '../types';
+import {escapeRegExp} from '../utils';
 
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
@@ -18,7 +18,7 @@ export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Pro
     '-g',
     ENROLLMENT_NOTIFICATION_RECEIVER,
   ]);
-  const match = new RegExp(`${_.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
+  const match = new RegExp(`${escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
     stdout,
   );
   if (!match) {
@@ -80,8 +80,9 @@ export async function sendBiometricMatch(
 export function toBiometricDomainComponent(name: string): string {
   if (!BIOMETRICS[name]) {
     throw new Error(
-      `'${name}' is not a valid biometric. Use one of: ${JSON.stringify(_.keys(BIOMETRICS))}`,
+      `'${name}' is not a valid biometric. Use one of: ${JSON.stringify(Object.keys(BIOMETRICS))}`,
     );
   }
   return BIOMETRICS[name];
 }
+

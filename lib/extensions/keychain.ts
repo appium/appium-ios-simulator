@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import path from 'node:path';
 import {fs, mkdirp, tempDir, util} from '@appium/support';
 import {exec} from 'teen_process';
@@ -16,13 +15,13 @@ type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
  */
 export async function backupKeychains(this: CoreSimulatorWithKeychain): Promise<boolean> {
   const resetBackupPath = async (newPath: string | null | undefined) => {
-    if (_.isString(this._keychainsBackupPath) && (await fs.exists(this._keychainsBackupPath))) {
+    if (typeof this._keychainsBackupPath === 'string' && (await fs.exists(this._keychainsBackupPath))) {
       await fs.unlink(this._keychainsBackupPath);
     }
     this._keychainsBackupPath = newPath;
   };
 
-  if (!(await fs.exists(this.keychainPath)) || _.isEmpty(await fs.readdir(this.keychainPath))) {
+  if (!(await fs.exists(this.keychainPath)) || (await fs.readdir(this.keychainPath)).length === 0) {
     this.log.info(`There is nothing to backup from '${this.keychainPath}'`);
     await resetBackupPath(null);
     return false;
@@ -64,14 +63,14 @@ export async function restoreKeychains(
   this: CoreSimulatorWithKeychain,
   excludePatterns: string[] | string = [],
 ): Promise<boolean> {
-  if (!_.isString(this._keychainsBackupPath) || !(await fs.exists(this._keychainsBackupPath))) {
+  if (typeof this._keychainsBackupPath !== 'string' || !(await fs.exists(this._keychainsBackupPath))) {
     throw new Error(
       `The keychains backup archive does not exist. ` + `Are you sure it was created before?`,
     );
   }
 
   let patterns: string[] = [];
-  if (_.isString(excludePatterns)) {
+  if (typeof excludePatterns === 'string') {
     patterns = excludePatterns.split(',').map((x) => x.trim());
   } else {
     patterns = excludePatterns;
@@ -95,7 +94,7 @@ export async function restoreKeychains(
     const unzipArgs = [
       '-o',
       backupPath,
-      ..._.flatMap(patterns.map((x) => ['-x', x])),
+      ...patterns.flatMap((x) => ['-x', x]),
       '-d',
       path.dirname(this.keychainPath),
     ];

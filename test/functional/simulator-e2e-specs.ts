@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils';
 import {getSimulator} from '../../lib/simulator';
 import {Simctl} from 'node-simctl';
@@ -280,7 +279,7 @@ describe('advanced features', function () {
 
   describe('configureLocalization', function () {
     it(`should properly set locale settings`, async function () {
-      if (!_.isFunction(sim.configureLocalization)) {
+      if (typeof sim.configureLocalization !== 'function') {
         return this.skip();
       }
 
@@ -396,7 +395,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
     try {
       await killAllSimulators();
       const simctl = new Simctl();
-      for (const udid of _.keys(simulatorsMapping)) {
+      for (const udid of Object.keys(simulatorsMapping)) {
         try {
           simctl.udid = udid;
           await simctl.deleteDevice();
@@ -412,7 +411,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
   afterEach(killAllSimulators);
 
   it(`should start multiple simulators in 'default' mode`, async function () {
-    const simulators = _.values(simulatorsMapping);
+    const simulators = Object.values(simulatorsMapping);
 
     // they all should be off
     await retryInterval(30, 1000, async function () {
@@ -424,14 +423,14 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
       simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'),
     ).to.eventually.eql([]);
 
-    for (const sim of _.values(simulatorsMapping)) {
+    for (const sim of Object.values(simulatorsMapping)) {
       await sim.run({startupTimeout: LONG_TIMEOUT});
     }
     await retryInterval(30, 1000, async function () {
       await Promise.all(simulators.map((sim) => verifyStates(sim, true, true)));
     });
 
-    for (const sim of _.values(simulatorsMapping)) {
+    for (const sim of Object.values(simulatorsMapping)) {
       await sim.shutdown();
     }
     await retryInterval(30, 1000, async function () {
