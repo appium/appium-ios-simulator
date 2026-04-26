@@ -16,29 +16,8 @@ export const MOBILE_SAFARI_BUNDLE_ID = 'com.apple.mobilesafari';
 export const SIMULATOR_APP_NAME = 'Simulator.app';
 export const MIN_SUPPORTED_XCODE_VERSION = 14;
 
-/**
- * @param appName - The application name to kill.
- * @param forceKill - Whether to force kill the process.
- * @returns Promise that resolves to 0 on success.
- */
-async function pkill(appName: string, forceKill: boolean = false): Promise<number> {
-  const args = forceKill ? ['-9'] : [];
-  args.push('-x', appName);
-  try {
-    await exec('pkill', args);
-    return 0;
-  } catch (err: any) {
-    // pgrep/pkill exit codes:
-    // 0       One or more processes were matched.
-    // 1       No processes were matched.
-    // 2       Invalid options were specified on the command line.
-    // 3       An internal error occurred.
-    if (!_.isUndefined(err.code)) {
-      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`);
-    }
-    log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
-    throw err;
-  }
+export interface SimulatorInfoOptions {
+  devicesSetPath?: string | null;
 }
 
 /**
@@ -126,10 +105,6 @@ export async function killAllSimulators(
   }
 }
 
-export interface SimulatorInfoOptions {
-  devicesSetPath?: string | null;
-}
-
 /**
  * @param udid - The simulator UDID.
  * @param opts - Options including devicesSetPath.
@@ -187,4 +162,29 @@ export function assertXcodeVersion<V extends XcodeVersion>(xcodeVersion: V): V {
  */
 export async function getDevices(simctlOpts?: StringRecord): Promise<Record<string, any[]>> {
   return await new Simctl(simctlOpts).getDevices();
+}
+
+/**
+ * @param appName - The application name to kill.
+ * @param forceKill - Whether to force kill the process.
+ * @returns Promise that resolves to 0 on success.
+ */
+async function pkill(appName: string, forceKill: boolean = false): Promise<number> {
+  const args = forceKill ? ['-9'] : [];
+  args.push('-x', appName);
+  try {
+    await exec('pkill', args);
+    return 0;
+  } catch (err: any) {
+    // pgrep/pkill exit codes:
+    // 0       One or more processes were matched.
+    // 1       No processes were matched.
+    // 2       Invalid options were specified on the command line.
+    // 3       An internal error occurred.
+    if (!_.isUndefined(err.code)) {
+      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`);
+    }
+    log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
+    throw err;
+  }
 }

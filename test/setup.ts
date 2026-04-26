@@ -14,6 +14,21 @@ export const UICATALOG_BUNDLE_ID = 'com.example.apple-samplecode.UICatalog';
 const downloadPromises = new Map<string, Promise<string>>();
 
 /**
+ * Downloads and extracts the UIKitCatalog app from GitHub if it doesn't already exist locally.
+ * This function handles concurrent requests by reusing the same download promise.
+ *
+ * @returns {Promise<string>} The path to the cached app directory
+ * @throws {Error} If the download or extraction fails
+ */
+export async function getUIKitCatalogPath(): Promise<string> {
+  return downloadAndExtractApp(
+    UICATALOG_URL,
+    UICATALOG_CACHE_PATH,
+    'UIKitCatalog-iphonesimulator.zip',
+  );
+}
+
+/**
  * Finds .app bundles in a directory (similar to findApps in app-utils.js)
  * @param {string} searchPath Directory to search in
  * @returns {Promise<string[]>} Array of relative paths to .app bundles
@@ -104,19 +119,4 @@ async function downloadAndExtractApp(
 
   downloadPromises.set(cachePath, downloadPromise);
   return downloadPromise;
-}
-
-/**
- * Downloads and extracts the UIKitCatalog app from GitHub if it doesn't already exist locally.
- * This function handles concurrent requests by reusing the same download promise.
- *
- * @returns {Promise<string>} The path to the cached app directory
- * @throws {Error} If the download or extraction fails
- */
-export async function getUIKitCatalogPath(): Promise<string> {
-  return downloadAndExtractApp(
-    UICATALOG_URL,
-    UICATALOG_CACHE_PATH,
-    'UIKitCatalog-iphonesimulator.zip',
-  );
 }

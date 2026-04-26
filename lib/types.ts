@@ -212,15 +212,6 @@ export interface InteractsWithSafariBrowser {
   getWebInspectorSocket(): Promise<string | null>;
 }
 
-interface KeyboardOptions {
-  /** The name of the keyboard locale, for example `en_US` or `de_CH` */
-  name: string;
-  /** The keyboard layout, for example `QUERTY` or `Ukrainian` */
-  layout: string;
-  /** hardware Could either be `Automatic` or `null` */
-  hardware?: string | null;
-}
-
 export interface LanguageOptions {
   /** The name of the language, for example `de` or `zh-Hant-CN` */
   name: string;
@@ -298,3 +289,12 @@ export type Simulator = CoreSimulator &
   InteractsWithKeychain &
   SupportsAppPermissions &
   HasMiscFeatures;
+
+interface KeyboardOptions {
+  /** The name of the keyboard locale, for example `en_US` or `de_CH` */
+  name: string;
+  /** The keyboard layout, for example `QUERTY` or `Ukrainian` */
+  layout: string;
+  /** hardware Could either be `Automatic` or `null` */
+  hardware?: string | null;
+}

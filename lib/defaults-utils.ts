@@ -4,6 +4,61 @@ import {exec} from 'teen_process';
 import B from 'bluebird';
 import {log} from './logger';
 
+export class NSUserDefaults {
+  plist: string;
+
+  constructor(plist: string) {
+    this.plist = plist;
+  }
+
+  /**
+   * Reads the content of the given plist file using plutil command line tool
+   * and serializes it to a JSON representation
+   *
+   * @returns The serialized plist content
+   * @throws {Error} If there was an error during serialization
+   */
+  async asJson(): Promise<Record<string, any>> {
+    try {
+      const {stdout} = await exec('plutil', ['-convert', 'json', '-o', '-', this.plist]);
+      return JSON.parse(stdout);
+    } catch (e: any) {
+      throw new Error(
+        `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
+      );
+    }
+  }
+
+  /**
+   * Updates the content of the given plist file.
+   * If the plist does not exist yet then it is going to be created.
+   *
+   * @param valuesMap Mapping of preference values to update.
+   * If any of item values are of dictionary type then only the first level dictionary gets
+   * updated. Everything below this level will be replaced. This is the known limitation
+   * of the `defaults` command line tool. A workaround for it would be to read the current
+   * preferences mapping first and merge it with this value.
+   * @throws {Error} If there was an error while updating the plist
+   */
+  async update(valuesMap: Record<string, any>): Promise<void> {
+    if (!_.isPlainObject(valuesMap)) {
+      throw new TypeError(`plist values must be a map. '${valuesMap}' is given instead`);
+    }
+    if (_.isEmpty(valuesMap)) {
+      return;
+    }
+
+    const commandArgs = generateDefaultsCommandArgs(valuesMap);
+    try {
+      await B.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
+    } catch (e: any) {
+      throw new Error(
+        `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
+      );
+    }
+  }
+}
+
 /**
  * Serializes the given value to plist-compatible
  * XML representation, which is ready for further usage
@@ -104,61 +159,6 @@ export function generateDefaultsCommandArgs(
     }
   }
   return resultArgs;
-}
-
-export class NSUserDefaults {
-  plist: string;
-
-  constructor(plist: string) {
-    this.plist = plist;
-  }
-
-  /**
-   * Reads the content of the given plist file using plutil command line tool
-   * and serializes it to a JSON representation
-   *
-   * @returns The serialized plist content
-   * @throws {Error} If there was an error during serialization
-   */
-  async asJson(): Promise<Record<string, any>> {
-    try {
-      const {stdout} = await exec('plutil', ['-convert', 'json', '-o', '-', this.plist]);
-      return JSON.parse(stdout);
-    } catch (e: any) {
-      throw new Error(
-        `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
-      );
-    }
-  }
-
-  /**
-   * Updates the content of the given plist file.
-   * If the plist does not exist yet then it is going to be created.
-   *
-   * @param valuesMap Mapping of preference values to update.
-   * If any of item values are of dictionary type then only the first level dictionary gets
-   * updated. Everything below this level will be replaced. This is the known limitation
-   * of the `defaults` command line tool. A workaround for it would be to read the current
-   * preferences mapping first and merge it with this value.
-   * @throws {Error} If there was an error while updating the plist
-   */
-  async update(valuesMap: Record<string, any>): Promise<void> {
-    if (!_.isPlainObject(valuesMap)) {
-      throw new TypeError(`plist values must be a map. '${valuesMap}' is given instead`);
-    }
-    if (_.isEmpty(valuesMap)) {
-      return;
-    }
-
-    const commandArgs = generateDefaultsCommandArgs(valuesMap);
-    try {
-      await B.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
-    } catch (e: any) {
-      throw new Error(
-        `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
-      );
-    }
-  }
 }
 
 function requireDocumentElement(xmlDoc: Document): Element {
