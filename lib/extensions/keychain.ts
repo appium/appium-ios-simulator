@@ -15,7 +15,10 @@ type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
  */
 export async function backupKeychains(this: CoreSimulatorWithKeychain): Promise<boolean> {
   const resetBackupPath = async (newPath: string | null | undefined) => {
-    if (typeof this._keychainsBackupPath === 'string' && (await fs.exists(this._keychainsBackupPath))) {
+    if (
+      typeof this._keychainsBackupPath === 'string' &&
+      (await fs.exists(this._keychainsBackupPath))
+    ) {
       await fs.unlink(this._keychainsBackupPath);
     }
     this._keychainsBackupPath = newPath;
@@ -63,7 +66,10 @@ export async function restoreKeychains(
   this: CoreSimulatorWithKeychain,
   excludePatterns: string[] | string = [],
 ): Promise<boolean> {
-  if (typeof this._keychainsBackupPath !== 'string' || !(await fs.exists(this._keychainsBackupPath))) {
+  if (
+    typeof this._keychainsBackupPath !== 'string' ||
+    !(await fs.exists(this._keychainsBackupPath))
+  ) {
     throw new Error(
       `The keychains backup archive does not exist. ` + `Are you sure it was created before?`,
     );

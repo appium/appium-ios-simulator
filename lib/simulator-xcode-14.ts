@@ -665,5 +665,4 @@ export class SimulatorXcode14
       'LaunchDaemons',
     );
   }
-
 }

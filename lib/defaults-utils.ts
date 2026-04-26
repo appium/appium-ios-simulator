@@ -49,7 +49,9 @@ export class NSUserDefaults {
 
     const commandArgs = generateDefaultsCommandArgs(valuesMap);
     try {
-      await Promise.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
+      await Promise.all(
+        commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])),
+      );
     } catch (e: any) {
       throw new Error(
         `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
@@ -167,4 +169,3 @@ function requireDocumentElement(xmlDoc: Document): Element {
   }
   return documentElement;
 }
-

@@ -482,52 +482,54 @@ export function verifyDevicePreferences(
     return;
   }
 
-  if (prefs.SimulatorWindowLastScale !== undefined) {
-    if (
-      typeof prefs.SimulatorWindowLastScale !== 'number' ||
-      prefs.SimulatorWindowLastScale <= 0
-    ) {
-      throw this.log.errorWithException(
-        `SimulatorWindowLastScale is expected to be a positive float value. ` +
-          `'${prefs.SimulatorWindowLastScale}' is assigned instead.`,
-      );
-    }
+  // https://regex101.com/r/2ZXOij/2
+  const simulatorWindowCenterPattern = /{-?\d+(\.\d+)?,-?\d+(\.\d+)?}/;
+  const acceptableSimulatorWindowOrientations = [
+    'Portrait',
+    'LandscapeLeft',
+    'PortraitUpsideDown',
+    'LandscapeRight',
+  ];
+
+  if (
+    prefs.SimulatorWindowLastScale !== undefined &&
+    (typeof prefs.SimulatorWindowLastScale !== 'number' || prefs.SimulatorWindowLastScale <= 0)
+  ) {
+    throw this.log.errorWithException(
+      `SimulatorWindowLastScale is expected to be a positive float value. ` +
+        `'${prefs.SimulatorWindowLastScale}' is assigned instead.`,
+    );
   }
 
-  if (prefs.SimulatorWindowCenter !== undefined) {
-    // https://regex101.com/r/2ZXOij/2
-    const verificationPattern = /{-?\d+(\.\d+)?,-?\d+(\.\d+)?}/;
-    if (
-      typeof prefs.SimulatorWindowCenter !== 'string' ||
-      !verificationPattern.test(prefs.SimulatorWindowCenter)
-    ) {
-      throw this.log.errorWithException(
-        `SimulatorWindowCenter is expected to match "{floatXPosition,floatYPosition}" format (without spaces). ` +
-          `'${prefs.SimulatorWindowCenter}' is assigned instead.`,
-      );
-    }
+  if (
+    prefs.SimulatorWindowCenter !== undefined &&
+    (typeof prefs.SimulatorWindowCenter !== 'string' ||
+      !simulatorWindowCenterPattern.test(prefs.SimulatorWindowCenter))
+  ) {
+    throw this.log.errorWithException(
+      `SimulatorWindowCenter is expected to match "{floatXPosition,floatYPosition}" format (without spaces). ` +
+        `'${prefs.SimulatorWindowCenter}' is assigned instead.`,
+    );
   }
 
-  if (prefs.SimulatorWindowOrientation !== undefined) {
-    const acceptableValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
-    if (
-      !prefs.SimulatorWindowOrientation ||
-      !acceptableValues.includes(prefs.SimulatorWindowOrientation)
-    ) {
-      throw this.log.errorWithException(
-        `SimulatorWindowOrientation is expected to be one of ${acceptableValues}. ` +
-          `'${prefs.SimulatorWindowOrientation}' is assigned instead.`,
-      );
-    }
+  if (
+    prefs.SimulatorWindowOrientation !== undefined &&
+    (!prefs.SimulatorWindowOrientation ||
+      !acceptableSimulatorWindowOrientations.includes(prefs.SimulatorWindowOrientation))
+  ) {
+    throw this.log.errorWithException(
+      `SimulatorWindowOrientation is expected to be one of ${acceptableSimulatorWindowOrientations}. ` +
+        `'${prefs.SimulatorWindowOrientation}' is assigned instead.`,
+    );
   }
 
-  if (prefs.SimulatorWindowRotationAngle !== undefined) {
-    if (typeof prefs.SimulatorWindowRotationAngle !== 'number') {
-      throw this.log.errorWithException(
-        `SimulatorWindowRotationAngle is expected to be a valid number. ` +
-          `'${prefs.SimulatorWindowRotationAngle}' is assigned instead.`,
-      );
-    }
+  if (
+    prefs.SimulatorWindowRotationAngle !== undefined &&
+    typeof prefs.SimulatorWindowRotationAngle !== 'number'
+  ) {
+    throw this.log.errorWithException(
+      `SimulatorWindowRotationAngle is expected to be a valid number. ` +
+        `'${prefs.SimulatorWindowRotationAngle}' is assigned instead.`,
+    );
   }
 }
-

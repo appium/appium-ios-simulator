@@ -85,4 +85,3 @@ export function toBiometricDomainComponent(name: string): string {
   }
   return BIOMETRICS[name];
 }
-
