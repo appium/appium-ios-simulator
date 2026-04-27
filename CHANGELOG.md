@@ -1,3 +1,9 @@
+## [8.1.0](https://github.com/appium/appium-ios-simulator/compare/v8.0.13...v8.1.0) (2026-04-27)
+
+### Features
+
+* Strip bluebird and lodash usage ([#477](https://github.com/appium/appium-ios-simulator/issues/477)) ([3f19625](https://github.com/appium/appium-ios-simulator/commit/3f1962542e6bcad5098c8d056218c41e0fac9c9e))
+
 ## [8.0.13](https://github.com/appium/appium-ios-simulator/compare/v8.0.12...v8.0.13) (2026-04-10)
 
 ### Miscellaneous Chores
