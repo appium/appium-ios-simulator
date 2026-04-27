@@ -1,8 +1,7 @@
-import _ from 'lodash';
 import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
-import B from 'bluebird';
 import {waitForCondition} from 'asyncbox';
+import {isPlainObject} from '../utils';
 import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types';
 
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
@@ -32,7 +31,7 @@ export async function getUserInstalledBundleIdsByBundleName(
     cwd: appsRoot,
     absolute: true,
   });
-  if (_.isEmpty(infoPlists)) {
+  if (infoPlists.length === 0) {
     return [];
   }
 
@@ -48,11 +47,11 @@ export async function getUserInstalledBundleIdsByBundleName(
       })(),
     );
   }
-  const bundleInfos = (await B.all(bundleInfoPromises)).filter(_.isPlainObject);
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter(isPlainObject);
   const bundleIds = bundleInfos
     .filter(({CFBundleName}) => CFBundleName === bundleName)
     .map(({CFBundleIdentifier}) => CFBundleIdentifier);
-  if (_.isEmpty(bundleIds)) {
+  if (bundleIds.length === 0) {
     return [];
   }
 
@@ -166,12 +165,12 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
   this.log.info(
     `Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`,
   );
-  if (_.isEmpty(appFiles)) {
+  if (appFiles.length === 0) {
     return;
   }
 
   try {
     await this.terminateApp(bundleId);
   } catch {}
-  await B.all(appFiles.map((p) => fs.rimraf(p)));
+  await Promise.all(appFiles.map((p) => fs.rimraf(p)));
 }

@@ -5,9 +5,7 @@ import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
-import _ from 'lodash';
 import path from 'node:path';
-import B from 'bluebird';
 import {getPath as getXcodePath} from 'appium-xcode';
 import {Simctl} from 'node-simctl';
 import * as appExtensions from './extensions/applications';
@@ -57,6 +55,57 @@ export class SimulatorXcode14
   _keychainsBackupPath: string | null | undefined;
   _platformVersion: string | null | undefined;
   _webInspectorSocket: string | null | undefined;
+
+  // Extension methods
+  installApp = appExtensions.installApp;
+  getUserInstalledBundleIdsByBundleName = appExtensions.getUserInstalledBundleIdsByBundleName;
+  isAppInstalled = appExtensions.isAppInstalled;
+  removeApp = appExtensions.removeApp;
+  launchApp = appExtensions.launchApp;
+  terminateApp = appExtensions.terminateApp;
+  isAppRunning = appExtensions.isAppRunning;
+  scrubApp = appExtensions.scrubApp;
+
+  openUrl = safariExtensions.openUrl;
+  scrubSafari = safariExtensions.scrubSafari;
+  updateSafariSettings = safariExtensions.updateSafariSettings;
+  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<
+    string | null
+  >;
+
+  isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
+  enrollBiometric = biometricExtensions.enrollBiometric;
+  sendBiometricMatch = biometricExtensions.sendBiometricMatch;
+
+  backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
+  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (
+    excludePatterns: string[],
+  ) => Promise<boolean>;
+  clearKeychains = keychainExtensions.clearKeychains;
+
+  setGeolocation = geolocationExtensions.setGeolocation;
+
+  shake = miscExtensions.shake;
+  addCertificate = miscExtensions.addCertificate;
+  pushNotification = miscExtensions.pushNotification;
+
+  setPermission = permissionsExtensions.setPermission;
+  setPermissions = permissionsExtensions.setPermissions;
+  getPermission = permissionsExtensions.getPermission;
+
+  updateSettings = settingsExtensions.updateSettings;
+  setAppearance = settingsExtensions.setAppearance;
+  getAppearance = settingsExtensions.getAppearance;
+  setIncreaseContrast = settingsExtensions.setIncreaseContrast;
+  getIncreaseContrast = settingsExtensions.getIncreaseContrast;
+  setContentSize = settingsExtensions.setContentSize;
+  getContentSize = settingsExtensions.getContentSize;
+  configureLocalization = settingsExtensions.configureLocalization;
+  setAutoFillPasswords = settingsExtensions.setAutoFillPasswords;
+  setReduceMotion = settingsExtensions.setReduceMotion;
+  setReduceTransparency = settingsExtensions.setReduceTransparency;
+  disableKeyboardIntroduction = settingsExtensions.disableKeyboardIntroduction;
+
   private readonly _udid: string;
   private readonly _simctl: Simctl;
   private readonly _xcodeVersion: XcodeVersion;
@@ -193,7 +242,7 @@ export class SimulatorXcode14
    */
   async stat(): Promise<DeviceStat | StringRecord<never>> {
     const devices = await this.simctl.getDevices();
-    for (const [sdk, deviceArr] of _.toPairs(devices)) {
+    for (const [sdk, deviceArr] of Object.entries(devices)) {
       for (const device of deviceArr as any[]) {
         if (device.udid === this.udid) {
           device.sdk = sdk;
@@ -246,7 +295,7 @@ export class SimulatorXcode14
       await this.simctl.getEnv('dummy');
       return false;
     } catch (e: any) {
-      return _.includes(e.stderr, 'Current state: Shutdown');
+      return String(e.stderr).includes('Current state: Shutdown');
     }
   }
 
@@ -276,7 +325,7 @@ export class SimulatorXcode14
    * @returns True if UI client is running or false otherwise.
    */
   async isUIClientRunning(): Promise<boolean> {
-    return !_.isNull(await this.getUIClientPid());
+    return (await this.getUIClientPid()) !== null;
   }
 
   /**
@@ -307,14 +356,14 @@ export class SimulatorXcode14
       shouldPreboot: true,
     });
     try {
-      await new B<void>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         // Historically this call was always asynchronous,
         // e.g. it was not waiting until Simulator is fully booted.
         // So we preserve that behavior, and if no errors are received for a while
         // then we assume the Simulator booting is still in progress.
         setTimeout(resolve, 3000);
         bootEventsEmitter.once('failure', (err: Error) => {
-          if (_.includes(err?.message, 'state: Booted')) {
+          if (String(err?.message).includes('state: Booted')) {
             resolve();
           } else {
             reject(err);
@@ -402,16 +451,16 @@ export class SimulatorXcode14
    * @param opts - Simulator startup options.
    */
   async startUIClient(opts: StartUiClientOptions = {}): Promise<void> {
-    opts = _.cloneDeep(opts);
-    _.defaultsDeep(opts, {
+    const startUiOpts = {
       startupTimeout: this.startupTimeout,
-    });
+      ...opts,
+    };
 
     const simulatorApp = path.resolve(await getXcodePath(), 'Applications', SIMULATOR_APP_NAME);
     const args = ['-Fn', simulatorApp];
     this.log.info(`Starting Simulator UI: ${util.quote(['open', ...args])}`);
     try {
-      await exec('open', args, {timeout: opts.startupTimeout});
+      await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
       throw new Error(
         `Got an unexpected error while opening Simulator UI: ` + err.stderr ||
@@ -428,21 +477,21 @@ export class SimulatorXcode14
    * @param opts - One or more of available Simulator options.
    */
   async run(opts: RunOptions = {}): Promise<void> {
-    opts = _.cloneDeep(opts);
-    _.defaultsDeep(opts, {
+    const runOpts: RunOptions = {
       isHeadless: false,
       startupTimeout: this.startupTimeout,
-    });
+      ...structuredClone(opts),
+    };
 
     const [devicePreferences, commonPreferences] =
-      settingsExtensions.compileSimulatorPreferences.bind(this)(opts);
+      settingsExtensions.compileSimulatorPreferences.bind(this)(runOpts);
     await settingsExtensions.updatePreferences.bind(this)(devicePreferences, commonPreferences);
 
     const timer = new timing.Timer().start();
     const shouldWaitForBoot = await STARTUP_LOCK.acquire(this.uiClientBundleId, async () => {
       const isServerRunning = await this.isRunning();
       const uiClientPid = await this.getUIClientPid();
-      if (opts.isHeadless) {
+      if (runOpts.isHeadless) {
         if (isServerRunning && !uiClientPid) {
           this.log.info(`Simulator with UDID '${this.udid}' is already booted in headless mode.`);
           return false;
@@ -485,19 +534,19 @@ export class SimulatorXcode14
           );
           await this.shutdown({timeout: SIMULATOR_SHUTDOWN_TIMEOUT});
         }
-        await this.launchWindow(Boolean(uiClientPid), opts);
+        await this.launchWindow(Boolean(uiClientPid), runOpts);
       }
       return true;
     });
 
-    if (shouldWaitForBoot && opts.startupTimeout) {
-      await this.waitForBoot(opts.startupTimeout);
+    if (shouldWaitForBoot && runOpts.startupTimeout) {
+      await this.waitForBoot(runOpts.startupTimeout);
       this.log.info(
         `Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`,
       );
     }
 
-    (async () => {
+    void (async () => {
       try {
         await this.disableKeyboardIntroduction();
       } catch (e: any) {
@@ -573,7 +622,7 @@ export class SimulatorXcode14
 
     const result: ProcessInfo[] = [];
     for (const line of stdout.split('\n')) {
-      const trimmedLine = _.trim(line);
+      const trimmedLine = line.trim();
       if (!trimmedLine) {
         continue;
       }
@@ -616,54 +665,4 @@ export class SimulatorXcode14
       'LaunchDaemons',
     );
   }
-
-  // Extension methods
-  installApp = appExtensions.installApp;
-  getUserInstalledBundleIdsByBundleName = appExtensions.getUserInstalledBundleIdsByBundleName;
-  isAppInstalled = appExtensions.isAppInstalled;
-  removeApp = appExtensions.removeApp;
-  launchApp = appExtensions.launchApp;
-  terminateApp = appExtensions.terminateApp;
-  isAppRunning = appExtensions.isAppRunning;
-  scrubApp = appExtensions.scrubApp;
-
-  openUrl = safariExtensions.openUrl;
-  scrubSafari = safariExtensions.scrubSafari;
-  updateSafariSettings = safariExtensions.updateSafariSettings;
-  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<
-    string | null
-  >;
-
-  isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
-  enrollBiometric = biometricExtensions.enrollBiometric;
-  sendBiometricMatch = biometricExtensions.sendBiometricMatch;
-
-  backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
-  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (
-    excludePatterns: string[],
-  ) => Promise<boolean>;
-  clearKeychains = keychainExtensions.clearKeychains;
-
-  setGeolocation = geolocationExtensions.setGeolocation;
-
-  shake = miscExtensions.shake;
-  addCertificate = miscExtensions.addCertificate;
-  pushNotification = miscExtensions.pushNotification;
-
-  setPermission = permissionsExtensions.setPermission;
-  setPermissions = permissionsExtensions.setPermissions;
-  getPermission = permissionsExtensions.getPermission;
-
-  updateSettings = settingsExtensions.updateSettings;
-  setAppearance = settingsExtensions.setAppearance;
-  getAppearance = settingsExtensions.getAppearance;
-  setIncreaseContrast = settingsExtensions.setIncreaseContrast;
-  getIncreaseContrast = settingsExtensions.getIncreaseContrast;
-  setContentSize = settingsExtensions.setContentSize;
-  getContentSize = settingsExtensions.getContentSize;
-  configureLocalization = settingsExtensions.configureLocalization;
-  setAutoFillPasswords = settingsExtensions.setAutoFillPasswords;
-  setReduceMotion = settingsExtensions.setReduceMotion;
-  setReduceTransparency = settingsExtensions.setReduceTransparency;
-  disableKeyboardIntroduction = settingsExtensions.disableKeyboardIntroduction;
 }

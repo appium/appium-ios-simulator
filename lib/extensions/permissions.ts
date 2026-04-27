@@ -1,8 +1,6 @@
-import _ from 'lodash';
 import {fs, timing, util} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
-import B from 'bluebird';
 import {waitForCondition} from 'asyncbox';
 import type {CoreSimulator, SupportsAppPermissions} from '../types';
 import type {StringRecord} from '@appium/types';
@@ -99,17 +97,17 @@ export async function getPermission(
 }
 
 function toInternalServiceName(serviceName: string): string {
-  const lowerName = _.toLower(serviceName);
-  if (_.has(SERVICES, lowerName)) {
+  const lowerName = serviceName.toLowerCase();
+  if (lowerName in SERVICES) {
     return SERVICES[lowerName as keyof typeof SERVICES] as string;
   }
   throw new Error(
-    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(_.keys(SERVICES))}`,
+    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(Object.keys(SERVICES))}`,
   );
 }
 
 function formatStatus(status: string): string {
-  return status === STATUS.UNSET || status === STATUS.NO ? _.toUpper(status) : status;
+  return status === STATUS.UNSET || status === STATUS.NO ? status.toUpperCase() : status;
 }
 
 /**
@@ -190,7 +188,7 @@ async function setAccess(
     } else {
       // xcrun simctl privacy expects to be lower case while AppleSimulatorUtils is upper case.
       // To keep the compatibility,  we should convert here to lower case explicitly.
-      switch (_.toLower(permissionsMapping[serviceName])) {
+      switch (permissionsMapping[serviceName]?.toLowerCase()) {
         case STATUS.YES:
           grantPermissions.push(serviceName);
           break;
@@ -210,7 +208,7 @@ async function setAccess(
 
   const permissionPromises: Promise<any>[] = [];
 
-  if (!_.isEmpty(grantPermissions)) {
+  if (grantPermissions.length > 0) {
     this.log.debug(
       `Granting ${util.pluralize('permission', grantPermissions.length, false)} for ${bundleId}: ${grantPermissions}`,
     );
@@ -219,7 +217,7 @@ async function setAccess(
     }
   }
 
-  if (!_.isEmpty(revokePermissions)) {
+  if (revokePermissions.length > 0) {
     this.log.debug(
       `Revoking ${util.pluralize('permission', revokePermissions.length, false)} for ${bundleId}: ${revokePermissions}`,
     );
@@ -228,7 +226,7 @@ async function setAccess(
     }
   }
 
-  if (!_.isEmpty(resetPermissions)) {
+  if (resetPermissions.length > 0) {
     this.log.debug(
       `Resetting ${util.pluralize('permission', resetPermissions.length, false)} for ${bundleId}: ${resetPermissions}`,
     );
@@ -237,16 +235,16 @@ async function setAccess(
     }
   }
 
-  if (!_.isEmpty(permissionPromises)) {
-    await B.all(permissionPromises);
+  if (permissionPromises.length > 0) {
+    await Promise.all(permissionPromises);
   }
 
-  if (!_.isEmpty(wixPermissions)) {
+  if (Object.keys(wixPermissions).length > 0) {
     this.log.debug(
       `Setting permissions for ${bundleId} wit ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`,
     );
-    const permissionsArg = _.toPairs(wixPermissions)
-      .map((x) => `${x[0]}=${formatStatus(x[1])}`)
+    const permissionsArg = Object.entries(wixPermissions)
+      .map(([name, status]) => `${name}=${formatStatus(status)}`)
       .join(',');
     const execWixFn = async () =>
       await execWix.bind(this)([
@@ -257,8 +255,8 @@ async function setAccess(
         '--setPermissions',
         permissionsArg,
       ]);
-    const shouldWaitForSystemReadiness = !_.isEmpty(
-      _.intersection(SERVICES_NEED_SPRINGBOARD_RESTART, _.keys(wixPermissions)),
+    const shouldWaitForSystemReadiness = SERVICES_NEED_SPRINGBOARD_RESTART.some(
+      (service) => service in wixPermissions,
     );
     if (shouldWaitForSystemReadiness) {
       const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(
@@ -302,7 +300,7 @@ async function runAndWaitForSystemReadiness<T>(
       async () => {
         try {
           const pid = (await this.ps()).find(({name}) => bundleId === name)?.pid;
-          return _.isInteger(pid) && initialPid !== pid;
+          return Number.isInteger(pid) && initialPid !== pid;
         } catch {
           return false;
         }
@@ -322,7 +320,7 @@ async function runAndWaitForSystemReadiness<T>(
   ].map((bundleId) => initialProcesses.find(({name}) => bundleId === name)?.pid);
 
   const result = await fn();
-  if (!_.isInteger(initialSpringboardPid) || !_.isInteger(initialSpotlightPid)) {
+  if (!Number.isInteger(initialSpringboardPid) || !Number.isInteger(initialSpotlightPid)) {
     // there is no point to wait if relevant processes were not running before
     return [false, result];
   }

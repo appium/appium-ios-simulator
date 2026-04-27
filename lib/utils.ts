@@ -1,5 +1,4 @@
 import {log} from './logger';
-import _ from 'lodash';
 import {exec} from 'teen_process';
 import {waitForCondition} from 'asyncbox';
 import {getVersion} from 'appium-xcode';
@@ -16,29 +15,8 @@ export const MOBILE_SAFARI_BUNDLE_ID = 'com.apple.mobilesafari';
 export const SIMULATOR_APP_NAME = 'Simulator.app';
 export const MIN_SUPPORTED_XCODE_VERSION = 14;
 
-/**
- * @param appName - The application name to kill.
- * @param forceKill - Whether to force kill the process.
- * @returns Promise that resolves to 0 on success.
- */
-async function pkill(appName: string, forceKill: boolean = false): Promise<number> {
-  const args = forceKill ? ['-9'] : [];
-  args.push('-x', appName);
-  try {
-    await exec('pkill', args);
-    return 0;
-  } catch (err: any) {
-    // pgrep/pkill exit codes:
-    // 0       One or more processes were matched.
-    // 1       No processes were matched.
-    // 2       Invalid options were specified on the command line.
-    // 3       An internal error occurred.
-    if (!_.isUndefined(err.code)) {
-      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`);
-    }
-    log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
-    throw err;
-  }
+export interface SimulatorInfoOptions {
+  devicesSetPath?: string | null;
 }
 
 /**
@@ -50,7 +28,7 @@ export async function killAllSimulators(
 ): Promise<void> {
   log.debug('Killing all iOS Simulators');
   const xcodeVersion = await getVersion(true);
-  if (_.isString(xcodeVersion)) {
+  if (typeof xcodeVersion === 'string') {
     return;
   }
   const appName = path.parse(SIMULATOR_APP_NAME).name;
@@ -74,13 +52,13 @@ export async function killAllSimulators(
       log.debug(`${appName} is not running. Continuing...`);
       return;
     }
-    if (_.isEmpty(pids)) {
+    if (pids.length === 0) {
       log.warn(
         `pgrep error ${e.code} while detecting whether ${appName} is running. Trying to kill anyway.`,
       );
     }
   }
-  if (!_.isEmpty(pids)) {
+  if (pids.length > 0) {
     log.debug(`Killing processes: ${pids.join(', ')}`);
     try {
       await exec('kill', ['-9', ...pids.map((pid) => `${pid}`)]);
@@ -98,8 +76,8 @@ export async function killAllSimulators(
   async function allSimsAreDown(): Promise<boolean> {
     remainingDevices = [];
     const devicesRecord = await utilsModule.getDevices();
-    const devices = _.flatten(_.values(devicesRecord));
-    return _.every(devices, (sim: any) => {
+    const devices = Object.values(devicesRecord).flat();
+    return devices.every((sim: any) => {
       const state = sim.state.toLowerCase();
       const done = ['shutdown', 'unavailable', 'disconnected'].includes(state);
       if (!done) {
@@ -126,10 +104,6 @@ export async function killAllSimulators(
   }
 }
 
-export interface SimulatorInfoOptions {
-  devicesSetPath?: string | null;
-}
-
 /**
  * @param udid - The simulator UDID.
  * @param opts - Options including devicesSetPath.
@@ -141,10 +115,8 @@ export async function getSimulatorInfo(
 ): Promise<any> {
   const {devicesSetPath} = opts;
   // see the README for github.com/appium/node-simctl for example output of getDevices()
-  const devices = _.toPairs(await utilsModule.getDevices({devicesSetPath}))
-    .map((pair) => pair[1])
-    .reduce((a, b) => a.concat(b), []);
-  return _.find(devices, (sim: any) => sim.udid === udid);
+  const devices = Object.values(await utilsModule.getDevices({devicesSetPath})).flat();
+  return devices.find((sim: any) => sim.udid === udid);
 }
 
 /**
@@ -187,4 +159,47 @@ export function assertXcodeVersion<V extends XcodeVersion>(xcodeVersion: V): V {
  */
 export async function getDevices(simctlOpts?: StringRecord): Promise<Record<string, any[]>> {
   return await new Simctl(simctlOpts).getDevices();
+}
+
+/**
+ * Checks whether the given value is a plain object.
+ */
+export function isPlainObject(value: unknown): value is Record<string, any> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === null || proto === Object.prototype;
+}
+
+/**
+ * Escapes regexp control characters in a string.
+ */
+export function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * @param appName - The application name to kill.
+ * @param forceKill - Whether to force kill the process.
+ * @returns Promise that resolves to 0 on success.
+ */
+async function pkill(appName: string, forceKill: boolean = false): Promise<number> {
+  const args = forceKill ? ['-9'] : [];
+  args.push('-x', appName);
+  try {
+    await exec('pkill', args);
+    return 0;
+  } catch (err: any) {
+    // pgrep/pkill exit codes:
+    // 0       One or more processes were matched.
+    // 1       No processes were matched.
+    // 2       Invalid options were specified on the command line.
+    // 3       An internal error occurred.
+    if (err.code !== undefined) {
+      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`);
+    }
+    log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
+    throw err;
+  }
 }

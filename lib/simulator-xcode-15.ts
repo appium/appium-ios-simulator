@@ -1,8 +1,6 @@
 import {fs} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
-import _ from 'lodash';
-import B from 'bluebird';
 import {SimulatorXcode14} from './simulator-xcode-14';
 
 export class SimulatorXcode15 extends SimulatorXcode14 {
@@ -102,7 +100,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
     if (!simRoot) {
       throw new Error('The IPHONE_SIMULATOR_ROOT environment variable value cannot be retrieved');
     }
-    return _.trim(simRoot);
+    return simRoot.trim();
   }
 
   /**
@@ -124,7 +122,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
           'print CFBundleIdentifier',
           infoPlistPath,
         ]);
-        return _.trim(stdout);
+        return stdout.trim();
       } catch {
         return null;
       }
@@ -132,7 +130,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
     const allApps = (await fs.readdir(appsRoot))
       .filter((x) => x.endsWith('.app'))
       .map((x) => path.join(appsRoot, x));
-    const bundleIds = await B.all(allApps.map(fetchBundleId));
+    const bundleIds = await Promise.all(allApps.map(fetchBundleId));
     this._systemAppBundleIds = new Set(bundleIds.filter((x): x is string => x !== null));
     return this._systemAppBundleIds;
   }
