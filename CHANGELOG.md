@@ -1,3 +1,9 @@
+## [8.1.1](https://github.com/appium/appium-ios-simulator/compare/v8.1.0...v8.1.1) (2026-04-28)
+
+### Bug Fixes
+
+* Copilot review comments ([#478](https://github.com/appium/appium-ios-simulator/issues/478)) ([3dbc29c](https://github.com/appium/appium-ios-simulator/commit/3dbc29c61e18533d05433f2239a78e6350e8415c))
+
 ## [8.1.0](https://github.com/appium/appium-ios-simulator/compare/v8.0.13...v8.1.0) (2026-04-27)
 
 ### Features
