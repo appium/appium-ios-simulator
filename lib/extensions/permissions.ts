@@ -98,7 +98,7 @@ export async function getPermission(
 
 function toInternalServiceName(serviceName: string): string {
   const lowerName = serviceName.toLowerCase();
-  if (lowerName in SERVICES) {
+  if (Object.hasOwn(SERVICES, lowerName)) {
     return SERVICES[lowerName as keyof typeof SERVICES] as string;
   }
   throw new Error(
@@ -241,7 +241,7 @@ async function setAccess(
 
   if (Object.keys(wixPermissions).length > 0) {
     this.log.debug(
-      `Setting permissions for ${bundleId} wit ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`,
+      `Setting permissions for ${bundleId} with ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`,
     );
     const permissionsArg = Object.entries(wixPermissions)
       .map(([name, status]) => `${name}=${formatStatus(status)}`)
