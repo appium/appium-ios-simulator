@@ -1,3 +1,9 @@
+## [8.1.2](https://github.com/appium/appium-ios-simulator/compare/v8.1.1...v8.1.2) (2026-05-06)
+
+### Miscellaneous Chores
+
+* **deps-dev:** Bump sinon from 21.1.2 to 22.0.0 ([#479](https://github.com/appium/appium-ios-simulator/issues/479)) ([296c1bb](https://github.com/appium/appium-ios-simulator/commit/296c1bbdceb44d223937d0ac6e5372fc05ce4ce8))
+
 ## [8.1.1](https://github.com/appium/appium-ios-simulator/compare/v8.1.0...v8.1.1) (2026-04-28)
 
 ### Bug Fixes
