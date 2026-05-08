@@ -1,7 +1,6 @@
 import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
 import {waitForCondition} from 'asyncbox';
-import {isPlainObject} from '../utils';
 import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types';
 
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
@@ -47,10 +46,15 @@ export async function getUserInstalledBundleIdsByBundleName(
       })(),
     );
   }
-  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter(isPlainObject);
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter((info) =>
+    util.isPlainObject(info),
+  );
   const bundleIds = bundleInfos
-    .filter(({CFBundleName}) => CFBundleName === bundleName)
-    .map(({CFBundleIdentifier}) => CFBundleIdentifier);
+    .filter(
+      ({CFBundleName, CFBundleIdentifier}) =>
+        CFBundleName === bundleName && typeof CFBundleIdentifier === 'string',
+    )
+    .map(({CFBundleIdentifier}) => CFBundleIdentifier as string);
   if (bundleIds.length === 0) {
     return [];
   }

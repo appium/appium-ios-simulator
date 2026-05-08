@@ -32,7 +32,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@appium/support": "^7.0.0-rc.1",
+    "@appium/support": "^7.2.2",
     "@xmldom/xmldom": "^0.x",
     "appium-xcode": "^6.0.0",
     "async-lock": "^1.0.0",
@@ -66,8 +66,12 @@
     "@colors/colors": "^1.5.0",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
+    "@types/async-lock": "^1.4.2",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "^25.0.0",
+    "@types/sinon": "^21.0.1",
     "chai": "^6.0.0",
     "chai-as-promised": "^8.0.2",
     "conventional-changelog-conventionalcommits": "^9.0.0",

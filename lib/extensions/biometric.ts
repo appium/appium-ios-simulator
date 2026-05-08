@@ -1,5 +1,5 @@
 import type {CoreSimulator, SupportsBiometric} from '../types';
-import {escapeRegExp} from '../utils';
+import {util} from '@appium/support';
 
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
@@ -18,7 +18,7 @@ export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Pro
     '-g',
     ENROLLMENT_NOTIFICATION_RECEIVER,
   ]);
-  const match = new RegExp(`${escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
+  const match = new RegExp(`${util.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
     stdout,
   );
   if (!match) {

@@ -62,7 +62,7 @@ describe('util', function () {
       innerExecStub = sandbox
         .stub()
         .withArgs('xcrun')
-        .returns()
+        .returns(undefined)
         .withArgs('pgrep')
         .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
@@ -74,7 +74,7 @@ describe('util', function () {
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_8)));
       innerExecStub = sandbox.stub();
-      innerExecStub.withArgs('xcrun').returns();
+      innerExecStub.withArgs('xcrun').returns(undefined);
       innerExecStub.withArgs('pgrep').throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
@@ -85,10 +85,10 @@ describe('util', function () {
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6)));
       innerExecStub = sandbox.stub();
-      innerExecStub.withArgs('xcrun').throws();
+      innerExecStub.withArgs('xcrun').throws(new Error('xcrun failed'));
       innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
-      innerExecStub.withArgs('kill').returns();
-      innerExecStub.withArgs('pkill').returns();
+      innerExecStub.withArgs('kill').returns(undefined);
+      innerExecStub.withArgs('pkill').returns(undefined);
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);

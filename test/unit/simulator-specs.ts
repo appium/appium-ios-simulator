@@ -91,7 +91,7 @@ describe('simulator', function () {
           ),
         )
       ).map((sim) => {
-        sinon.stub(sim.simctl, 'getDevices').returns(Promise.resolve(devices));
+        sinon.stub(sim.simctl, 'getDevices').returns(Promise.resolve(devices as any));
         return sim;
       });
 

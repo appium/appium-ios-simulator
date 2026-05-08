@@ -1,7 +1,7 @@
 import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
 import {log} from './logger';
-import {isPlainObject} from './utils';
+import {util} from '@appium/support';
 
 export class NSUserDefaults {
   plist: string;
@@ -24,6 +24,7 @@ export class NSUserDefaults {
     } catch (e: any) {
       throw new Error(
         `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
+        {cause: e},
       );
     }
   }
@@ -40,7 +41,7 @@ export class NSUserDefaults {
    * @throws {Error} If there was an error while updating the plist
    */
   async update(valuesMap: Record<string, any>): Promise<void> {
-    if (!isPlainObject(valuesMap)) {
+    if (!util.isPlainObject(valuesMap)) {
       throw new TypeError(`plist values must be a map. '${valuesMap}' is given instead`);
     }
     if (Object.keys(valuesMap).length === 0) {
@@ -55,6 +56,7 @@ export class NSUserDefaults {
     } catch (e: any) {
       throw new Error(
         `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
+        {cause: e},
       );
     }
   }
@@ -75,7 +77,7 @@ export class NSUserDefaults {
 export function toXmlArg(value: any, serialize: boolean = true): string | Element {
   let xmlDoc: Document | null = null;
 
-  if (isPlainObject(value)) {
+  if (util.isPlainObject(value)) {
     xmlDoc = new DOMParser().parseFromString('<dict></dict>', 'text/xml');
     const documentElement = requireDocumentElement(xmlDoc);
     for (const [subKey, subValue] of Object.entries(value)) {
@@ -136,7 +138,7 @@ export function generateDefaultsCommandArgs(
   const resultArgs: string[][] = [];
   for (const [key, value] of Object.entries(valuesMap)) {
     try {
-      if (!replace && isPlainObject(value)) {
+      if (!replace && util.isPlainObject(value)) {
         const dictArgs = [key, '-dict-add'];
         for (const [subKey, subValue] of Object.entries(value)) {
           dictArgs.push(subKey, toXmlArg(subValue) as string);

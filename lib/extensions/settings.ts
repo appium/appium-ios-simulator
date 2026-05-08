@@ -2,8 +2,7 @@ import {NSUserDefaults, generateDefaultsCommandArgs} from '../defaults-utils';
 import path from 'node:path';
 import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
-import {fs} from '@appium/support';
-import {isPlainObject} from '../utils';
+import {fs, util} from '@appium/support';
 import type {
   CoreSimulator,
   HasSettings,
@@ -209,7 +208,7 @@ export async function configureLocalization(
   const {language, locale, keyboard} = opts;
   const globalPrefs: Record<string, any> = {};
   let keyboardId: string | null = null;
-  if (isPlainObject(keyboard)) {
+  if (util.isPlainObject(keyboard)) {
     const {name, layout, hardware} = keyboard;
     if (!name) {
       throw new Error(`The 'keyboard' field must have a valid name set`);
@@ -223,14 +222,14 @@ export async function configureLocalization(
     }
     globalPrefs.AppleKeyboards = [keyboardId];
   }
-  if (isPlainObject(language)) {
+  if (util.isPlainObject(language)) {
     const {name} = language;
     if (!name) {
       throw new Error(`The 'language' field must have a valid name set`);
     }
     globalPrefs.AppleLanguages = [name];
   }
-  if (isPlainObject(locale)) {
+  if (util.isPlainObject(locale)) {
     const {name, calendar} = locale;
     if (!name) {
       throw new Error(`The 'locale' field must have a valid name set`);
@@ -375,8 +374,8 @@ export async function updatePreferences(
         if (await fs.exists(plistPath)) {
           const currentPlistContent = await defaults.asJson();
           if (
-            isPlainObject(currentPlistContent.DevicePreferences) &&
-            isPlainObject(currentPlistContent.DevicePreferences[udidKey])
+            util.isPlainObject(currentPlistContent.DevicePreferences) &&
+            util.isPlainObject(currentPlistContent.DevicePreferences[udidKey])
           ) {
             existingDevicePrefs = currentPlistContent.DevicePreferences[udidKey];
           }

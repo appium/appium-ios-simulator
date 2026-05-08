@@ -463,9 +463,8 @@ export class SimulatorXcode14
       await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
       throw new Error(
-        `Got an unexpected error while opening Simulator UI: ` + err.stderr ||
-          err.stdout ||
-          err.message,
+        `Got an unexpected error while opening Simulator UI: ${err.stderr || err.stdout || err.message}`,
+        {cause: err},
       );
     }
   }
@@ -580,7 +579,9 @@ export class SimulatorXcode14
       if (e.code === 1) {
         return false;
       }
-      throw new Error(`Cannot kill the Simulator UI client. Original error: ${e.message}`);
+      throw new Error(`Cannot kill the Simulator UI client. Original error: ${e.message}`, {
+        cause: e,
+      });
     }
   }
 

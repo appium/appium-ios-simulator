@@ -4,6 +4,8 @@ interface Device {
   name: string;
   udid: string;
   state: string;
+  sdk?: string;
+  platform?: string;
 }
 
 const devices: Record<string, Device[]> = {
