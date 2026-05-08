@@ -1,3 +1,9 @@
+## [8.1.3](https://github.com/appium/appium-ios-simulator/compare/v8.1.2...v8.1.3) (2026-05-08)
+
+### Miscellaneous Chores
+
+* Make TS mode strict ([#480](https://github.com/appium/appium-ios-simulator/issues/480)) ([ddf5b26](https://github.com/appium/appium-ios-simulator/commit/ddf5b261af5b0a919d08a687a1b20e7d9514d151))
+
 ## [8.1.2](https://github.com/appium/appium-ios-simulator/compare/v8.1.1...v8.1.2) (2026-05-06)
 
 ### Miscellaneous Chores
