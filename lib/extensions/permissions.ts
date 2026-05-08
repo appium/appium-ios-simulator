@@ -128,6 +128,7 @@ async function execSQLiteQuery(
   } catch (err: any) {
     throw new Error(
       `Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`,
+      {cause: err},
     );
   }
 }
@@ -155,6 +156,7 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
   } catch (e: any) {
     throw new Error(
       `Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`,
+      {cause: e},
     );
   }
 }

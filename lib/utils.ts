@@ -162,24 +162,6 @@ export async function getDevices(simctlOpts?: StringRecord): Promise<Record<stri
 }
 
 /**
- * Checks whether the given value is a plain object.
- */
-export function isPlainObject(value: unknown): value is Record<string, any> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    return false;
-  }
-  const proto = Object.getPrototypeOf(value);
-  return proto === null || proto === Object.prototype;
-}
-
-/**
- * Escapes regexp control characters in a string.
- */
-export function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
  * @param appName - The application name to kill.
  * @param forceKill - Whether to force kill the process.
  * @returns Promise that resolves to 0 on success.
@@ -197,7 +179,9 @@ async function pkill(appName: string, forceKill: boolean = false): Promise<numbe
     // 2       Invalid options were specified on the command line.
     // 3       An internal error occurred.
     if (err.code !== undefined) {
-      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`);
+      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`, {
+        cause: err,
+      });
     }
     log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
     throw err;

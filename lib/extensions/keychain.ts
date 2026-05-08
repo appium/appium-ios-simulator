@@ -44,6 +44,7 @@ export async function backupKeychains(this: CoreSimulatorWithKeychain): Promise<
     throw new Error(
       `Cannot create keychains backup from '${this.keychainPath}'. ` +
         `Original error: ${err.stderr || err.stdout || err.message}`,
+      {cause: err},
     );
   }
   await resetBackupPath(dstPath);
@@ -75,12 +76,10 @@ export async function restoreKeychains(
     );
   }
 
-  let patterns: string[] = [];
-  if (typeof excludePatterns === 'string') {
-    patterns = excludePatterns.split(',').map((x) => x.trim());
-  } else {
-    patterns = excludePatterns;
-  }
+  const patterns =
+    typeof excludePatterns === 'string'
+      ? excludePatterns.split(',').map((x) => x.trim())
+      : excludePatterns;
   const isServerRunning = await this.isRunning();
   let plistPath: string | undefined;
   if (isServerRunning) {
@@ -111,6 +110,7 @@ export async function restoreKeychains(
       throw new Error(
         `Cannot restore keychains from '${backupPath}'. ` +
           `Original error: ${err.stderr || err.stdout || err.message}`,
+        {cause: err},
       );
     }
     await fs.unlink(backupPath);
