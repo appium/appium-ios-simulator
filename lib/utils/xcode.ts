@@ -45,7 +45,8 @@ export async function getUiClientAppPath(
   }
 
   throw new Error(
-    `Could not find UI client app with bundle id '${bundleId}' in the active Xcode folder (${devRoot})`,
+    `Could not find UI client app with bundle id '${bundleId}' under '${applicationsDir}' ` +
+      `(active Xcode developer root: ${devRoot})`,
   );
 }
 
