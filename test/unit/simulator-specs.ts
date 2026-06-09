@@ -1,6 +1,7 @@
 import {getSimulator} from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
 import * as utils from '../../lib/utils';
+import * as xcodeUtils from '../../lib/utils/xcode';
 import sinon from 'sinon';
 import {devices} from './device-list';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
@@ -23,7 +24,7 @@ describe('simulator', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
-    assertXcodeVersionStub = sandbox.stub(utils, 'assertXcodeVersion');
+    assertXcodeVersionStub = sandbox.stub(xcodeUtils, 'assertXcodeVersion');
     getDevicesStub = sandbox.stub(utils, 'getDevices');
     getDevicesStub.resolves(devices);
     getVersionStub = sandbox.stub(xcodeModule, 'getVersion');
