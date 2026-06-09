@@ -1,6 +1,6 @@
 import {fs} from '@appium/support';
-import {exec} from 'teen_process';
 import path from 'node:path';
+import {readBundleIdFromPlist} from './utils';
 import {SimulatorXcode14} from './simulator-xcode-14';
 
 export class SimulatorXcode15 extends SimulatorXcode14 {
@@ -114,23 +114,12 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
     }
 
     const appsRoot = path.resolve(await this._getSystemRoot(), 'Applications');
-    const fetchBundleId = async (appRoot: string): Promise<string | null> => {
-      const infoPlistPath = path.resolve(appRoot, 'Info.plist');
-      try {
-        const {stdout} = await exec('/usr/libexec/PlistBuddy', [
-          '-c',
-          'print CFBundleIdentifier',
-          infoPlistPath,
-        ]);
-        return stdout.trim();
-      } catch {
-        return null;
-      }
-    };
     const allApps = (await fs.readdir(appsRoot))
       .filter((x) => x.endsWith('.app'))
       .map((x) => path.join(appsRoot, x));
-    const bundleIds = await Promise.all(allApps.map(fetchBundleId));
+    const bundleIds = await Promise.all(
+      allApps.map((appRoot) => readBundleIdFromPlist(path.resolve(appRoot, 'Info.plist'))),
+    );
     this._systemAppBundleIds = new Set(bundleIds.filter((x): x is string => x !== null));
     return this._systemAppBundleIds;
   }

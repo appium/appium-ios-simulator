@@ -1,6 +1,11 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {getDeveloperRoot, getMacAppPidByBundleId, SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils';
+import {
+  getDeveloperRoot,
+  getMacAppPidByBundleId,
+  getUiClientAppPath,
+  SIMULATOR_UI_CLIENT_BUNDLE_ID,
+} from './utils';
 import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
@@ -108,6 +113,7 @@ export class SimulatorXcode14
   private readonly _simctl: Simctl;
   private readonly _xcodeVersion: XcodeVersion;
   private readonly _log: AppiumLogger;
+  private _uiClientAppPath: Promise<string> | undefined;
 
   /**
    * Constructs the object with the `udid` and version of Xcode.
@@ -447,7 +453,8 @@ export class SimulatorXcode14
       ...opts,
     };
 
-    const args = ['-Fn', '-b', this.uiClientBundleId];
+    const uiClientApp = await this._getUiClientAppPath();
+    const args = ['-Fn', uiClientApp];
     this.log.info(`Starting UI client: ${util.quote(['open', ...args])}`);
     try {
       await exec('open', args, {timeout: startUiOpts.startupTimeout});
@@ -655,5 +662,12 @@ export class SimulatorXcode14
       'Library',
       'LaunchDaemons',
     );
+  }
+
+  private async _getUiClientAppPath(): Promise<string> {
+    if (!this._uiClientAppPath) {
+      this._uiClientAppPath = getUiClientAppPath(this.uiClientBundleId, this.xcodeVersion);
+    }
+    return this._uiClientAppPath;
   }
 }
