@@ -163,6 +163,25 @@ describe(`simulator ${OS_VERSION}`, function () {
     await expect(sim.isRunning()).to.eventually.be.false;
   });
 
+  it('should start the UI client', async function () {
+    if (!simctl.udid) {
+      throw new Error('simctl.udid is null');
+    }
+
+    const sim = await getSimulator(simctl.udid);
+    expect(sim.uiClientBundleId).to.be.a('string').and.not.empty;
+
+    await sim.startUIClient({startupTimeout: LONG_TIMEOUT / 2});
+    await waitForCondition(async () => await sim.isUIClientRunning(), {
+      waitMs: LONG_TIMEOUT / 2,
+      intervalMs: 500,
+    });
+
+    const uiClientPid = await sim.getUIClientPid();
+    expect(uiClientPid).to.be.a('string').and.not.empty;
+    expect(await sim.isUIClientRunning()).to.be.true;
+  });
+
   it('should properly start simulator in headless mode on Xcode9+', async function () {
     if (!simctl.udid) {
       throw new Error('simctl.udid is null');

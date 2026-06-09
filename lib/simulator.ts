@@ -1,6 +1,12 @@
 import {SimulatorXcode14} from './simulator-xcode-14';
 import {SimulatorXcode15} from './simulator-xcode-15';
-import {getSimulatorInfo, assertXcodeVersion, MIN_SUPPORTED_XCODE_VERSION} from './utils';
+import {SimulatorXcode27} from './simulator-xcode-27';
+import {
+  assertXcodeVersion,
+  getSimulatorInfo,
+  MIN_DEVICE_HUB_XCODE_VERSION,
+  MIN_SUPPORTED_XCODE_VERSION,
+} from './utils';
 import * as xcode from 'appium-xcode';
 import {log} from './logger';
 import type {Simulator, SimulatorLookupOptions} from './types';
@@ -38,15 +44,13 @@ export async function getSimulator(
   (logger ?? log).info(
     `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`,
   );
-  let SimClass: typeof SimulatorXcode14 | typeof SimulatorXcode15;
-  switch (xcodeVersion.major) {
-    case MIN_SUPPORTED_XCODE_VERSION:
-      SimClass = SimulatorXcode14;
-      break;
-    case 15:
-    default:
-      SimClass = SimulatorXcode15;
-      break;
+  let SimClass: typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27;
+  if (xcodeVersion.major === MIN_SUPPORTED_XCODE_VERSION) {
+    SimClass = SimulatorXcode14;
+  } else if (xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION) {
+    SimClass = SimulatorXcode27;
+  } else {
+    SimClass = SimulatorXcode15;
   }
 
   const result = new SimClass(udid, xcodeVersion, logger);

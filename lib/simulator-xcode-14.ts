@@ -1,12 +1,11 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {getDeveloperRoot, SIMULATOR_APP_NAME} from './utils';
+import {getDeveloperRoot, getMacAppPidByBundleId} from './utils';
 import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import path from 'node:path';
-import {getPath as getXcodePath} from 'appium-xcode';
 import {Simctl} from 'node-simctl';
 import * as appExtensions from './extensions/applications';
 import * as biometricExtensions from './extensions/biometric';
@@ -305,18 +304,11 @@ export class SimulatorXcode14
    * @returns The process ID or null if the UI client is not running.
    */
   async getUIClientPid(): Promise<string | null> {
-    let stdout: string;
-    try {
-      ({stdout} = await exec('pgrep', ['-fn', `${SIMULATOR_APP_NAME}/Contents/MacOS/`]));
-    } catch {
-      return null;
+    const pid = await getMacAppPidByBundleId(this.uiClientBundleId);
+    if (pid) {
+      this.log.debug(`Got UI client PID: ${pid}`);
     }
-    if (isNaN(parseInt(stdout, 10))) {
-      return null;
-    }
-    stdout = stdout.trim();
-    this.log.debug(`Got Simulator UI client PID: ${stdout}`);
-    return stdout;
+    return pid;
   }
 
   /**
@@ -456,14 +448,13 @@ export class SimulatorXcode14
       ...opts,
     };
 
-    const simulatorApp = path.resolve(await getXcodePath(), 'Applications', SIMULATOR_APP_NAME);
-    const args = ['-Fn', simulatorApp];
-    this.log.info(`Starting Simulator UI: ${util.quote(['open', ...args])}`);
+    const args = ['-Fn', '-b', this.uiClientBundleId];
+    this.log.info(`Starting UI client: ${util.quote(['open', ...args])}`);
     try {
       await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
       throw new Error(
-        `Got an unexpected error while opening Simulator UI: ${err.stderr || err.stdout || err.message}`,
+        `Got an unexpected error while opening UI client: ${err.stderr || err.stdout || err.message}`,
         {cause: err},
       );
     }

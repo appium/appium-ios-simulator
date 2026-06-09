@@ -1,4 +1,4 @@
-import {NSUserDefaults, generateDefaultsCommandArgs} from '../defaults-utils';
+import {NSUserDefaults, generateDefaultsCommandArgs} from '../utils';
 import path from 'node:path';
 import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
