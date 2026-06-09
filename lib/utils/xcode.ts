@@ -23,24 +23,24 @@ export async function getUiClientAppPath(
   xcodeVersion: XcodeVersion,
 ): Promise<string> {
   const devRoot = await getDeveloperRoot();
-  const applicationsDirs =
+  const applicationsDir =
     xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION
-      ? [path.resolve(devRoot, '..', 'Applications')]
-      : [path.resolve(devRoot, 'Applications')];
+      ? path.resolve(devRoot, '..', 'Applications')
+      : path.resolve(devRoot, 'Applications');
 
-  for (const applicationsDir of applicationsDirs) {
-    if (!(await fs.exists(applicationsDir))) {
-      continue;
-    }
-    for (const entry of await fs.readdir(applicationsDir)) {
-      if (!entry.endsWith('.app')) {
-        continue;
-      }
-      const appPath = path.resolve(applicationsDir, entry);
-      const infoPlistPath = path.resolve(appPath, 'Contents', 'Info.plist');
-      if ((await readBundleIdFromPlist(infoPlistPath)) === bundleId) {
-        return appPath;
-      }
+  if (await fs.exists(applicationsDir)) {
+    const appPaths = (await fs.readdir(applicationsDir))
+      .filter((entry) => entry.endsWith('.app'))
+      .map((entry) => path.resolve(applicationsDir, entry));
+    const apps = await Promise.all(
+      appPaths.map(async (appPath) => ({
+        appPath,
+        bundleId: await readBundleIdFromPlist(path.resolve(appPath, 'Contents', 'Info.plist')),
+      })),
+    );
+    const match = apps.find((app) => app.bundleId === bundleId);
+    if (match) {
+      return match.appPath;
     }
   }
 
