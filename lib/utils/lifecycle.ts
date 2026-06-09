@@ -3,11 +3,13 @@ import {exec} from 'teen_process';
 import {waitForCondition} from 'asyncbox';
 import {getVersion} from 'appium-xcode';
 import type {XcodeVersion} from 'appium-xcode';
-import path from 'node:path';
-import {DEVICE_HUB_APP_NAME, MIN_DEVICE_HUB_XCODE_VERSION, SIMULATOR_APP_NAME} from './constants';
-import {pkill} from './process';
-// it's a hack needed to stub getDevices in tests
-import * as utilsModule from './index';
+import {
+  DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
+  MIN_DEVICE_HUB_XCODE_VERSION,
+  SIMULATOR_UI_CLIENT_BUNDLE_ID,
+} from './constants';
+import {getDevices} from './get-devices';
+import {getMacAppPidByBundleId, killMacAppByBundleId} from './process';
 
 const DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS = 30000;
 
@@ -24,9 +26,10 @@ export async function killAllSimulators(
     return;
   }
   const version = xcodeVersion as XcodeVersion;
-  const uiClientAppName =
-    version.major >= MIN_DEVICE_HUB_XCODE_VERSION ? DEVICE_HUB_APP_NAME : SIMULATOR_APP_NAME;
-  const appName = path.parse(uiClientAppName).name;
+  const uiClientBundleId =
+    version.major >= MIN_DEVICE_HUB_XCODE_VERSION
+      ? DEVICE_HUB_UI_CLIENT_BUNDLE_ID
+      : SIMULATOR_UI_CLIENT_BUNDLE_ID;
 
   // later versions are slower to close
   timeout = timeout * (version.major >= 8 ? 2 : 1);
@@ -35,41 +38,21 @@ export async function killAllSimulators(
     await exec('xcrun', ['simctl', 'shutdown', version.major > 8 ? 'all' : 'booted'], {timeout});
   } catch {}
 
-  const pids: string[] = [];
-  try {
-    const {stdout} = await exec('pgrep', ['-f', `${appName}.app/Contents/MacOS/`]);
-    if (stdout.trim()) {
-      pids.push(...stdout.trim().split(/\s+/));
-    }
-  } catch (e: any) {
-    if (e.code === 1) {
-      log.debug(`${appName} is not running. Continuing...`);
-      return;
-    }
-    if (pids.length === 0) {
-      log.warn(
-        `pgrep error ${e.code} while detecting whether ${appName} is running. Trying to kill anyway.`,
-      );
-    }
-  }
-  if (pids.length > 0) {
-    log.debug(`Killing processes: ${pids.join(', ')}`);
-    try {
-      await exec('kill', ['-9', ...pids.map((pid) => `${pid}`)]);
-    } catch {}
+  const uiClientPid = await getMacAppPidByBundleId(uiClientBundleId);
+  if (!uiClientPid) {
+    log.debug(`UI client '${uiClientBundleId}' is not running. Continuing...`);
+    return;
   }
 
-  log.debug(`Using pkill to kill application: ${appName}`);
-  try {
-    await pkill(appName, true);
-  } catch {}
+  log.debug(`Killing UI client '${uiClientBundleId}' (pid ${uiClientPid})`);
+  await killMacAppByBundleId(uiClientBundleId);
 
   // wait for all the devices to be shutdown before Continuing
   // but only print out the failed ones when they are actually fully failed
   let remainingDevices: string[] = [];
   async function allSimsAreDown(): Promise<boolean> {
     remainingDevices = [];
-    const devicesRecord = await utilsModule.getDevices();
+    const devicesRecord = await getDevices();
     const devices = Object.values(devicesRecord).flat();
     return devices.every((sim: any) => {
       const state = sim.state.toLowerCase();

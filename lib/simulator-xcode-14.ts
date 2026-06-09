@@ -1,6 +1,6 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {getDeveloperRoot, getMacAppPidByBundleId} from './utils';
+import {getDeveloperRoot, getMacAppPidByBundleId, SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils';
 import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
@@ -36,7 +36,6 @@ import type {AppiumLogger, StringRecord} from '@appium/types';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
-const UI_CLIENT_BUNDLE_ID = 'com.apple.iphonesimulator';
 const STARTUP_TIMEOUT_MS = 120 * 1000;
 
 export class SimulatorXcode14
@@ -173,7 +172,7 @@ export class SimulatorXcode14
    * @returns The bundle identifier of the Simulator UI client.
    */
   get uiClientBundleId(): string {
-    return UI_CLIENT_BUNDLE_ID;
+    return SIMULATOR_UI_CLIENT_BUNDLE_ID;
   }
 
   /**

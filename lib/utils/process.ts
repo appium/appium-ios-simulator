@@ -17,28 +17,15 @@ export async function getMacAppPidByBundleId(bundleId: string): Promise<string |
 }
 
 /**
- * @param appName - The application name to kill.
- * @param forceKill - Whether to force kill the process.
- * @returns Promise that resolves to 0 on success.
+ * @param bundleId - The bundle identifier of a running macOS application.
+ * @returns True if the kill command succeeded.
  */
-export async function pkill(appName: string, forceKill: boolean = false): Promise<number> {
-  const args = forceKill ? ['-9'] : [];
-  args.push('-x', appName);
+export async function killMacAppByBundleId(bundleId: string): Promise<boolean> {
   try {
-    await exec('pkill', args);
-    return 0;
-  } catch (err: any) {
-    // pgrep/pkill exit codes:
-    // 0       One or more processes were matched.
-    // 1       No processes were matched.
-    // 2       Invalid options were specified on the command line.
-    // 3       An internal error occurred.
-    if (err.code !== undefined) {
-      throw new Error(`Cannot forcefully terminate ${appName}. pkill error code: ${err.code}`, {
-        cause: err,
-      });
-    }
-    log.error(`Received unexpected error while trying to kill ${appName}: ${err.message}`);
-    throw err;
+    await exec('lsappinfo', ['kill', '-hard', bundleId]);
+    return true;
+  } catch (e: any) {
+    log.debug(`Could not kill '${bundleId}' via lsappinfo: ${e.stderr || e.message}`);
+    return false;
   }
 }

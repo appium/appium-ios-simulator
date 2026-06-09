@@ -7,7 +7,7 @@ import {toBiometricDomainComponent} from '../../lib/extensions/biometric';
 import {verifyDevicePreferences} from '../../lib/extensions/settings';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as utils from '../../lib/utils';
+import * as getDevicesModule from '../../lib/utils/get-devices';
 
 import {devices} from './device-list';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
@@ -44,7 +44,7 @@ describe('util', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
-    getDevicesStub = sandbox.stub(utils, 'getDevices');
+    getDevicesStub = sandbox.stub(getDevicesModule, 'getDevices');
     getDevicesStub.resolves(devices);
     sandbox.stub(xcodeModule, 'getVersion');
     sandbox.mock(xcode);
@@ -55,7 +55,7 @@ describe('util', function () {
   });
 
   describe('killAllSimulators', function () {
-    it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
+    it('should call exec if UI client is not running with Xcode9', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_10)));
@@ -63,42 +63,47 @@ describe('util', function () {
         .stub()
         .withArgs('xcrun')
         .returns(undefined)
-        .withArgs('pgrep')
+        .withArgs('lsappinfo', ['info', '-only', 'pid', 'com.apple.iphonesimulator'])
         .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
       expect(innerExecStub.callCount).to.equal(2);
     });
-    it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
+    it('should call exec if UI client is not running with Xcode8', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_8)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub.withArgs('pgrep').throws({code: 1});
+      innerExecStub
+        .withArgs('lsappinfo', ['info', '-only', 'pid', 'com.apple.iphonesimulator'])
+        .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
       expect(innerExecStub.callCount).to.equal(2);
     });
-    it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
+    it('should kill UI client by bundle id with Xcode6 and shutdown fails', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').throws(new Error('xcrun failed'));
-      innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
-      innerExecStub.withArgs('kill').returns(undefined);
-      innerExecStub.withArgs('pkill').returns(undefined);
+      innerExecStub
+        .withArgs('lsappinfo', ['info', '-only', 'pid', 'com.apple.iphonesimulator'])
+        .returns({stdout: '"pid"=12345\n'});
+      innerExecStub
+        .withArgs('lsappinfo', ['kill', '-hard', 'com.apple.iphonesimulator'])
+        .returns(undefined);
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       try {
         await killAllSimulators(500);
       } catch {}
-      // Expected calls: xcrun (throws), pgrep, kill, pkill = 4 calls
+      // Expected calls: xcrun (throws), lsappinfo info, lsappinfo kill -hard = 3 calls
       // Note: getVersion is stubbed, so it shouldn't call exec for xcode-select
       // getDevices is stubbed, so it won't call exec either
-      expect(innerExecStub.callCount).to.equal(4);
+      expect(innerExecStub.callCount).to.equal(3);
     });
   });
 

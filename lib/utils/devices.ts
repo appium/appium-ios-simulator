@@ -1,16 +1,5 @@
-import {Simctl} from 'node-simctl';
-import type {StringRecord} from '@appium/types';
 import type {SimulatorInfoOptions} from './types';
-// it's a hack needed to stub getDevices in tests
-import * as utilsModule from './index';
-
-/**
- * @param simctlOpts - Optional simctl options
- * @returns Promise that resolves to a record of devices grouped by SDK version
- */
-export async function getDevices(simctlOpts?: StringRecord): Promise<Record<string, any[]>> {
-  return await new Simctl(simctlOpts).getDevices();
-}
+import {getDevices} from './get-devices';
 
 /**
  * @param udid - The simulator UDID.
@@ -23,7 +12,7 @@ export async function getSimulatorInfo(
 ): Promise<any> {
   const {devicesSetPath} = opts;
   // see the README for github.com/appium/node-simctl for example output of getDevices()
-  const devices = Object.values(await utilsModule.getDevices({devicesSetPath})).flat();
+  const devices = Object.values(await getDevices({devicesSetPath})).flat();
   return devices.find((sim: any) => sim.udid === udid);
 }
 
