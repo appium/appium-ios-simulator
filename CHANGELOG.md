@@ -1,3 +1,9 @@
+## [8.2.0](https://github.com/appium/appium-ios-simulator/compare/v8.1.3...v8.2.0) (2026-06-10)
+
+### Features
+
+* Add support of Xcode27 ([#481](https://github.com/appium/appium-ios-simulator/issues/481)) ([f8ae5ef](https://github.com/appium/appium-ios-simulator/commit/f8ae5efefd6c21a3751b632dd1494c22c17a81b3))
+
 ## [8.1.3](https://github.com/appium/appium-ios-simulator/compare/v8.1.2...v8.1.3) (2026-05-08)
 
 ### Miscellaneous Chores
