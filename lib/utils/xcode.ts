@@ -1,16 +1,8 @@
 import {fs} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
-import type {XcodeVersion} from 'appium-xcode';
+import {getPath, type XcodeVersion} from 'appium-xcode';
 import {MIN_DEVICE_HUB_XCODE_VERSION, MIN_SUPPORTED_XCODE_VERSION} from './constants';
-
-/**
- * @returns Promise that resolves to the developer root path.
- */
-export async function getDeveloperRoot(): Promise<string> {
-  const {stdout} = await exec('xcode-select', ['-p']);
-  return stdout.trim();
-}
 
 /**
  * @param bundleId - The bundle identifier of the Simulator UI client.
@@ -22,7 +14,7 @@ export async function getUiClientAppPath(
   bundleId: string,
   xcodeVersion: XcodeVersion,
 ): Promise<string> {
-  const devRoot = await getDeveloperRoot();
+  const devRoot = await getPath();
   const applicationsDir =
     xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION
       ? path.resolve(devRoot, '..', 'Applications')
