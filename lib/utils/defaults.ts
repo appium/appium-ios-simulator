@@ -1,6 +1,6 @@
 import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
-import {log} from './logger';
+import {log} from '../logger';
 import {util} from '@appium/support';
 
 export class NSUserDefaults {

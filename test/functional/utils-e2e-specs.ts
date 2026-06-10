@@ -16,8 +16,6 @@ describe('killAllSimulators', function () {
 
   let sim: any;
 
-  before(async function () {});
-
   beforeEach(async function () {
     await killAllSimulators();
     const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION, {

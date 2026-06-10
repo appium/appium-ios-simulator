@@ -1,4 +1,4 @@
-import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/defaults-utils';
+import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/utils';
 import {expect} from 'chai';
 
 describe('defaults-utils', function () {

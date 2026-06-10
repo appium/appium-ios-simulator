@@ -1,10 +1,12 @@
 import {getSimulator} from '../../lib/simulator';
 import * as teenProcess from 'teen_process';
-import * as utils from '../../lib/utils';
+import * as getDevicesModule from '../../lib/utils/get-devices';
+import * as xcodeUtils from '../../lib/utils/xcode';
 import sinon from 'sinon';
 import {devices} from './device-list';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
 import {SimulatorXcode15} from '../../lib/simulator-xcode-15';
+import {SimulatorXcode27} from '../../lib/simulator-xcode-27';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as xcodeModule from 'appium-xcode';
@@ -22,8 +24,8 @@ describe('simulator', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
-    assertXcodeVersionStub = sandbox.stub(utils, 'assertXcodeVersion');
-    getDevicesStub = sandbox.stub(utils, 'getDevices');
+    assertXcodeVersionStub = sandbox.stub(xcodeUtils, 'assertXcodeVersion');
+    getDevicesStub = sandbox.stub(getDevicesModule, 'getDevices');
     getDevicesStub.resolves(devices);
     getVersionStub = sandbox.stub(xcodeModule, 'getVersion');
     getVersionStub.withArgs(true).returns(Promise.resolve({major: 14, versionString: '14.0.0'}));
@@ -44,10 +46,16 @@ describe('simulator', function () {
     });
 
     const xcodeVersions: Array<
-      [number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15]
+      [
+        number,
+        number,
+        string,
+        typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27,
+      ]
     > = [
       [14, 0, '14.0.0', SimulatorXcode14],
       [15, 0, '15.0.0', SimulatorXcode15],
+      [27, 0, '27.0.0', SimulatorXcode27],
     ];
 
     for (const [major, minor, versionString, expectedXcodeClass] of xcodeVersions) {

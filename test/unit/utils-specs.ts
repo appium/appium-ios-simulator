@@ -2,12 +2,16 @@ import sinon from 'sinon';
 import * as TeenProcess from 'teen_process';
 import xcode from 'appium-xcode';
 import * as xcodeModule from 'appium-xcode';
+import {
+  DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
+  SIMULATOR_UI_CLIENT_BUNDLE_ID,
+} from '../../lib/utils/constants';
 import {killAllSimulators, simExists} from '../../lib/utils';
 import {toBiometricDomainComponent} from '../../lib/extensions/biometric';
 import {verifyDevicePreferences} from '../../lib/extensions/settings';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as utils from '../../lib/utils';
+import * as getDevicesModule from '../../lib/utils/get-devices';
 
 import {devices} from './device-list';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
@@ -21,19 +25,19 @@ const XCODE_VERSION_10 = {
   minor: 0,
   patch: undefined,
 };
-const XCODE_VERSION_8 = {
-  versionString: '8.2.1',
-  versionFloat: 8.2,
-  major: 8,
-  minor: 2,
-  patch: 1,
-};
 const XCODE_VERSION_6 = {
   versionString: '6.1.1',
   versionFloat: 6.1,
   major: 6,
   minor: 1,
   patch: 1,
+};
+const XCODE_VERSION_27 = {
+  versionString: '27.0',
+  versionFloat: 27.0,
+  major: 27,
+  minor: 0,
+  patch: undefined,
 };
 
 describe('util', function () {
@@ -44,7 +48,7 @@ describe('util', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
-    getDevicesStub = sandbox.stub(utils, 'getDevices');
+    getDevicesStub = sandbox.stub(getDevicesModule, 'getDevices');
     getDevicesStub.resolves(devices);
     sandbox.stub(xcodeModule, 'getVersion');
     sandbox.mock(xcode);
@@ -55,50 +59,71 @@ describe('util', function () {
   });
 
   describe('killAllSimulators', function () {
-    it('should call exec if pgrep does not find any running Simulator with Xcode9', async function () {
+    it('should use the Simulator UI client bundle id', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_10)));
-      innerExecStub = sandbox
-        .stub()
-        .withArgs('xcrun')
-        .returns(undefined)
-        .withArgs('pgrep')
+      innerExecStub = sandbox.stub();
+      innerExecStub.withArgs('xcrun').returns(undefined);
+      innerExecStub
+        .withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID])
         .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
-      expect(innerExecStub.callCount).to.equal(2);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
+        'info',
+        '-only',
+        'pid',
+        SIMULATOR_UI_CLIENT_BUNDLE_ID,
+      ]);
     });
-    it('should call exec if pgrep does not find any running Simulator with Xcode8', async function () {
+    it('should use the DeviceHub UI client bundle id', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
-        .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_8)));
+        .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_27)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub.withArgs('pgrep').throws({code: 1});
+      innerExecStub
+        .withArgs('lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID])
+        .throws({code: 1});
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       await killAllSimulators();
-      expect(innerExecStub.callCount).to.equal(2);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
+        'info',
+        '-only',
+        'pid',
+        DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
+      ]);
     });
-    it('should call exec if pgrep does find running Simulator with Xcode6 and shutdown fails', async function () {
+    it('should kill UI client by bundle id when shutdown fails', async function () {
       sandbox
         .stub(xcodeModule, 'getVersion')
         .get(() => sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6)));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').throws(new Error('xcrun failed'));
-      innerExecStub.withArgs('pgrep').returns({stdout: '12345'});
-      innerExecStub.withArgs('kill').returns(undefined);
-      innerExecStub.withArgs('pkill').returns(undefined);
+      innerExecStub
+        .withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID])
+        .returns({stdout: '"pid"=12345\n'});
+      innerExecStub
+        .withArgs('lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID])
+        .returns(undefined);
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
       sandbox.stub(TeenProcess, 'exec').get(() => innerExecStub);
       try {
         await killAllSimulators(500);
       } catch {}
-      // Expected calls: xcrun (throws), pgrep, kill, pkill = 4 calls
-      // Note: getVersion is stubbed, so it shouldn't call exec for xcode-select
-      // getDevices is stubbed, so it won't call exec either
-      expect(innerExecStub.callCount).to.equal(4);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
+        'info',
+        '-only',
+        'pid',
+        SIMULATOR_UI_CLIENT_BUNDLE_ID,
+      ]);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
+        'kill',
+        '-hard',
+        SIMULATOR_UI_CLIENT_BUNDLE_ID,
+      ]);
     });
   });
 

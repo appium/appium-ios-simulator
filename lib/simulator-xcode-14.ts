@@ -1,12 +1,16 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {getDeveloperRoot, SIMULATOR_APP_NAME} from './utils';
+import {
+  getDeveloperRoot,
+  getMacAppPidByBundleId,
+  getUiClientAppPath,
+  SIMULATOR_UI_CLIENT_BUNDLE_ID,
+} from './utils';
 import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import path from 'node:path';
-import {getPath as getXcodePath} from 'appium-xcode';
 import {Simctl} from 'node-simctl';
 import * as appExtensions from './extensions/applications';
 import * as biometricExtensions from './extensions/biometric';
@@ -37,7 +41,6 @@ import type {AppiumLogger, StringRecord} from '@appium/types';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
-const UI_CLIENT_BUNDLE_ID = 'com.apple.iphonesimulator';
 const STARTUP_TIMEOUT_MS = 120 * 1000;
 
 export class SimulatorXcode14
@@ -110,6 +113,7 @@ export class SimulatorXcode14
   private readonly _simctl: Simctl;
   private readonly _xcodeVersion: XcodeVersion;
   private readonly _log: AppiumLogger;
+  private _uiClientAppPath: Promise<string> | undefined;
 
   /**
    * Constructs the object with the `udid` and version of Xcode.
@@ -174,7 +178,7 @@ export class SimulatorXcode14
    * @returns The bundle identifier of the Simulator UI client.
    */
   get uiClientBundleId(): string {
-    return UI_CLIENT_BUNDLE_ID;
+    return SIMULATOR_UI_CLIENT_BUNDLE_ID;
   }
 
   /**
@@ -305,18 +309,11 @@ export class SimulatorXcode14
    * @returns The process ID or null if the UI client is not running.
    */
   async getUIClientPid(): Promise<string | null> {
-    let stdout: string;
-    try {
-      ({stdout} = await exec('pgrep', ['-fn', `${SIMULATOR_APP_NAME}/Contents/MacOS/`]));
-    } catch {
-      return null;
+    const pid = await getMacAppPidByBundleId(this.uiClientBundleId);
+    if (pid) {
+      this.log.debug(`Got UI client PID: ${pid}`);
     }
-    if (isNaN(parseInt(stdout, 10))) {
-      return null;
-    }
-    stdout = stdout.trim();
-    this.log.debug(`Got Simulator UI client PID: ${stdout}`);
-    return stdout;
+    return pid;
   }
 
   /**
@@ -456,14 +453,14 @@ export class SimulatorXcode14
       ...opts,
     };
 
-    const simulatorApp = path.resolve(await getXcodePath(), 'Applications', SIMULATOR_APP_NAME);
-    const args = ['-Fn', simulatorApp];
-    this.log.info(`Starting Simulator UI: ${util.quote(['open', ...args])}`);
+    const uiClientApp = await this._getUiClientAppPath();
+    const args = ['-Fn', uiClientApp];
+    this.log.info(`Starting UI client: ${util.quote(['open', ...args])}`);
     try {
       await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
       throw new Error(
-        `Got an unexpected error while opening Simulator UI: ${err.stderr || err.stdout || err.message}`,
+        `Got an unexpected error while opening UI client: ${err.stderr || err.stdout || err.message}`,
         {cause: err},
       );
     }
@@ -665,5 +662,12 @@ export class SimulatorXcode14
       'Library',
       'LaunchDaemons',
     );
+  }
+
+  private async _getUiClientAppPath(): Promise<string> {
+    if (!this._uiClientAppPath) {
+      this._uiClientAppPath = getUiClientAppPath(this.uiClientBundleId, this.xcodeVersion);
+    }
+    return this._uiClientAppPath;
   }
 }
