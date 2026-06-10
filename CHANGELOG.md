@@ -1,3 +1,9 @@
+## [8.2.1](https://github.com/appium/appium-ios-simulator/compare/v8.2.0...v8.2.1) (2026-06-10)
+
+### Bug Fixes
+
+* Use getPath API from 'appium-xcode' ([#482](https://github.com/appium/appium-ios-simulator/issues/482)) ([6cfb853](https://github.com/appium/appium-ios-simulator/commit/6cfb8534c3cf1f2eee7bb761852bfc6844a393ba))
+
 ## [8.2.0](https://github.com/appium/appium-ios-simulator/compare/v8.1.3...v8.2.0) (2026-06-10)
 
 ### Features
