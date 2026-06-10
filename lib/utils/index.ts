@@ -11,10 +11,5 @@ export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults'
 export {getDevices} from './get-devices';
 export {getSimulatorInfo, simExists} from './devices';
 export {getMacAppPidByBundleId} from './process';
-export {
-  assertXcodeVersion,
-  getDeveloperRoot,
-  getUiClientAppPath,
-  readBundleIdFromPlist,
-} from './xcode';
+export {assertXcodeVersion, getUiClientAppPath, readBundleIdFromPlist} from './xcode';
 export {killAllSimulators} from './lifecycle';

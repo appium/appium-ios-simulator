@@ -1,11 +1,7 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {
-  getDeveloperRoot,
-  getMacAppPidByBundleId,
-  getUiClientAppPath,
-  SIMULATOR_UI_CLIENT_BUNDLE_ID,
-} from './utils';
+import {getMacAppPidByBundleId, getUiClientAppPath, SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils';
+import {getPath} from 'appium-xcode';
 import {exec} from 'teen_process';
 import {log as defaultLog} from './logger';
 import EventEmitter from 'node:events';
@@ -644,7 +640,7 @@ export class SimulatorXcode14
    * @returns The full path to the LaunchDaemons directory.
    */
   async getLaunchDaemonsRoot(): Promise<string> {
-    const devRoot = await getDeveloperRoot();
+    const devRoot = await getPath();
     return path.resolve(
       devRoot,
       'Platforms',
