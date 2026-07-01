@@ -74,7 +74,7 @@
     "@types/sinon": "^22.0.0",
     "chai": "^6.0.0",
     "chai-as-promised": "^8.0.2",
-    "conventional-changelog-conventionalcommits": "^10.2.0",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
     "mocha": "^11.0.1",
     "pem": "^1.8.3",
     "prettier": "^3.0.0",
