@@ -10,6 +10,7 @@ import {SimulatorXcode27} from '../../lib/simulator-xcode-27';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as xcodeModule from 'appium-xcode';
+import {describe, it, beforeEach, afterEach} from 'node:test';
 
 chaiUse(chaiAsPromised);
 

@@ -1,20 +1,19 @@
-// transpile:mocha
 import {killAllSimulators} from '../../lib/utils';
 import {getSimulator} from '../../lib/simulator';
+import type {Simulator} from '../../lib/types';
 import {Simctl} from 'node-simctl';
 import {LONG_TIMEOUT, verifyStates} from './helpers';
 import {use as chaiUse} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import {describe, it, beforeEach, afterEach} from 'node:test';
 
 chaiUse(chaiAsPromised);
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
 
-describe('killAllSimulators', function () {
-  this.timeout(LONG_TIMEOUT);
-
-  let sim: any;
+describe('killAllSimulators', {timeout: LONG_TIMEOUT}, function () {
+  let sim: Simulator;
 
   beforeEach(async function () {
     await killAllSimulators();

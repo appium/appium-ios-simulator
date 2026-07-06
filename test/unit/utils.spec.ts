@@ -13,6 +13,7 @@ import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as getDevicesModule from '../../lib/utils/get-devices';
 
+import {describe, it, beforeEach, afterEach} from 'node:test';
 import {devices} from './device-list';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
 

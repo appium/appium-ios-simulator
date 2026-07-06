@@ -1,5 +1,6 @@
 import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/utils';
 import {expect} from 'chai';
+import {describe, it} from 'node:test';
 
 describe('defaults-utils', function () {
   describe('toXmlArg', function () {
