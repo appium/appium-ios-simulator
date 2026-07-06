@@ -12,7 +12,7 @@ chaiUse(chaiAsPromised);
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';
 
-describe('killAllSimulators', {timeout: LONG_TIMEOUT}, function () {
+describe('killAllSimulators', function () {
   let sim: Simulator;
 
   beforeEach(async function () {

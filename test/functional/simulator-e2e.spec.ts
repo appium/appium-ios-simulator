@@ -28,7 +28,7 @@ async function deleteSimulator(udid: string, version: string): Promise<void> {
   }
 }
 
-describe(`simulator ${OS_VERSION}`, {timeout: LONG_TIMEOUT}, function () {
+describe(`simulator ${OS_VERSION}`, function () {
   let simctl: Simctl;
   let customApp: string;
 
@@ -205,41 +205,33 @@ describe(`simulator ${OS_VERSION}`, {timeout: LONG_TIMEOUT}, function () {
   });
 });
 
-describe(
-  `reuse an already-created already-run simulator ${OS_VERSION}`,
-  {timeout: LONG_TIMEOUT},
-  function () {
-    let sim: Simulator;
+describe(`reuse an already-created already-run simulator ${OS_VERSION}`, function () {
+  let sim: Simulator;
 
-    before(async function () {
-      await killAllSimulators();
-      const udid = await new Simctl().createDevice(
-        'ios-simulator testing',
-        DEVICE_NAME,
-        OS_VERSION,
-      );
-      sim = await getSimulator(udid);
-      await sim.run({startupTimeout: LONG_TIMEOUT});
-      await sim.shutdown();
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-    });
-    after(async function () {
-      await killAllSimulators();
-      await deleteSimulator(sim.udid, OS_VERSION);
-    });
+  before(async function () {
+    await killAllSimulators();
+    const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION);
+    sim = await getSimulator(udid);
+    await sim.run({startupTimeout: LONG_TIMEOUT});
+    await sim.shutdown();
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  });
+  after(async function () {
+    await killAllSimulators();
+    await deleteSimulator(sim.udid, OS_VERSION);
+  });
 
-    it('should start a sim using the "run" method', async function () {
-      await sim.run({startupTimeout: LONG_TIMEOUT});
+  it('should start a sim using the "run" method', async function () {
+    await sim.run({startupTimeout: LONG_TIMEOUT});
 
-      expect((await sim.stat()).state).to.equal('Booted');
+    expect((await sim.stat()).state).to.equal('Booted');
 
-      await sim.shutdown();
-      expect((await sim.stat()).state).to.equal('Shutdown');
-    });
-  },
-);
+    await sim.shutdown();
+    expect((await sim.stat()).state).to.equal('Shutdown');
+  });
+});
 
-describe('advanced features', {timeout: LONG_TIMEOUT}, function () {
+describe('advanced features', function () {
   let sim: Simulator;
   let customApp: string;
 
@@ -396,79 +388,71 @@ describe('advanced features', {timeout: LONG_TIMEOUT}, function () {
   });
 });
 
-describe(
-  `multiple instances of ${OS_VERSION} simulator on Xcode9+`,
-  {timeout: LONG_TIMEOUT * 2},
-  function () {
-    let simulatorsMapping: Record<string, any> = {};
-    const DEVICES_COUNT = 2;
+describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function () {
+  let simulatorsMapping: Record<string, any> = {};
+  const DEVICES_COUNT = 2;
 
-    before(async function () {
-      await killAllSimulators();
+  before(async function () {
+    await killAllSimulators();
 
+    const simctl = new Simctl();
+    for (let i = 0; i < DEVICES_COUNT; i++) {
+      const udid = await simctl.createDevice(`ios-simulator_${i}_testing`, DEVICE_NAME, OS_VERSION);
+      simulatorsMapping[udid] = await getSimulator(udid);
+    }
+  });
+  after(async function () {
+    try {
       const simctl = new Simctl();
-      for (let i = 0; i < DEVICES_COUNT; i++) {
-        const udid = await simctl.createDevice(
-          `ios-simulator_${i}_testing`,
-          DEVICE_NAME,
-          OS_VERSION,
-        );
-        simulatorsMapping[udid] = await getSimulator(udid);
-      }
-    });
-    after(async function () {
-      try {
-        const simctl = new Simctl();
-        for (const udid of Object.keys(simulatorsMapping)) {
-          try {
-            simctl.udid = udid;
-            await simctl.deleteDevice();
-          } catch (err: any) {
-            console.log(`Error deleting simulator '${udid}': ${err.message}`); // eslint-disable-line
-          }
+      for (const udid of Object.keys(simulatorsMapping)) {
+        try {
+          simctl.udid = udid;
+          await simctl.deleteDevice();
+        } catch (err: any) {
+          console.log(`Error deleting simulator '${udid}': ${err.message}`); // eslint-disable-line
         }
-      } finally {
-        simulatorsMapping = {};
       }
+    } finally {
+      simulatorsMapping = {};
+    }
+  });
+  beforeEach(async function () {
+    await killAllSimulators();
+  });
+  afterEach(async function () {
+    await killAllSimulators();
+  });
+
+  it(`should start multiple simulators in 'default' mode`, async function () {
+    const simulators = Object.values(simulatorsMapping);
+
+    // they all should be off
+    await retryInterval(30, 1000, async function () {
+      await Promise.all(simulators.map((sim) => verifyStates(sim, false, false)));
     });
-    beforeEach(async function () {
-      await killAllSimulators();
+
+    // Should be called before launching simulator
+    await expect(
+      simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'),
+    ).to.eventually.eql([]);
+
+    for (const sim of Object.values(simulatorsMapping)) {
+      await sim.run({startupTimeout: LONG_TIMEOUT});
+    }
+    await retryInterval(30, 1000, async function () {
+      await Promise.all(simulators.map((sim) => verifyStates(sim, true, true)));
     });
-    afterEach(async function () {
-      await killAllSimulators();
+
+    for (const sim of Object.values(simulatorsMapping)) {
+      await sim.shutdown();
+    }
+    await retryInterval(30, 1000, async function () {
+      await Promise.all(simulators.map((sim) => verifyStates(sim, false, true)));
     });
+  });
+});
 
-    it(`should start multiple simulators in 'default' mode`, async function () {
-      const simulators = Object.values(simulatorsMapping);
-
-      // they all should be off
-      await retryInterval(30, 1000, async function () {
-        await Promise.all(simulators.map((sim) => verifyStates(sim, false, false)));
-      });
-
-      // Should be called before launching simulator
-      await expect(
-        simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'),
-      ).to.eventually.eql([]);
-
-      for (const sim of Object.values(simulatorsMapping)) {
-        await sim.run({startupTimeout: LONG_TIMEOUT});
-      }
-      await retryInterval(30, 1000, async function () {
-        await Promise.all(simulators.map((sim) => verifyStates(sim, true, true)));
-      });
-
-      for (const sim of Object.values(simulatorsMapping)) {
-        await sim.shutdown();
-      }
-      await retryInterval(30, 1000, async function () {
-        await Promise.all(simulators.map((sim) => verifyStates(sim, false, true)));
-      });
-    });
-  },
-);
-
-describe('getWebInspectorSocket', {timeout: LONG_TIMEOUT}, function () {
+describe('getWebInspectorSocket', function () {
   let sim: Simulator;
 
   before(async function () {
@@ -489,7 +473,7 @@ describe('getWebInspectorSocket', {timeout: LONG_TIMEOUT}, function () {
     expect(socket).to.include('com.apple.launchd');
     expect(socket).to.include('com.apple.webinspectord_sim.socket');
   });
-  describe('two simulators', {timeout: LONG_TIMEOUT}, function () {
+  describe('two simulators', function () {
     let sim2: Simulator;
 
     before(async function () {
