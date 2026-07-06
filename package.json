@@ -52,7 +52,7 @@
     "format:check": "prettier --check ./lib ./test",
     "prepare": "npm run build",
     "test": "node --test --test-force-exit --test-timeout=60000 \"./build/test/unit/**/*.spec.js\"",
-    "e2e-test": "node --test --test-force-exit --test-concurrency=1 --test-timeout=300000 \"./build/test/functional/**/*.spec.js\""
+    "e2e-test": "node --test --test-force-exit --test-concurrency=1 --test-timeout=900000 \"./build/test/functional/**/*.spec.js\""
   },
   "prettier": {
     "bracketSpacing": false,

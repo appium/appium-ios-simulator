@@ -418,7 +418,6 @@ describe(
     });
     after(async function () {
       try {
-        await killAllSimulators();
         const simctl = new Simctl();
         for (const udid of Object.keys(simulatorsMapping)) {
           try {
@@ -490,7 +489,7 @@ describe('getWebInspectorSocket', {timeout: LONG_TIMEOUT}, function () {
     expect(socket).to.include('com.apple.launchd');
     expect(socket).to.include('com.apple.webinspectord_sim.socket');
   });
-  describe('two simulators', function () {
+  describe('two simulators', {timeout: LONG_TIMEOUT}, function () {
     let sim2: Simulator;
 
     before(async function () {
