@@ -5,11 +5,11 @@ export {
   DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
   MIN_SUPPORTED_XCODE_VERSION,
   MIN_DEVICE_HUB_XCODE_VERSION,
-} from './constants';
-export type {SimulatorInfoOptions} from './types';
-export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults';
-export {getDevices} from './get-devices';
-export {getSimulatorInfo, simExists} from './devices';
-export {getMacAppPidByBundleId} from './process';
-export {assertXcodeVersion, getUiClientAppPath, readBundleIdFromPlist} from './xcode';
-export {killAllSimulators} from './lifecycle';
+} from './constants.js';
+export type {SimulatorInfoOptions} from './types.js';
+export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults.js';
+export {getDevices} from './get-devices.js';
+export {getSimulatorInfo, simExists} from './devices.js';
+export {getMacAppPidByBundleId} from './process.js';
+export {assertXcodeVersion, getUiClientAppPath, readBundleIdFromPlist} from './xcode.js';
+export {killAllSimulators} from './lifecycle.js';

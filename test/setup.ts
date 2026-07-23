@@ -1,10 +1,11 @@
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {fs, net, tempDir, zip, node} from '@appium/support';
 
 const UICATALOG_URL =
   'https://github.com/appium/ios-uicatalog/releases/download/v4.0.1/UIKitCatalog-iphonesimulator.zip';
 const UICATALOG_CACHE_PATH = path.resolve(
-  node.getModuleRootSync('appium-ios-simulator', __filename)!,
+  node.getModuleRootSync('appium-ios-simulator', fileURLToPath(import.meta.url))!,
   'test',
   'fixtures',
   'UIKitCatalog-iphonesimulator.app',

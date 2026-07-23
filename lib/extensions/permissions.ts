@@ -2,7 +2,7 @@ import {fs, timing, util} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
 import {waitForCondition} from 'asyncbox';
-import type {CoreSimulator, SupportsAppPermissions} from '../types';
+import type {CoreSimulator, SupportsAppPermissions} from '../types.js';
 import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions;

@@ -1,4 +1,4 @@
-import type {CoreSimulator, SupportsGeolocation} from '../types';
+import type {CoreSimulator, SupportsGeolocation} from '../types.js';
 
 type CoreSimulatorWithGeolocation = CoreSimulator & SupportsGeolocation;
 

@@ -1,4 +1,4 @@
-import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types';
+import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types.js';
 import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;

@@ -1,8 +1,8 @@
-import {killAllSimulators} from '../../lib/utils';
-import {getSimulator} from '../../lib/simulator';
-import type {Simulator} from '../../lib/types';
+import {killAllSimulators} from '../../lib/utils/index.js';
+import {getSimulator} from '../../lib/simulator.js';
+import type {Simulator} from '../../lib/types.js';
 import {Simctl} from 'node-simctl';
-import {LONG_TIMEOUT, verifyStates} from './helpers';
+import {LONG_TIMEOUT, verifyStates} from './helpers.js';
 import {use as chaiUse} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {describe, it, beforeEach, afterEach} from 'node:test';

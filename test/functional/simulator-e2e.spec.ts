@@ -1,12 +1,12 @@
-import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils';
-import {getSimulator} from '../../lib/simulator';
-import type {Simulator} from '../../lib/types';
+import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils/index.js';
+import {getSimulator} from '../../lib/simulator.js';
+import type {Simulator} from '../../lib/types.js';
 import {Simctl} from 'node-simctl';
 import {retryInterval, waitForCondition} from 'asyncbox';
-import {LONG_TIMEOUT, verifyStates} from './helpers';
+import {LONG_TIMEOUT, verifyStates} from './helpers.js';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {getUIKitCatalogPath, UICATALOG_BUNDLE_ID} from '../setup';
+import {getUIKitCatalogPath, UICATALOG_BUNDLE_ID} from '../setup.js';
 import {describe, it, before, afterEach, beforeEach, after, type TestContext} from 'node:test';
 
 chaiUse(chaiAsPromised);

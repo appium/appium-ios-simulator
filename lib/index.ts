@@ -1,6 +1,6 @@
-import {getSimulator} from './simulator';
-import {killAllSimulators, simExists} from './utils';
+import {getSimulator} from './simulator.js';
+import {killAllSimulators, simExists} from './utils/index.js';
 
 export {getSimulator, killAllSimulators, simExists};
 
-export type * from './types';
+export type * from './types.js';

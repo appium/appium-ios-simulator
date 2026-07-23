@@ -1,7 +1,7 @@
 import {fs} from '@appium/support';
 import path from 'node:path';
-import {readBundleIdFromPlist} from './utils';
-import {SimulatorXcode14} from './simulator-xcode-14';
+import {readBundleIdFromPlist} from './utils/index.js';
+import {SimulatorXcode14} from './simulator-xcode-14.js';
 
 export class SimulatorXcode15 extends SimulatorXcode14 {
   private _systemAppBundleIds?: Set<string>;

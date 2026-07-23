@@ -2,7 +2,7 @@ import {fs} from '@appium/support';
 import {exec} from 'teen_process';
 import path from 'node:path';
 import {getPath, type XcodeVersion} from 'appium-xcode';
-import {MIN_DEVICE_HUB_XCODE_VERSION, MIN_SUPPORTED_XCODE_VERSION} from './constants';
+import {MIN_DEVICE_HUB_XCODE_VERSION, MIN_SUPPORTED_XCODE_VERSION} from './constants.js';
 
 /**
  * @param bundleId - The bundle identifier of the Simulator UI client.

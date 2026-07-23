@@ -1,5 +1,5 @@
-import type {SimulatorInfoOptions} from './types';
-import {getDevices} from './get-devices';
+import type {SimulatorInfoOptions} from './types.js';
+import {getDevices} from './get-devices.js';
 
 /**
  * @param udid - The simulator UDID.

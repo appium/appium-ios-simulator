@@ -1,4 +1,4 @@
-import type {CoreSimulator, SupportsBiometric} from '../types';
+import type {CoreSimulator, SupportsBiometric} from '../types.js';
 import {util} from '@appium/support';
 
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;

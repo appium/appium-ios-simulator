@@ -1,6 +1,6 @@
 import path from 'node:path';
 import {fs, timing} from '@appium/support';
-import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils';
+import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils/index.js';
 import {waitForCondition} from 'asyncbox';
 import {exec} from 'teen_process';
 import type {
@@ -8,7 +8,7 @@ import type {
   InteractsWithSafariBrowser,
   InteractsWithApps,
   HasSettings,
-} from '../types';
+} from '../types.js';
 import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithSafariBrowser = CoreSimulator &

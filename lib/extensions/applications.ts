@@ -1,7 +1,7 @@
 import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
 import {waitForCondition} from 'asyncbox';
-import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types';
+import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types.js';
 
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
 

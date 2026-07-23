@@ -1,15 +1,15 @@
-import {SimulatorXcode14} from './simulator-xcode-14';
-import {SimulatorXcode15} from './simulator-xcode-15';
-import {SimulatorXcode27} from './simulator-xcode-27';
+import {SimulatorXcode14} from './simulator-xcode-14.js';
+import {SimulatorXcode15} from './simulator-xcode-15.js';
+import {SimulatorXcode27} from './simulator-xcode-27.js';
 import {
   assertXcodeVersion,
   getSimulatorInfo,
   MIN_DEVICE_HUB_XCODE_VERSION,
   MIN_SUPPORTED_XCODE_VERSION,
-} from './utils';
+} from './utils/index.js';
 import * as xcode from 'appium-xcode';
-import {log} from './logger';
-import type {Simulator, SimulatorLookupOptions} from './types';
+import {log} from './logger.js';
+import type {Simulator, SimulatorLookupOptions} from './types.js';
 
 /**
  * Finds and returns the corresponding Simulator instance for the given ID.

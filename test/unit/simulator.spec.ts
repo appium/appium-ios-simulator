@@ -1,20 +1,44 @@
-import {getSimulator} from '../../lib/simulator';
-import * as teenProcess from 'teen_process';
-import * as getDevicesModule from '../../lib/utils/get-devices';
-import * as xcodeUtils from '../../lib/utils/xcode';
+import esmock from 'esmock';
 import sinon from 'sinon';
-import {devices} from './device-list';
-import {SimulatorXcode14} from '../../lib/simulator-xcode-14';
-import {SimulatorXcode15} from '../../lib/simulator-xcode-15';
-import {SimulatorXcode27} from '../../lib/simulator-xcode-27';
+import {devices} from './device-list.js';
+import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
+import {SimulatorXcode15} from '../../lib/simulator-xcode-15.js';
+import {SimulatorXcode27} from '../../lib/simulator-xcode-27.js';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as xcodeModule from 'appium-xcode';
 import {describe, it, beforeEach, afterEach} from 'node:test';
 
 chaiUse(chaiAsPromised);
 
 const UDID = devices['10.0'][0].udid;
+
+let currentExec: (...args: any[]) => any = async () => ({stdout: '', stderr: ''});
+let currentGetVersion: (...args: any[]) => any = async () => ({
+  major: 14,
+  versionString: '14.0.0',
+});
+let currentAssertXcodeVersion: (...args: any[]) => any = (v: any) => v;
+let currentGetDevices: (...args: any[]) => any = async () => devices;
+
+const {getSimulator} = await esmock(
+  '../../lib/simulator.js',
+  import.meta.url,
+  {},
+  {
+    teen_process: {
+      exec: (...args: any[]) => currentExec(...args),
+    },
+    'appium-xcode': {
+      getVersion: (...args: any[]) => currentGetVersion(...args),
+    },
+    '../../lib/utils/xcode.js': {
+      assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
+    },
+    '../../lib/utils/get-devices.js': {
+      getDevices: (...args: any[]) => currentGetDevices(...args),
+    },
+  },
+);
 
 describe('simulator', function () {
   let sandbox: sinon.SinonSandbox;
@@ -25,11 +49,13 @@ describe('simulator', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
-    assertXcodeVersionStub = sandbox.stub(xcodeUtils, 'assertXcodeVersion');
-    getDevicesStub = sandbox.stub(getDevicesModule, 'getDevices');
-    getDevicesStub.resolves(devices);
-    getVersionStub = sandbox.stub(xcodeModule, 'getVersion');
+    assertXcodeVersionStub = sandbox.stub();
+    currentAssertXcodeVersion = assertXcodeVersionStub;
+    getDevicesStub = sandbox.stub().resolves(devices);
+    currentGetDevices = getDevicesStub;
+    getVersionStub = sandbox.stub();
     getVersionStub.withArgs(true).returns(Promise.resolve({major: 14, versionString: '14.0.0'}));
+    currentGetVersion = getVersionStub;
   });
   afterEach(function () {
     sandbox.verify();
@@ -136,7 +162,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
     beforeEach(function () {
       innerExecStub = sandbox.stub().callsFake(() => ({stdout}) as any);
-      sandbox.stub(teenProcess, 'exec').get(() => innerExecStub);
+      currentExec = innerExecStub;
       const xcodeVersion = {major: 14, versionString: '14.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
@@ -239,9 +265,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     describe('language', function () {
       const stdout = JSON.stringify({AppleLanguages: ['en']});
       beforeEach(function () {
-        sandbox
-          .stub(teenProcess, 'exec')
-          .get(() => sandbox.stub().callsFake(() => ({stdout}) as any));
+        currentExec = sandbox.stub().callsFake(() => ({stdout}) as any);
         sandbox.stub(sim, 'getDir').callsFake(() => '');
       });
 

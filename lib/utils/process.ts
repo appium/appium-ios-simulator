@@ -1,4 +1,4 @@
-import {log} from '../logger';
+import {log} from '../logger.js';
 import {exec} from 'teen_process';
 
 /**

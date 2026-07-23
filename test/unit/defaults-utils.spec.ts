@@ -1,4 +1,4 @@
-import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/utils';
+import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/utils/index.js';
 import {expect} from 'chai';
 import {describe, it} from 'node:test';
 

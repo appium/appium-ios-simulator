@@ -1,4 +1,4 @@
-import {log} from '../logger';
+import {log} from '../logger.js';
 import {exec, type ExecError} from 'teen_process';
 import {waitForCondition} from 'asyncbox';
 import {getVersion} from 'appium-xcode';
@@ -6,9 +6,9 @@ import {
   DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
   MIN_DEVICE_HUB_XCODE_VERSION,
   SIMULATOR_UI_CLIENT_BUNDLE_ID,
-} from './constants';
-import {getDevices} from './get-devices';
-import {getMacAppPidByBundleId, killMacAppByBundleId} from './process';
+} from './constants.js';
+import {getDevices} from './get-devices.js';
+import {getMacAppPidByBundleId, killMacAppByBundleId} from './process.js';
 
 const DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS = 60000;
 

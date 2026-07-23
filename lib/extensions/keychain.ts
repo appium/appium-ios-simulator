@@ -1,7 +1,7 @@
 import path from 'node:path';
 import {fs, mkdirp, tempDir, util} from '@appium/support';
 import {exec} from 'teen_process';
-import type {CoreSimulator, InteractsWithKeychain} from '../types';
+import type {CoreSimulator, InteractsWithKeychain} from '../types.js';
 
 type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
 

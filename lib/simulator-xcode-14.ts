@@ -1,21 +1,25 @@
 import {fs, timing, util} from '@appium/support';
 import {waitForCondition, retryInterval} from 'asyncbox';
-import {getMacAppPidByBundleId, getUiClientAppPath, SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils';
+import {
+  getMacAppPidByBundleId,
+  getUiClientAppPath,
+  SIMULATOR_UI_CLIENT_BUNDLE_ID,
+} from './utils/index.js';
 import {getPath} from 'appium-xcode';
 import {exec} from 'teen_process';
-import {log as defaultLog} from './logger';
+import {log as defaultLog} from './logger.js';
 import EventEmitter from 'node:events';
 import AsyncLock from 'async-lock';
 import path from 'node:path';
 import {Simctl} from 'node-simctl';
-import * as appExtensions from './extensions/applications';
-import * as biometricExtensions from './extensions/biometric';
-import * as safariExtensions from './extensions/safari';
-import * as keychainExtensions from './extensions/keychain';
-import * as settingsExtensions from './extensions/settings';
-import * as permissionsExtensions from './extensions/permissions';
-import * as miscExtensions from './extensions/misc';
-import * as geolocationExtensions from './extensions/geolocation';
+import * as appExtensions from './extensions/applications.js';
+import * as biometricExtensions from './extensions/biometric.js';
+import * as safariExtensions from './extensions/safari.js';
+import * as keychainExtensions from './extensions/keychain.js';
+import * as settingsExtensions from './extensions/settings.js';
+import * as permissionsExtensions from './extensions/permissions.js';
+import * as miscExtensions from './extensions/misc.js';
+import * as geolocationExtensions from './extensions/geolocation.js';
 import type {
   CoreSimulator,
   HasSettings,
@@ -31,7 +35,7 @@ import type {
   StartUiClientOptions,
   KillUiClientOptions,
   ProcessInfo,
-} from './types';
+} from './types.js';
 import type {XcodeVersion} from 'appium-xcode';
 import type {AppiumLogger, StringRecord} from '@appium/types';
 

@@ -1,4 +1,4 @@
-import {NSUserDefaults, generateDefaultsCommandArgs} from '../utils';
+import {NSUserDefaults, generateDefaultsCommandArgs} from '../utils/index.js';
 import path from 'node:path';
 import {exec} from 'teen_process';
 import AsyncLock from 'async-lock';
@@ -10,7 +10,7 @@ import type {
   CommonPreferences,
   RunOptions,
   LocalizationOptions,
-} from '../types';
+} from '../types.js';
 import type {StringRecord} from '@appium/types';
 
 type CoreSimulatorWithSettings = CoreSimulator & HasSettings;
