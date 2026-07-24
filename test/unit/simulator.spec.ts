@@ -49,6 +49,7 @@ describe('simulator', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
+    currentExec = sandbox.stub().resolves({stdout: '', stderr: ''});
     assertXcodeVersionStub = sandbox.stub();
     currentAssertXcodeVersion = assertXcodeVersionStub;
     getDevicesStub = sandbox.stub().resolves(devices);

@@ -66,6 +66,7 @@ describe('util', function () {
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
+    currentExec = sandbox.stub().resolves({stdout: '', stderr: ''});
     getDevicesStub = sandbox.stub().resolves(devices);
     currentGetDevices = getDevicesStub;
     currentGetVersion = sandbox.stub();
