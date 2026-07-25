@@ -1,7 +1,9 @@
-import {fs} from '@appium/support';
-import {exec} from 'teen_process';
 import path from 'node:path';
+
+import {fs} from '@appium/support';
 import {getPath, type XcodeVersion} from 'appium-xcode';
+import {exec} from 'teen_process';
+
 import {MIN_DEVICE_HUB_XCODE_VERSION, MIN_SUPPORTED_XCODE_VERSION} from './constants.js';
 
 /**
@@ -10,10 +12,7 @@ import {MIN_DEVICE_HUB_XCODE_VERSION, MIN_SUPPORTED_XCODE_VERSION} from './const
  * @returns The full path to the UI client app in the active Xcode installation.
  * @throws {Error} If no matching app is found in the active Xcode folder.
  */
-export async function getUiClientAppPath(
-  bundleId: string,
-  xcodeVersion: XcodeVersion,
-): Promise<string> {
+export async function getUiClientAppPath(bundleId: string, xcodeVersion: XcodeVersion): Promise<string> {
   const devRoot = await getPath();
   const applicationsDir =
     xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION
@@ -66,11 +65,7 @@ export function assertXcodeVersion<V extends XcodeVersion>(xcodeVersion: V): V {
  */
 export async function readBundleIdFromPlist(infoPlistPath: string): Promise<string | null> {
   try {
-    const {stdout} = await exec('/usr/libexec/PlistBuddy', [
-      '-c',
-      'print CFBundleIdentifier',
-      infoPlistPath,
-    ]);
+    const {stdout} = await exec('/usr/libexec/PlistBuddy', ['-c', 'print CFBundleIdentifier', infoPlistPath]);
     return stdout.trim() || null;
   } catch {
     return null;

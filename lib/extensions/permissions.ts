@@ -1,9 +1,11 @@
-import {fs, timing, util} from '@appium/support';
-import {exec} from 'teen_process';
 import path from 'node:path';
-import {waitForCondition} from 'asyncbox';
-import type {CoreSimulator, SupportsAppPermissions} from '../types.js';
+
+import {fs, timing, util} from '@appium/support';
 import type {StringRecord} from '@appium/types';
+import {waitForCondition} from 'asyncbox';
+import {exec} from 'teen_process';
+
+import type {CoreSimulator, SupportsAppPermissions} from '../types.js';
 
 type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions;
 
@@ -72,9 +74,7 @@ export async function setPermissions(
   bundleId: string,
   permissionsMapping: StringRecord,
 ): Promise<void> {
-  this.log.debug(
-    `Setting access for '${bundleId}': ${JSON.stringify(permissionsMapping, null, 2)}`,
-  );
+  this.log.debug(`Setting access for '${bundleId}': ${JSON.stringify(permissionsMapping, null, 2)}`);
   await setAccess.bind(this)(bundleId, permissionsMapping);
 }
 
@@ -117,19 +117,12 @@ function formatStatus(status: string): string {
  * @param query The actual query string
  * @returns Promise that resolves to sqlite command stdout
  */
-async function execSQLiteQuery(
-  this: CoreSimulatorWithAppPermissions,
-  db: string,
-  query: string,
-): Promise<string> {
+async function execSQLiteQuery(this: CoreSimulatorWithAppPermissions, db: string, query: string): Promise<string> {
   this.log.debug(`Executing SQL query "${query}" on '${db}'`);
   try {
     return (await exec('sqlite3', ['-line', db, query])).stdout;
   } catch (err: any) {
-    throw new Error(
-      `Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`,
-      {cause: err},
-    );
+    throw new Error(`Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`, {cause: err});
   }
 }
 
@@ -154,10 +147,9 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
     this.log.debug(`Command output: ${stdout}`);
     return stdout;
   } catch (e: any) {
-    throw new Error(
-      `Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`,
-      {cause: e},
-    );
+    throw new Error(`Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`, {
+      cause: e,
+    });
   }
 }
 
@@ -242,29 +234,15 @@ async function setAccess(
   }
 
   if (Object.keys(wixPermissions).length > 0) {
-    this.log.debug(
-      `Setting permissions for ${bundleId} with ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`,
-    );
+    this.log.debug(`Setting permissions for ${bundleId} with ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`);
     const permissionsArg = Object.entries(wixPermissions)
       .map(([name, status]) => `${name}=${formatStatus(status)}`)
       .join(',');
     const execWixFn = async () =>
-      await execWix.bind(this)([
-        '--byId',
-        this.udid,
-        '--bundle',
-        bundleId,
-        '--setPermissions',
-        permissionsArg,
-      ]);
-    const shouldWaitForSystemReadiness = SERVICES_NEED_SPRINGBOARD_RESTART.some(
-      (service) => service in wixPermissions,
-    );
+      await execWix.bind(this)(['--byId', this.udid, '--bundle', bundleId, '--setPermissions', permissionsArg]);
+    const shouldWaitForSystemReadiness = SERVICES_NEED_SPRINGBOARD_RESTART.some((service) => service in wixPermissions);
     if (shouldWaitForSystemReadiness) {
-      const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(
-        execWixFn,
-        SYSTEM_SERVICE_RESTART_TIMEOUT_MS,
-      );
+      const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(execWixFn, SYSTEM_SERVICE_RESTART_TIMEOUT_MS);
       if (didTimeout) {
         this.log.warn(
           `The required system services did not restart after ` +
@@ -293,11 +271,7 @@ async function runAndWaitForSystemReadiness<T>(
   fn: () => Promise<T>,
   timeoutMs: number,
 ): Promise<[boolean, T]> {
-  const waitForNewPid = async (
-    initialPid: number | undefined,
-    bundleId: string,
-    timeoutMs: number,
-  ) => {
+  const waitForNewPid = async (initialPid: number | undefined, bundleId: string, timeoutMs: number) => {
     await waitForCondition(
       async () => {
         try {
@@ -316,10 +290,9 @@ async function runAndWaitForSystemReadiness<T>(
     initialProcesses = await this.ps();
   } catch {}
 
-  const [initialSpringboardPid, initialSpotlightPid] = [
-    SPRINGBOARD_BUNDLE_ID,
-    SPOTLIGHT_BUNDLE_ID,
-  ].map((bundleId) => initialProcesses.find(({name}) => bundleId === name)?.pid);
+  const [initialSpringboardPid, initialSpotlightPid] = [SPRINGBOARD_BUNDLE_ID, SPOTLIGHT_BUNDLE_ID].map(
+    (bundleId) => initialProcesses.find(({name}) => bundleId === name)?.pid,
+  );
 
   const result = await fn();
   if (!Number.isInteger(initialSpringboardPid) || !Number.isInteger(initialSpotlightPid)) {

@@ -1,7 +1,8 @@
 import type {EventEmitter} from 'node:events';
-import type {Simctl} from 'node-simctl';
-import type {XcodeVersion} from 'appium-xcode';
+
 import type {AppiumLogger, StringRecord} from '@appium/types';
+import type {XcodeVersion} from 'appium-xcode';
+import type {Simctl} from 'node-simctl';
 
 export interface ProcessInfo {
   /**

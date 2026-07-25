@@ -1,25 +1,24 @@
-import {fs, timing, util} from '@appium/support';
-import {waitForCondition, retryInterval} from 'asyncbox';
-import {
-  getMacAppPidByBundleId,
-  getUiClientAppPath,
-  SIMULATOR_UI_CLIENT_BUNDLE_ID,
-} from './utils/index.js';
-import {getPath} from 'appium-xcode';
-import {exec} from 'teen_process';
-import {log as defaultLog} from './logger.js';
 import EventEmitter from 'node:events';
-import AsyncLock from 'async-lock';
 import path from 'node:path';
+
+import {fs, timing, util} from '@appium/support';
+import type {AppiumLogger, StringRecord} from '@appium/types';
+import {getPath} from 'appium-xcode';
+import type {XcodeVersion} from 'appium-xcode';
+import AsyncLock from 'async-lock';
+import {waitForCondition, retryInterval} from 'asyncbox';
 import {Simctl} from 'node-simctl';
+import {exec} from 'teen_process';
+
 import * as appExtensions from './extensions/applications.js';
 import * as biometricExtensions from './extensions/biometric.js';
-import * as safariExtensions from './extensions/safari.js';
-import * as keychainExtensions from './extensions/keychain.js';
-import * as settingsExtensions from './extensions/settings.js';
-import * as permissionsExtensions from './extensions/permissions.js';
-import * as miscExtensions from './extensions/misc.js';
 import * as geolocationExtensions from './extensions/geolocation.js';
+import * as keychainExtensions from './extensions/keychain.js';
+import * as miscExtensions from './extensions/misc.js';
+import * as permissionsExtensions from './extensions/permissions.js';
+import * as safariExtensions from './extensions/safari.js';
+import * as settingsExtensions from './extensions/settings.js';
+import {log as defaultLog} from './logger.js';
 import type {
   CoreSimulator,
   HasSettings,
@@ -36,8 +35,7 @@ import type {
   KillUiClientOptions,
   ProcessInfo,
 } from './types.js';
-import type {XcodeVersion} from 'appium-xcode';
-import type {AppiumLogger, StringRecord} from '@appium/types';
+import {getMacAppPidByBundleId, getUiClientAppPath, SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils/index.js';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
@@ -72,18 +70,14 @@ export class SimulatorXcode14
   openUrl = safariExtensions.openUrl;
   scrubSafari = safariExtensions.scrubSafari;
   updateSafariSettings = safariExtensions.updateSafariSettings;
-  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<
-    string | null
-  >;
+  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<string | null>;
 
   isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
   enrollBiometric = biometricExtensions.enrollBiometric;
   sendBiometricMatch = biometricExtensions.sendBiometricMatch;
 
   backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
-  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (
-    excludePatterns: string[],
-  ) => Promise<boolean>;
+  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (excludePatterns: string[]) => Promise<boolean>;
   clearKeychains = keychainExtensions.clearKeychains;
 
   setGeolocation = geolocationExtensions.setGeolocation;
@@ -266,9 +260,7 @@ export class SimulatorXcode14
    */
   async isFresh(): Promise<boolean> {
     const cachesRoot = path.resolve(this.getDir(), 'Library', 'Caches');
-    return (await fs.exists(cachesRoot))
-      ? (await fs.glob('*', {cwd: cachesRoot})).length === 0
-      : true;
+    return (await fs.exists(cachesRoot)) ? (await fs.glob('*', {cwd: cachesRoot})).length === 0 : true;
   }
 
   /**
@@ -459,10 +451,9 @@ export class SimulatorXcode14
     try {
       await exec('open', args, {timeout: startUiOpts.startupTimeout});
     } catch (err: any) {
-      throw new Error(
-        `Got an unexpected error while opening UI client: ${err.stderr || err.stdout || err.message}`,
-        {cause: err},
-      );
+      throw new Error(`Got an unexpected error while opening UI client: ${err.stderr || err.stdout || err.message}`, {
+        cause: err,
+      });
     }
   }
 
@@ -479,8 +470,7 @@ export class SimulatorXcode14
       ...structuredClone(opts),
     };
 
-    const [devicePreferences, commonPreferences] =
-      settingsExtensions.compileSimulatorPreferences.bind(this)(runOpts);
+    const [devicePreferences, commonPreferences] = settingsExtensions.compileSimulatorPreferences.bind(this)(runOpts);
     await settingsExtensions.updatePreferences.bind(this)(devicePreferences, commonPreferences);
 
     const timer = new timing.Timer().start();
@@ -505,9 +495,7 @@ export class SimulatorXcode14
           });
         } catch {
           if (!(await this.isRunning())) {
-            throw new Error(
-              `Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`,
-            );
+            throw new Error(`Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`);
           }
           return false;
         }
@@ -518,9 +506,7 @@ export class SimulatorXcode14
         await this.boot();
       } else {
         if (isServerRunning && uiClientPid) {
-          this.log.info(
-            `Both Simulator with UDID '${this.udid}' and the UI client are currently running`,
-          );
+          this.log.info(`Both Simulator with UDID '${this.udid}' and the UI client are currently running`);
           return false;
         }
         if (isServerRunning) {
@@ -537,18 +523,14 @@ export class SimulatorXcode14
 
     if (shouldWaitForBoot && runOpts.startupTimeout) {
       await this.waitForBoot(runOpts.startupTimeout);
-      this.log.info(
-        `Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`,
-      );
+      this.log.info(`Simulator with UDID ${this.udid} booted in ${timer.getDuration().asSeconds.toFixed(3)}s`);
     }
 
     void (async () => {
       try {
         await this.disableKeyboardIntroduction();
       } catch (e: any) {
-        this.log.info(
-          `Cannot disable Simulator keyboard introduction. Original error: ${e.message}`,
-        );
+        this.log.info(`Cannot disable Simulator keyboard introduction. Original error: ${e.message}`);
       }
     })();
   }
@@ -603,8 +585,7 @@ export class SimulatorXcode14
       -	0	com.apple.DragUI.druid
       22076	0	UIKitApplication:com.apple.mobilesafari[2b0f][rb-legacy]
     */
-    const extractGroup = (lbl: string): string | null =>
-      lbl.includes(':') ? lbl.split(':')[0] : null;
+    const extractGroup = (lbl: string): string | null => (lbl.includes(':') ? lbl.split(':')[0] : null);
     const extractName = (lbl: string): string => {
       let res = lbl;
       const colonIdx = res.indexOf(':');

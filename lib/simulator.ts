@@ -1,15 +1,16 @@
+import * as xcode from 'appium-xcode';
+
+import {log} from './logger.js';
 import {SimulatorXcode14} from './simulator-xcode-14.js';
 import {SimulatorXcode15} from './simulator-xcode-15.js';
 import {SimulatorXcode27} from './simulator-xcode-27.js';
+import type {Simulator, SimulatorLookupOptions} from './types.js';
 import {
   assertXcodeVersion,
   getSimulatorInfo,
   MIN_DEVICE_HUB_XCODE_VERSION,
   MIN_SUPPORTED_XCODE_VERSION,
 } from './utils/index.js';
-import * as xcode from 'appium-xcode';
-import {log} from './logger.js';
-import type {Simulator, SimulatorLookupOptions} from './types.js';
 
 /**
  * Finds and returns the corresponding Simulator instance for the given ID.
@@ -21,10 +22,7 @@ import type {Simulator, SimulatorLookupOptions} from './types.js';
  *   [node-simctl](github.com/appium/node-simctl).
  * @return Simulator object associated with the udid passed in.
  */
-export async function getSimulator(
-  udid: string,
-  opts: SimulatorLookupOptions = {},
-): Promise<Simulator> {
+export async function getSimulator(udid: string, opts: SimulatorLookupOptions = {}): Promise<Simulator> {
   let platform = opts.platform ?? 'iOS';
   const {checkExistence = true, devicesSetPath, logger} = opts;
 

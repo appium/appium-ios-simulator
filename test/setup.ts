@@ -1,5 +1,6 @@
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+
 import {fs, net, tempDir, zip, node} from '@appium/support';
 
 const UICATALOG_URL =
@@ -23,11 +24,7 @@ const downloadPromises = new Map<string, Promise<string>>();
  * @throws {Error} If the download or extraction fails
  */
 export async function getUIKitCatalogPath(): Promise<string> {
-  return downloadAndExtractApp(
-    UICATALOG_URL,
-    UICATALOG_CACHE_PATH,
-    'UIKitCatalog-iphonesimulator.zip',
-  );
+  return downloadAndExtractApp(UICATALOG_URL, UICATALOG_CACHE_PATH, 'UIKitCatalog-iphonesimulator.zip');
 }
 
 /**
@@ -55,11 +52,7 @@ async function findApps(searchPath: string): Promise<string[]> {
  * @returns {Promise<string>} The path to the cached app directory
  * @throws {Error} If the download or extraction fails
  */
-async function downloadAndExtractApp(
-  url: string,
-  cachePath: string,
-  zipFileName: string,
-): Promise<string> {
+async function downloadAndExtractApp(url: string, cachePath: string, zipFileName: string): Promise<string> {
   // If a download is already in progress, wait for it first
   // This prevents returning a partially downloaded file
   if (downloadPromises.has(cachePath)) {

@@ -1,7 +1,8 @@
-import {log} from '../logger.js';
-import {exec, type ExecError} from 'teen_process';
-import {waitForCondition} from 'asyncbox';
 import {getVersion} from 'appium-xcode';
+import {waitForCondition} from 'asyncbox';
+import {exec, type ExecError} from 'teen_process';
+
+import {log} from '../logger.js';
 import {
   DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
   MIN_DEVICE_HUB_XCODE_VERSION,
@@ -16,23 +17,17 @@ const DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS = 60000;
  * @param timeout - Timeout in milliseconds (default: DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS).
  * @returns Promise that resolves when all simulators are killed.
  */
-export async function killAllSimulators(
-  timeout: number = DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS,
-): Promise<void> {
+export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS): Promise<void> {
   log.debug('Killing all iOS Simulators');
   const xcodeVersion = await getVersion(true);
   const uiClientBundleId =
-    xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION
-      ? DEVICE_HUB_UI_CLIENT_BUNDLE_ID
-      : SIMULATOR_UI_CLIENT_BUNDLE_ID;
+    xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION ? DEVICE_HUB_UI_CLIENT_BUNDLE_ID : SIMULATOR_UI_CLIENT_BUNDLE_ID;
 
   const startedMs = performance.now();
   try {
     await exec('xcrun', ['simctl', 'shutdown', 'all'], {timeout});
   } catch (err: unknown) {
-    log.debug(
-      `Failed to shutdown all simulators: ${(err as ExecError).stderr || (err as Error).message}`,
-    );
+    log.debug(`Failed to shutdown all simulators: ${(err as ExecError).stderr || (err as Error).message}`);
   }
 
   const uiClientPid = await getMacAppPidByBundleId(uiClientBundleId);
@@ -71,8 +66,5 @@ async function getNonShutdownDeviceDescriptions(): Promise<string[]> {
   const devices = Object.values(await getDevices()).flat();
   return devices
     .filter((sim) => !['shutdown', 'unavailable', 'disconnected'].includes(sim.state.toLowerCase()))
-    .map(
-      (sim) =>
-        `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${sim.state.toLowerCase()}'`,
-    );
+    .map((sim) => `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${sim.state.toLowerCase()}'`);
 }

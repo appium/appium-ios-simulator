@@ -1,20 +1,14 @@
 import path from 'node:path';
+
 import {fs, timing} from '@appium/support';
-import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils/index.js';
+import type {StringRecord} from '@appium/types';
 import {waitForCondition} from 'asyncbox';
 import {exec} from 'teen_process';
-import type {
-  CoreSimulator,
-  InteractsWithSafariBrowser,
-  InteractsWithApps,
-  HasSettings,
-} from '../types.js';
-import type {StringRecord} from '@appium/types';
 
-type CoreSimulatorWithSafariBrowser = CoreSimulator &
-  InteractsWithSafariBrowser &
-  InteractsWithApps &
-  HasSettings;
+import type {CoreSimulator, InteractsWithSafariBrowser, InteractsWithApps, HasSettings} from '../types.js';
+import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils/index.js';
+
+type CoreSimulatorWithSafariBrowser = CoreSimulator & InteractsWithSafariBrowser & InteractsWithApps & HasSettings;
 
 // The root of all these files is located under Safari data container root
 // in 'Library' subfolder
@@ -75,9 +69,7 @@ export async function openUrl(this: CoreSimulatorWithSafariBrowser, url: string)
       );
     }
   }
-  this.log.debug(
-    `Safari successfully opened '${url}' in ${timer.getDuration().asSeconds.toFixed(3)}s`,
-  );
+  this.log.debug(`Safari successfully opened '${url}' in ${timer.getDuration().asSeconds.toFixed(3)}s`);
 }
 
 /**
@@ -86,10 +78,7 @@ export async function openUrl(this: CoreSimulatorWithSafariBrowser, url: string)
  *
  * @param keepPrefs Whether to keep Safari preferences from being deleted.
  */
-export async function scrubSafari(
-  this: CoreSimulatorWithSafariBrowser,
-  keepPrefs: boolean = true,
-): Promise<void> {
+export async function scrubSafari(this: CoreSimulatorWithSafariBrowser, keepPrefs: boolean = true): Promise<void> {
   try {
     await this.terminateApp(MOBILE_SAFARI_BUNDLE_ID);
   } catch {}
@@ -129,21 +118,14 @@ export async function updateSafariSettings(
   }
 
   const containerRoot = await this.simctl.getAppContainer(MOBILE_SAFARI_BUNDLE_ID, 'data');
-  const plistPath = path.join(
-    containerRoot,
-    'Library',
-    'Preferences',
-    'com.apple.mobilesafari.plist',
-  );
+  const plistPath = path.join(containerRoot, 'Library', 'Preferences', 'com.apple.mobilesafari.plist');
   return await this.updateSettings(plistPath, updates);
 }
 
 /**
  * @returns Promise that resolves to the Web Inspector socket path or null
  */
-export async function getWebInspectorSocket(
-  this: CoreSimulatorWithSafariBrowser,
-): Promise<string | null> {
+export async function getWebInspectorSocket(this: CoreSimulatorWithSafariBrowser): Promise<string | null> {
   if (this._webInspectorSocket) {
     return this._webInspectorSocket;
   }

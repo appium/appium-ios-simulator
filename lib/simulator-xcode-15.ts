@@ -1,7 +1,9 @@
-import {fs} from '@appium/support';
 import path from 'node:path';
-import {readBundleIdFromPlist} from './utils/index.js';
+
+import {fs} from '@appium/support';
+
 import {SimulatorXcode14} from './simulator-xcode-14.js';
+import {readBundleIdFromPlist} from './utils/index.js';
 
 export class SimulatorXcode15 extends SimulatorXcode14 {
   private _systemAppBundleIds?: Set<string>;
@@ -114,9 +116,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
     }
 
     const appsRoot = path.resolve(await this._getSystemRoot(), 'Applications');
-    const allApps = (await fs.readdir(appsRoot))
-      .filter((x) => x.endsWith('.app'))
-      .map((x) => path.join(appsRoot, x));
+    const allApps = (await fs.readdir(appsRoot)).filter((x) => x.endsWith('.app')).map((x) => path.join(appsRoot, x));
     const bundleIds = await Promise.all(
       allApps.map((appRoot) => readBundleIdFromPlist(path.resolve(appRoot, 'Info.plist'))),
     );

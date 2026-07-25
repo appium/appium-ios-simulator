@@ -1,5 +1,5 @@
-import {Simctl} from 'node-simctl';
 import type {StringRecord} from '@appium/types';
+import {Simctl} from 'node-simctl';
 
 /**
  * @param simctlOpts - Optional simctl options

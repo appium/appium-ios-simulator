@@ -1,6 +1,8 @@
 import path from 'node:path';
+
 import {fs, mkdirp, tempDir, util} from '@appium/support';
 import {exec} from 'teen_process';
+
 import type {CoreSimulator, InteractsWithKeychain} from '../types.js';
 
 type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
@@ -15,10 +17,7 @@ type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
  */
 export async function backupKeychains(this: CoreSimulatorWithKeychain): Promise<boolean> {
   const resetBackupPath = async (newPath: string | null | undefined) => {
-    if (
-      typeof this._keychainsBackupPath === 'string' &&
-      (await fs.exists(this._keychainsBackupPath))
-    ) {
+    if (typeof this._keychainsBackupPath === 'string' && (await fs.exists(this._keychainsBackupPath))) {
       await fs.unlink(this._keychainsBackupPath);
     }
     this._keychainsBackupPath = newPath;
@@ -67,19 +66,12 @@ export async function restoreKeychains(
   this: CoreSimulatorWithKeychain,
   excludePatterns: string[] | string = [],
 ): Promise<boolean> {
-  if (
-    typeof this._keychainsBackupPath !== 'string' ||
-    !(await fs.exists(this._keychainsBackupPath))
-  ) {
-    throw new Error(
-      `The keychains backup archive does not exist. ` + `Are you sure it was created before?`,
-    );
+  if (typeof this._keychainsBackupPath !== 'string' || !(await fs.exists(this._keychainsBackupPath))) {
+    throw new Error(`The keychains backup archive does not exist. ` + `Are you sure it was created before?`);
   }
 
   const patterns =
-    typeof excludePatterns === 'string'
-      ? excludePatterns.split(',').map((x) => x.trim())
-      : excludePatterns;
+    typeof excludePatterns === 'string' ? excludePatterns.split(',').map((x) => x.trim()) : excludePatterns;
   const isServerRunning = await this.isRunning();
   let plistPath: string | undefined;
   if (isServerRunning) {
@@ -96,13 +88,7 @@ export async function restoreKeychains(
     if (!backupPath) {
       throw new Error('Backup path is not set');
     }
-    const unzipArgs = [
-      '-o',
-      backupPath,
-      ...patterns.flatMap((x) => ['-x', x]),
-      '-d',
-      path.dirname(this.keychainPath),
-    ];
+    const unzipArgs = ['-o', backupPath, ...patterns.flatMap((x) => ['-x', x]), '-d', path.dirname(this.keychainPath)];
     this.log.debug(`Restoring keychains with '${util.quote(['unzip', ...unzipArgs])}' command`);
     try {
       await exec('unzip', unzipArgs);

@@ -1,12 +1,14 @@
+import {describe, it, beforeEach, afterEach} from 'node:test';
+
+import {use as chaiUse, expect} from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import esmock from 'esmock';
 import sinon from 'sinon';
-import {devices} from './device-list.js';
+
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
 import {SimulatorXcode15} from '../../lib/simulator-xcode-15.js';
 import {SimulatorXcode27} from '../../lib/simulator-xcode-27.js';
-import {use as chaiUse, expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import {describe, it, beforeEach, afterEach} from 'node:test';
+import {devices} from './device-list.js';
 
 chaiUse(chaiAsPromised);
 
@@ -74,12 +76,7 @@ describe('simulator', function () {
     });
 
     const xcodeVersions: Array<
-      [
-        number,
-        number,
-        string,
-        typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27,
-      ]
+      [number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27]
     > = [
       [14, 0, '14.0.0', SimulatorXcode14],
       [15, 0, '15.0.0', SimulatorXcode15],
@@ -122,8 +119,8 @@ describe('simulator', function () {
 
       const sims = (
         await Promise.all(
-          ['F33783B2-9EE9-4A99-866E-E126ADBAD410', 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'].map(
-            (udid) => getSimulator(udid),
+          ['F33783B2-9EE9-4A99-866E-E126ADBAD410', 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'].map((udid) =>
+            getSimulator(udid),
           ),
         )
       ).map((sim) => {
@@ -280,16 +277,8 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
           'AppleLanguages',
           '<array><string>ja</string></array>',
         ]);
-        expect(spawnProcessSpy.secondCall.args[0]).to.eql([
-          'launchctl',
-          'stop',
-          'com.apple.SpringBoard',
-        ]);
-        expect(spawnProcessSpy.thirdCall.args[0]).to.eql([
-          'launchctl',
-          'stop',
-          'com.apple.locationd',
-        ]);
+        expect(spawnProcessSpy.secondCall.args[0]).to.eql(['launchctl', 'stop', 'com.apple.SpringBoard']);
+        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(['launchctl', 'stop', 'com.apple.locationd']);
         expect(spawnProcessSpy.getCall(3).args[0]).to.eql(['launchctl', 'stop', 'com.apple.tccd']);
         expect(spawnProcessSpy.getCall(4).args[0]).to.eql(['launchctl', 'stop', 'com.apple.akd']);
         expect(spawnProcessSpy.callCount).to.eql(5);

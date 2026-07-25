@@ -1,5 +1,6 @@
-import {log} from '../logger.js';
 import {exec} from 'teen_process';
+
+import {log} from '../logger.js';
 
 /**
  * @param bundleId - The bundle identifier of a running macOS application.

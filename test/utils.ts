@@ -1,5 +1,5 @@
-import path from 'node:path';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 export async function copyDir(src: string, dest: string): Promise<void> {
   const entries = await fs.readdir(src, {withFileTypes: true});

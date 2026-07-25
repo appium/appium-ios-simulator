@@ -1,6 +1,8 @@
 import path from 'node:path';
+
 import {fs, plist, util} from '@appium/support';
 import {waitForCondition} from 'asyncbox';
+
 import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types.js';
 
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
@@ -46,13 +48,10 @@ export async function getUserInstalledBundleIdsByBundleName(
       })(),
     );
   }
-  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter((info) =>
-    util.isPlainObject(info),
-  );
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter((info) => util.isPlainObject(info));
   const bundleIds = bundleInfos
     .filter(
-      ({CFBundleName, CFBundleIdentifier}) =>
-        CFBundleName === bundleName && typeof CFBundleIdentifier === 'string',
+      ({CFBundleName, CFBundleIdentifier}) => CFBundleName === bundleName && typeof CFBundleIdentifier === 'string',
     )
     .map(({CFBundleIdentifier}) => CFBundleIdentifier as string);
   if (bundleIds.length === 0) {
@@ -72,10 +71,7 @@ export async function getUserInstalledBundleIdsByBundleName(
  * @param bundleId The bundle id of the application to be checked.
  * @return True if the given application is installed.
  */
-export async function isAppInstalled(
-  this: CoreSimulatorWithApps,
-  bundleId: string,
-): Promise<boolean> {
+export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
   try {
     const appContainer = await this.simctl.getAppContainer(bundleId);
     if (!appContainer.endsWith('.app')) {
@@ -145,10 +141,7 @@ export async function terminateApp(this: CoreSimulatorWithApps, bundleId: string
  *
  * @param bundleId The bundle ID of the application to be checked.
  */
-export async function isAppRunning(
-  this: CoreSimulatorWithApps,
-  bundleId: string,
-): Promise<boolean> {
+export async function isAppRunning(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
   return (await this.ps()).some(({name}) => name === bundleId);
 }
 
@@ -166,9 +159,7 @@ export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): P
     nodir: true,
     absolute: true,
   });
-  this.log.info(
-    `Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`,
-  );
+  this.log.info(`Found ${appFiles.length} ${bundleId} app ${util.pluralize('file', appFiles.length, false)} to scrub`);
   if (appFiles.length === 0) {
     return;
   }

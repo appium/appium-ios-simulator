@@ -1,13 +1,15 @@
-import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils/index.js';
-import {getSimulator} from '../../lib/simulator.js';
-import type {Simulator} from '../../lib/types.js';
-import {Simctl} from 'node-simctl';
+import {describe, it, before, afterEach, beforeEach, after, type TestContext} from 'node:test';
+
 import {retryInterval, waitForCondition} from 'asyncbox';
-import {LONG_TIMEOUT, verifyStates} from './helpers.js';
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import {Simctl} from 'node-simctl';
+
+import {getSimulator} from '../../lib/simulator.js';
+import type {Simulator} from '../../lib/types.js';
+import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils/index.js';
 import {getUIKitCatalogPath, UICATALOG_BUNDLE_ID} from '../setup.js';
-import {describe, it, before, afterEach, beforeEach, after, type TestContext} from 'node:test';
+import {LONG_TIMEOUT, verifyStates} from './helpers.js';
 
 chaiUse(chaiAsPromised);
 
@@ -97,13 +99,10 @@ describe(`simulator ${OS_VERSION}`, function () {
     console.log('Application launched'); // eslint-disable-line no-console
 
     // Wait for application process
-    await waitForCondition(
-      async () => (await sim.ps()).some(({name}) => name === UICATALOG_BUNDLE_ID),
-      {
-        waitMs: 10000,
-        intervalMs: 500,
-      },
-    );
+    await waitForCondition(async () => (await sim.ps()).some(({name}) => name === UICATALOG_BUNDLE_ID), {
+      waitMs: 10000,
+      intervalMs: 500,
+    });
 
     await sim.removeApp(UICATALOG_BUNDLE_ID);
 
@@ -259,9 +258,7 @@ describe('advanced features', function () {
         await sim.launchApp(UICATALOG_BUNDLE_ID);
       }
 
-      await expect(sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')).to.eventually.eql([
-        UICATALOG_BUNDLE_ID,
-      ]);
+      await expect(sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')).to.eventually.eql([UICATALOG_BUNDLE_ID]);
     });
 
     it('should scrub custom app', async function () {
@@ -432,9 +429,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
     });
 
     // Should be called before launching simulator
-    await expect(
-      simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'),
-    ).to.eventually.eql([]);
+    await expect(simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog')).to.eventually.eql([]);
 
     for (const sim of Object.values(simulatorsMapping)) {
       await sim.run({startupTimeout: LONG_TIMEOUT});
@@ -477,11 +472,7 @@ describe('getWebInspectorSocket', function () {
     let sim2: Simulator;
 
     before(async function () {
-      const udid = await new Simctl().createDevice(
-        'ios-simulator testing',
-        DEVICE_NAME,
-        OS_VERSION,
-      );
+      const udid = await new Simctl().createDevice('ios-simulator testing', DEVICE_NAME, OS_VERSION);
       sim2 = await getSimulator(udid);
       await sim2.run({
         startupTimeout: LONG_TIMEOUT,

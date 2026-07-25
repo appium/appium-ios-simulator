@@ -1,5 +1,6 @@
-import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types.js';
 import type {StringRecord} from '@appium/types';
+
+import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types.js';
 
 type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;
 
@@ -49,9 +50,6 @@ export async function addCertificate(
  *   }
  * }
  */
-export async function pushNotification(
-  this: CoreSimulatorWithMiscFeatures,
-  payload: StringRecord,
-): Promise<void> {
+export async function pushNotification(this: CoreSimulatorWithMiscFeatures, payload: StringRecord): Promise<void> {
   await this.simctl.pushNotification(payload);
 }

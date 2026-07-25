@@ -1,17 +1,15 @@
-import sinon from 'sinon';
-import esmock from 'esmock';
-import {
-  DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
-  SIMULATOR_UI_CLIENT_BUNDLE_ID,
-} from '../../lib/utils/constants.js';
-import {toBiometricDomainComponent} from '../../lib/extensions/biometric.js';
-import {verifyDevicePreferences} from '../../lib/extensions/settings.js';
+import {describe, it, beforeEach, afterEach} from 'node:test';
+
 import {use as chaiUse, expect} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import esmock from 'esmock';
+import sinon from 'sinon';
 
-import {describe, it, beforeEach, afterEach} from 'node:test';
-import {devices} from './device-list.js';
+import {toBiometricDomainComponent} from '../../lib/extensions/biometric.js';
+import {verifyDevicePreferences} from '../../lib/extensions/settings.js';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
+import {DEVICE_HUB_UI_CLIENT_BUNDLE_ID, SIMULATOR_UI_CLIENT_BUNDLE_ID} from '../../lib/utils/constants.js';
+import {devices} from './device-list.js';
 
 chaiUse(chaiAsPromised);
 
@@ -81,33 +79,19 @@ describe('util', function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_10));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub
-        .withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID])
-        .throws({code: 1});
+      innerExecStub.withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]).throws({code: 1});
       currentExec = innerExecStub;
       await killAllSimulators();
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
-        'info',
-        '-only',
-        'pid',
-        SIMULATOR_UI_CLIENT_BUNDLE_ID,
-      ]);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
     });
     it('should use the DeviceHub UI client bundle id', async function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_27));
       innerExecStub = sandbox.stub();
       innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub
-        .withArgs('lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID])
-        .throws({code: 1});
+      innerExecStub.withArgs('lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID]).throws({code: 1});
       currentExec = innerExecStub;
       await killAllSimulators();
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
-        'info',
-        '-only',
-        'pid',
-        DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
-      ]);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID]);
     });
     it('should kill UI client by bundle id when shutdown fails', async function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6));
@@ -116,26 +100,15 @@ describe('util', function () {
       innerExecStub
         .withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID])
         .returns({stdout: '"pid"=12345\n'});
-      innerExecStub
-        .withArgs('lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID])
-        .returns(undefined);
+      innerExecStub.withArgs('lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID]).returns(undefined);
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
       currentExec = innerExecStub;
       try {
         await killAllSimulators(500);
       } catch {}
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
-        'info',
-        '-only',
-        'pid',
-        SIMULATOR_UI_CLIENT_BUNDLE_ID,
-      ]);
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', [
-        'kill',
-        '-hard',
-        SIMULATOR_UI_CLIENT_BUNDLE_ID,
-      ]);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
+      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
     });
   });
 

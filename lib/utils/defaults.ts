@@ -1,7 +1,8 @@
+import {util} from '@appium/support';
 import {DOMParser, XMLSerializer, type Document, type Element} from '@xmldom/xmldom';
 import {exec} from 'teen_process';
+
 import {log} from '../logger.js';
-import {util} from '@appium/support';
 
 export class NSUserDefaults {
   plist: string;
@@ -22,10 +23,9 @@ export class NSUserDefaults {
       const {stdout} = await exec('plutil', ['-convert', 'json', '-o', '-', this.plist]);
       return JSON.parse(stdout);
     } catch (e: any) {
-      throw new Error(
-        `'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`,
-        {cause: e},
-      );
+      throw new Error(`'${this.plist}' cannot be converted to JSON. Original error: ${e.stderr || e.message}`, {
+        cause: e,
+      });
     }
   }
 
@@ -50,14 +50,11 @@ export class NSUserDefaults {
 
     const commandArgs = generateDefaultsCommandArgs(valuesMap);
     try {
-      await Promise.all(
-        commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])),
-      );
+      await Promise.all(commandArgs.map((args) => exec('defaults', ['write', this.plist, ...args])));
     } catch (e: any) {
-      throw new Error(
-        `Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`,
-        {cause: e},
-      );
+      throw new Error(`Could not write defaults into '${this.plist}'. Original error: ${e.stderr || e.message}`, {
+        cause: e,
+      });
     }
   }
 }
@@ -131,10 +128,7 @@ export function toXmlArg(value: any, serialize: boolean = true): string | Elemen
  * @returns Each item in the array
  * is the `defaults write <plist>` command suffix
  */
-export function generateDefaultsCommandArgs(
-  valuesMap: Record<string, any>,
-  replace: boolean = false,
-): string[][] {
+export function generateDefaultsCommandArgs(valuesMap: Record<string, any>, replace: boolean = false): string[][] {
   const resultArgs: string[][] = [];
   for (const [key, value] of Object.entries(valuesMap)) {
     try {

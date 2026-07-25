@@ -1,5 +1,6 @@
-import type {CoreSimulator, SupportsBiometric} from '../types.js';
 import {util} from '@appium/support';
+
+import type {CoreSimulator, SupportsBiometric} from '../types.js';
 
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
@@ -13,14 +14,8 @@ const BIOMETRICS: Record<string, string> = {
  * @returns Promise that resolves to true if biometric is enrolled
  */
 export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Promise<boolean> {
-  const {stdout} = await this.simctl.spawnProcess([
-    'notifyutil',
-    '-g',
-    ENROLLMENT_NOTIFICATION_RECEIVER,
-  ]);
-  const match = new RegExp(`${util.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(
-    stdout,
-  );
+  const {stdout} = await this.simctl.spawnProcess(['notifyutil', '-g', ENROLLMENT_NOTIFICATION_RECEIVER]);
+  const match = new RegExp(`${util.escapeRegExp(ENROLLMENT_NOTIFICATION_RECEIVER)}\\s+([01])`).exec(stdout);
   if (!match) {
     throw new Error(`Cannot parse biometric enrollment state from '${stdout}'`);
   }
@@ -31,19 +26,11 @@ export async function isBiometricEnrolled(this: CoreSimulatorWithBiometric): Pro
 /**
  * @param isEnabled Whether to enable biometric enrollment
  */
-export async function enrollBiometric(
-  this: CoreSimulatorWithBiometric,
-  isEnabled: boolean = true,
-): Promise<void> {
+export async function enrollBiometric(this: CoreSimulatorWithBiometric, isEnabled: boolean = true): Promise<void> {
   this.log.debug(
     `Setting biometric enrolled state for ${this.udid} Simulator to '${isEnabled ? 'enabled' : 'disabled'}'`,
   );
-  await this.simctl.spawnProcess([
-    'notifyutil',
-    '-s',
-    ENROLLMENT_NOTIFICATION_RECEIVER,
-    isEnabled ? '1' : '0',
-  ]);
+  await this.simctl.spawnProcess(['notifyutil', '-s', ENROLLMENT_NOTIFICATION_RECEIVER, isEnabled ? '1' : '0']);
   await this.simctl.spawnProcess(['notifyutil', '-p', ENROLLMENT_NOTIFICATION_RECEIVER]);
   if ((await this.isBiometricEnrolled()) !== isEnabled) {
     throw new Error(
@@ -79,9 +66,7 @@ export async function sendBiometricMatch(
  */
 export function toBiometricDomainComponent(name: string): string {
   if (!BIOMETRICS[name]) {
-    throw new Error(
-      `'${name}' is not a valid biometric. Use one of: ${JSON.stringify(Object.keys(BIOMETRICS))}`,
-    );
+    throw new Error(`'${name}' is not a valid biometric. Use one of: ${JSON.stringify(Object.keys(BIOMETRICS))}`);
   }
   return BIOMETRICS[name];
 }
