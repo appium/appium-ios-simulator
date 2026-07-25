@@ -34,10 +34,10 @@
   "dependencies": {
     "@appium/support": "^7.2.5",
     "@xmldom/xmldom": "^0.x",
-    "appium-xcode": "^6.0.0",
+    "appium-xcode": "^7.0.0",
     "async-lock": "^1.0.0",
     "asyncbox": "^6.0.1",
-    "node-simctl": "^8.1.1",
+    "node-simctl": "^9.0.0",
     "semver": "^7.0.0",
     "teen_process": "^4.0.4"
   },
@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@appium/eslint-config-appium-ts": "^3.0.0",
-    "@appium/tsconfig": "^1.0.0-rc.1",
+    "@appium/tsconfig": "^1.2.0",
     "@appium/types": "^1.0.0-rc.1",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -77,8 +77,7 @@
     "pem": "^1.8.3",
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.2",
-    "sinon": "^22.0.0",
-    "typescript": "^6.0.2"
+    "sinon": "^22.0.0"
   },
   "types": "./build/lib/index.d.ts",
   "type": "module",
