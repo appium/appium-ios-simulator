@@ -321,7 +321,7 @@ export async function updatePreferences(
   const homeFolderPath = process.env.HOME;
   if (!homeFolderPath) {
     this.log.warn(
-      `Cannot get the path to HOME folder from the process environment. ` + `Ignoring Simulator preferences update.`,
+      `Cannot get the path to HOME folder from the process environment. Ignoring Simulator preferences update.`,
     );
     return false;
   }

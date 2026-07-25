@@ -67,7 +67,7 @@ export async function restoreKeychains(
   excludePatterns: string[] | string = [],
 ): Promise<boolean> {
   if (typeof this._keychainsBackupPath !== 'string' || !(await fs.exists(this._keychainsBackupPath))) {
-    throw new Error(`The keychains backup archive does not exist. ` + `Are you sure it was created before?`);
+    throw new Error(`The keychains backup archive does not exist. Are you sure it was created before?`);
   }
 
   const patterns =
