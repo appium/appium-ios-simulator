@@ -13,16 +13,16 @@ describe('defaults-utils', function () {
         [true, '<true/>'],
         [false, '<false/>'],
       ]) {
-        assert.deepStrictEqual(toXmlArg(actual as any), expected);
+        assert.strictEqual(toXmlArg(actual as any), expected);
       }
     });
 
     it('could properly convert array value types to a XML representation', function () {
-      assert.deepStrictEqual(toXmlArg([1.1, false]), '<array><real>1.1</real><false/></array>');
+      assert.strictEqual(toXmlArg([1.1, false]), '<array><real>1.1</real><false/></array>');
     });
 
     it('could properly convert dict value types to a XML representation', function () {
-      assert.deepStrictEqual(
+      assert.strictEqual(
         toXmlArg({k1: true, k2: {k3: 1.1, k4: []}}),
         '<dict><key>k1</key><true/><key>k2</key><dict><key>k3</key><real>1.1</real><key>k4</key><array/></dict></dict>',
       );

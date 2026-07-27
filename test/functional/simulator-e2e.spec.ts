@@ -372,15 +372,15 @@ describe('advanced features', function () {
 
     it('should set and get with wix command', async function () {
       await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
-      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
+      assert.strictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
       await sim.setPermission('com.apple.Maps', 'contacts', 'no');
-      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
+      assert.strictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
 
       // unset sets as 'no'
       await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
-      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
+      assert.strictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
       await sim.setPermission('com.apple.Maps', 'contacts', 'unset');
-      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
+      assert.strictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
     });
   });
 });
@@ -487,19 +487,19 @@ describe('getWebInspectorSocket', function () {
     });
     it('should not confuse two different simulators', async function () {
       const socket = await sim.getWebInspectorSocket();
-      assert.notStrictEqual(socket, null);
+      assert.ok(socket);
 
       const socket2 = await sim2.getWebInspectorSocket();
-      assert.notStrictEqual(socket2, null);
+      assert.ok(socket2);
 
-      assert.notDeepStrictEqual(socket, socket2);
+      assert.notStrictEqual(socket, socket2);
     });
     it('should always get the same socket', async function () {
       let socket = await sim.getWebInspectorSocket();
       for (let i = 0; i < 10; i++) {
         sim._webInspectorSocket = null;
         const socket2 = await sim.getWebInspectorSocket();
-        assert.deepStrictEqual(socket, socket2);
+        assert.strictEqual(socket, socket2);
         socket = socket2;
       }
     });
