@@ -1,7 +1,6 @@
+import assert from 'node:assert/strict';
 import {describe, it, beforeEach, afterEach} from 'node:test';
 
-import {use as chaiUse, expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import esmock from 'esmock';
 import sinon from 'sinon';
 
@@ -10,8 +9,6 @@ import {verifyDevicePreferences} from '../../lib/extensions/settings.js';
 import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
 import {DEVICE_HUB_UI_CLIENT_BUNDLE_ID, SIMULATOR_UI_CLIENT_BUNDLE_ID} from '../../lib/utils/constants.js';
 import {devices} from './device-list.js';
-
-chaiUse(chaiAsPromised);
 
 const XCODE_VERSION_10 = {
   versionString: '10.0',
@@ -122,7 +119,7 @@ describe('util', function () {
       ]);
 
       for (const result of results) {
-        expect(result).to.be.true;
+        assert.strictEqual(result, true);
       }
     });
 
@@ -135,7 +132,7 @@ describe('util', function () {
       const results = await Promise.all(existence);
 
       for (const result of results) {
-        expect(result).to.be.false;
+        assert.strictEqual(result, false);
       }
     });
   });
@@ -148,22 +145,24 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = [0.5, 1, 1.5];
       for (const validValue of validValues) {
-        expect(() =>
+        assert.doesNotThrow(() =>
           verifyDevicePreferences.bind(sim)({
             SimulatorWindowLastScale: validValue,
           }),
-        ).to.not.throw();
+        );
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = [-1, 0.0, '', 'abc', null];
       for (const invalidValue of invalidValues) {
-        expect(() =>
-          verifyDevicePreferences.bind(sim)({
-            SimulatorWindowLastScale: invalidValue,
-          }),
-        ).to.throw(Error, /is expected to be a positive float value/);
+        assert.throws(
+          () =>
+            verifyDevicePreferences.bind(sim)({
+              SimulatorWindowLastScale: invalidValue,
+            }),
+          /is expected to be a positive float value/,
+        );
       }
     });
   });
@@ -181,11 +180,11 @@ describe('Device preferences verification', function () {
         '{-32.58,-32.58}',
       ];
       for (const validValue of validValues) {
-        expect(() =>
+        assert.doesNotThrow(() =>
           verifyDevicePreferences.bind(sim)({
             SimulatorWindowCenter: validValue,
           }),
-        ).to.not.throw();
+        );
       }
     });
 
@@ -204,11 +203,13 @@ describe('Device preferences verification', function () {
         '{0, 0}',
       ];
       for (const invalidValue of invalidValues) {
-        expect(() =>
-          verifyDevicePreferences.bind(sim)({
-            SimulatorWindowCenter: invalidValue,
-          }),
-        ).to.throw(Error, /is expected to match/);
+        assert.throws(
+          () =>
+            verifyDevicePreferences.bind(sim)({
+              SimulatorWindowCenter: invalidValue,
+            }),
+          /is expected to match/,
+        );
       }
     });
   });
@@ -217,22 +218,24 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = ['Portrait', 'LandscapeLeft', 'PortraitUpsideDown', 'LandscapeRight'];
       for (const validValue of validValues) {
-        expect(() =>
+        assert.doesNotThrow(() =>
           verifyDevicePreferences.bind(sim)({
             SimulatorWindowOrientation: validValue,
           }),
-        ).to.not.throw();
+        );
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = ['', null, 'portrait', 'bla', -1];
       for (const invalidValue of invalidValues) {
-        expect(() =>
-          verifyDevicePreferences.bind(sim)({
-            SimulatorWindowOrientation: invalidValue,
-          }),
-        ).to.throw(Error, /is expected to be one of/);
+        assert.throws(
+          () =>
+            verifyDevicePreferences.bind(sim)({
+              SimulatorWindowOrientation: invalidValue,
+            }),
+          /is expected to be one of/,
+        );
       }
     });
   });
@@ -241,38 +244,40 @@ describe('Device preferences verification', function () {
     it('should pass if correct', function () {
       const validValues = [0, -100, 100, 1.0];
       for (const validValue of validValues) {
-        expect(() =>
+        assert.doesNotThrow(() =>
           verifyDevicePreferences.bind(sim)({
             SimulatorWindowRotationAngle: validValue,
           }),
-        ).to.not.throw();
+        );
       }
     });
 
     it('should throw if incorrect', function () {
       const invalidValues: any[] = ['', null, 'bla', '0'];
       for (const invalidValue of invalidValues) {
-        expect(() =>
-          verifyDevicePreferences.bind(sim)({
-            SimulatorWindowRotationAngle: invalidValue,
-          }),
-        ).to.throw(Error, /is expected to be a valid number/);
+        assert.throws(
+          () =>
+            verifyDevicePreferences.bind(sim)({
+              SimulatorWindowRotationAngle: invalidValue,
+            }),
+          /is expected to be a valid number/,
+        );
       }
     });
   });
 
   describe('toBiometricDomainComponent', function () {
     it('return touch id object', function () {
-      expect(toBiometricDomainComponent('touchId')).to.eql('fingerTouch');
+      assert.strictEqual(toBiometricDomainComponent('touchId'), 'fingerTouch');
     });
     it('return face id object', function () {
-      expect(toBiometricDomainComponent('faceId')).to.eql('pearl');
+      assert.strictEqual(toBiometricDomainComponent('faceId'), 'pearl');
     });
 
     it('raise an error since the argument does not exist in biometric', function () {
-      expect(function () {
+      assert.throws(function () {
         toBiometricDomainComponent('no-touchId');
-      }).to.throw();
+      });
     });
   });
 });

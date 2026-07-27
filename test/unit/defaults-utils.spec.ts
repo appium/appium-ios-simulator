@@ -1,6 +1,5 @@
+import assert from 'node:assert/strict';
 import {describe, it} from 'node:test';
-
-import {expect} from 'chai';
 
 import {toXmlArg, generateDefaultsCommandArgs} from '../../lib/utils/index.js';
 
@@ -14,28 +13,29 @@ describe('defaults-utils', function () {
         [true, '<true/>'],
         [false, '<false/>'],
       ]) {
-        expect(toXmlArg(actual as any)).to.eql(expected);
+        assert.deepStrictEqual(toXmlArg(actual as any), expected);
       }
     });
 
     it('could properly convert array value types to a XML representation', function () {
-      expect(toXmlArg([1.1, false])).to.eql('<array><real>1.1</real><false/></array>');
+      assert.deepStrictEqual(toXmlArg([1.1, false]), '<array><real>1.1</real><false/></array>');
     });
 
     it('could properly convert dict value types to a XML representation', function () {
-      expect(toXmlArg({k1: true, k2: {k3: 1.1, k4: []}})).to.eql(
+      assert.deepStrictEqual(
+        toXmlArg({k1: true, k2: {k3: 1.1, k4: []}}),
         '<dict><key>k1</key><true/><key>k2</key><dict><key>k3</key><real>1.1</real><key>k4</key><array/></dict></dict>',
       );
     });
 
     it('fails to convert an unknown value type', function () {
-      expect(() => toXmlArg(null as any)).to.throw;
+      assert.throws(() => toXmlArg(null as any));
     });
   });
 
   describe('generateDefaultsCommandArgs', function () {
     it('could properly generate command args for simple value types', function () {
-      expect(
+      assert.deepStrictEqual(
         generateDefaultsCommandArgs({
           k1: 1,
           k2: 1.1,
@@ -43,17 +43,18 @@ describe('defaults-utils', function () {
           k4: true,
           k5: false,
         }),
-      ).to.eql([
-        ['k1', '<integer>1</integer>'],
-        ['k2', '<real>1.1</real>'],
-        ['k3', '<string>1</string>'],
-        ['k4', '<true/>'],
-        ['k5', '<false/>'],
-      ]);
+        [
+          ['k1', '<integer>1</integer>'],
+          ['k2', '<real>1.1</real>'],
+          ['k3', '<string>1</string>'],
+          ['k4', '<true/>'],
+          ['k5', '<false/>'],
+        ],
+      );
     });
 
     it('could properly generate command args for dict value types', function () {
-      expect(
+      assert.deepStrictEqual(
         generateDefaultsCommandArgs({
           k1: {
             k2: {
@@ -61,11 +62,12 @@ describe('defaults-utils', function () {
             },
           },
         }),
-      ).to.eql([['k1', '-dict-add', 'k2', '<dict><key>k3</key><integer>1</integer></dict>']]);
+        [['k1', '-dict-add', 'k2', '<dict><key>k3</key><integer>1</integer></dict>']],
+      );
     });
 
     it('could properly generate command args for value types with replacement', function () {
-      expect(
+      assert.deepStrictEqual(
         generateDefaultsCommandArgs(
           {
             AppleLanguages: ['en'],
@@ -74,11 +76,12 @@ describe('defaults-utils', function () {
           },
           true,
         ),
-      ).to.eql([
-        ['AppleLanguages', '<array><string>en</string></array>'],
-        ['AppleLocale', '<string>en_US@calendar=gregorian</string>'],
-        ['AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>'],
-      ]);
+        [
+          ['AppleLanguages', '<array><string>en</string></array>'],
+          ['AppleLocale', '<string>en_US@calendar=gregorian</string>'],
+          ['AppleKeyboards', '<array><string>en_US@sw=QWERTY</string></array>'],
+        ],
+      );
     });
   });
 });

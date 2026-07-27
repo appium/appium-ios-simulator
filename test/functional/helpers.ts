@@ -1,10 +1,10 @@
-import {expect} from 'chai';
+import assert from 'node:assert/strict';
 
 export const LONG_TIMEOUT = 480 * 1000 * (process.env.CI ? 2 : 1);
 
 export async function verifyStates(sim: any, shouldServerRun: boolean, shouldClientRun: boolean): Promise<void> {
   const isServerRunning = await sim.isRunning();
-  expect(isServerRunning).to.eql(shouldServerRun);
+  assert.strictEqual(isServerRunning, shouldServerRun);
   const isClientRunning = await sim.isUIClientRunning();
-  expect(isClientRunning).to.eql(shouldClientRun);
+  assert.strictEqual(isClientRunning, shouldClientRun);
 }

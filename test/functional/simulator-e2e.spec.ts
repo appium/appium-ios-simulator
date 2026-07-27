@@ -1,8 +1,7 @@
+import assert from 'node:assert/strict';
 import {describe, it, before, afterEach, beforeEach, after, type TestContext} from 'node:test';
 
 import {retryInterval, waitForCondition} from 'asyncbox';
-import {use as chaiUse, expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import {Simctl} from 'node-simctl';
 
 import {getSimulator} from '../../lib/simulator.js';
@@ -10,8 +9,6 @@ import type {Simulator} from '../../lib/types.js';
 import {killAllSimulators, MOBILE_SAFARI_BUNDLE_ID} from '../../lib/utils/index.js';
 import {getUIKitCatalogPath, UICATALOG_BUNDLE_ID} from '../setup.js';
 import {LONG_TIMEOUT, verifyStates} from './helpers.js';
-
-chaiUse(chaiAsPromised);
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '26.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 17';
@@ -59,12 +56,12 @@ describe(`simulator ${OS_VERSION}`, function () {
       throw new Error('simctl.udid is null');
     }
     const sim = await getSimulator(simctl.udid);
-    await expect(sim.isFresh()).to.eventually.be.true;
+    assert.strictEqual(await sim.isFresh(), true);
     await sim.run({startupTimeout: LONG_TIMEOUT / 2});
-    await expect(sim.isFresh()).to.eventually.be.false;
+    assert.strictEqual(await sim.isFresh(), false);
     await sim.shutdown();
     await sim.clean();
-    await expect(sim.isFresh()).to.eventually.be.true;
+    assert.strictEqual(await sim.isFresh(), true);
   });
 
   it('should launch and shutdown a sim', async function () {
@@ -74,7 +71,7 @@ describe(`simulator ${OS_VERSION}`, function () {
     const sim = await getSimulator(simctl.udid);
     await sim.run({startupTimeout: LONG_TIMEOUT / 2});
     await sim.shutdown();
-    expect((await sim.stat()).state).to.equal('Shutdown');
+    assert.strictEqual((await sim.stat()).state, 'Shutdown');
   });
 
   it('should be able to delete an app', async function () {
@@ -89,7 +86,7 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     console.log('Application installed'); // eslint-disable-line no-console
 
-    await expect(sim.isAppInstalled(UICATALOG_BUNDLE_ID)).to.eventually.be.true;
+    assert.strictEqual(await sim.isAppInstalled(UICATALOG_BUNDLE_ID), true);
 
     // this remains somewhat flakey
     await retryInterval(5, 1000, async () => {
@@ -107,9 +104,9 @@ describe(`simulator ${OS_VERSION}`, function () {
     await sim.removeApp(UICATALOG_BUNDLE_ID);
 
     // should not be able to launch anymore
-    await expect(sim.launchApp(UICATALOG_BUNDLE_ID, {wait: true})).to.eventually.be.rejected;
+    await assert.rejects(sim.launchApp(UICATALOG_BUNDLE_ID, {wait: true}));
 
-    expect(await sim.isAppInstalled(UICATALOG_BUNDLE_ID)).to.be.false;
+    assert.strictEqual(await sim.isAppInstalled(UICATALOG_BUNDLE_ID), false);
   });
 
   it('should delete a sim', async function () {
@@ -118,7 +115,7 @@ describe(`simulator ${OS_VERSION}`, function () {
     }
     const sim = await getSimulator(simctl.udid);
     await sim.delete();
-    await expect(getSimulator(simctl.udid)).to.eventually.be.rejected;
+    await assert.rejects(getSimulator(simctl.udid));
   });
 
   it('should start a sim using the "run" method', async function () {
@@ -129,10 +126,10 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    expect((await sim.stat()).state).to.equal('Booted');
+    assert.strictEqual((await sim.stat()).state, 'Booted');
 
     await sim.shutdown();
-    expect((await sim.stat()).state).to.equal('Shutdown');
+    assert.strictEqual((await sim.stat()).state, 'Shutdown');
   });
 
   it('should be able to start safari', async function () {
@@ -143,7 +140,7 @@ describe(`simulator ${OS_VERSION}`, function () {
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
     await sim.openUrl('https://apple.com');
-    await expect(sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID)).to.eventually.be.true;
+    assert.strictEqual(await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID), true);
     await sim.shutdown();
   });
 
@@ -152,13 +149,13 @@ describe(`simulator ${OS_VERSION}`, function () {
       throw new Error('simctl.udid is null');
     }
     const sim = await getSimulator(simctl.udid);
-    await expect(sim.isRunning()).to.eventually.be.false;
+    assert.strictEqual(await sim.isRunning(), false);
 
     await sim.run({startupTimeout: LONG_TIMEOUT});
-    await expect(sim.isRunning()).to.eventually.be.true;
+    assert.strictEqual(await sim.isRunning(), true);
 
     await sim.shutdown();
-    await expect(sim.isRunning()).to.eventually.be.false;
+    assert.strictEqual(await sim.isRunning(), false);
   });
 
   it('should start the UI client', async function () {
@@ -167,7 +164,8 @@ describe(`simulator ${OS_VERSION}`, function () {
     }
 
     const sim = await getSimulator(simctl.udid);
-    expect(sim.uiClientBundleId).to.be.a('string').and.not.empty;
+    assert.strictEqual(typeof sim.uiClientBundleId, 'string');
+    assert.notStrictEqual(sim.uiClientBundleId, '');
 
     await sim.startUIClient({startupTimeout: LONG_TIMEOUT / 2});
     await waitForCondition(async () => await sim.isUIClientRunning(), {
@@ -176,8 +174,9 @@ describe(`simulator ${OS_VERSION}`, function () {
     });
 
     const uiClientPid = await sim.getUIClientPid();
-    expect(uiClientPid).to.be.a('string').and.not.empty;
-    expect(await sim.isUIClientRunning()).to.be.true;
+    assert.strictEqual(typeof uiClientPid, 'string');
+    assert.notStrictEqual(uiClientPid, '');
+    assert.strictEqual(await sim.isUIClientRunning(), true);
   });
 
   it('should properly start simulator in headless mode on Xcode9+', async function () {
@@ -223,10 +222,10 @@ describe(`reuse an already-created already-run simulator ${OS_VERSION}`, functio
   it('should start a sim using the "run" method', async function () {
     await sim.run({startupTimeout: LONG_TIMEOUT});
 
-    expect((await sim.stat()).state).to.equal('Booted');
+    assert.strictEqual((await sim.stat()).state, 'Booted');
 
     await sim.shutdown();
-    expect((await sim.stat()).state).to.equal('Shutdown');
+    assert.strictEqual((await sim.stat()).state, 'Shutdown');
   });
 });
 
@@ -258,7 +257,7 @@ describe('advanced features', function () {
         await sim.launchApp(UICATALOG_BUNDLE_ID);
       }
 
-      await expect(sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog')).to.eventually.eql([UICATALOG_BUNDLE_ID]);
+      assert.deepStrictEqual(await sim.getUserInstalledBundleIdsByBundleName('UIKitCatalog'), [UICATALOG_BUNDLE_ID]);
     });
 
     it('should scrub custom app', async function () {
@@ -269,21 +268,21 @@ describe('advanced features', function () {
         await sim.launchApp(UICATALOG_BUNDLE_ID);
       }
       await sim.scrubApp(UICATALOG_BUNDLE_ID);
-      await expect(sim.isAppRunning(UICATALOG_BUNDLE_ID)).to.eventually.be.false;
+      assert.strictEqual(await sim.isAppRunning(UICATALOG_BUNDLE_ID), false);
       await sim.launchApp(UICATALOG_BUNDLE_ID);
-      await expect(sim.isAppRunning(UICATALOG_BUNDLE_ID)).to.eventually.be.true;
+      assert.strictEqual(await sim.isAppRunning(UICATALOG_BUNDLE_ID), true);
     });
   });
 
   describe('biometric (touch Id/face Id enrollment)', function () {
     it(`should properly enroll biometric to enabled state`, async function () {
       await sim.enrollBiometric(true);
-      expect(await sim.isBiometricEnrolled()).to.be.true;
+      assert.strictEqual(await sim.isBiometricEnrolled(), true);
     });
 
     it(`should properly enroll biometric to disabled state`, async function () {
       await sim.enrollBiometric(false);
-      expect(await sim.isBiometricEnrolled()).to.be.false;
+      assert.strictEqual(await sim.isBiometricEnrolled(), false);
     });
   });
 
@@ -293,7 +292,7 @@ describe('advanced features', function () {
         return ctx.skip();
       }
 
-      expect(
+      assert.strictEqual(
         await sim.configureLocalization({
           language: {
             name: 'en',
@@ -307,19 +306,20 @@ describe('advanced features', function () {
             layout: 'QWERTY',
           },
         }),
-      ).to.be.true;
+        true,
+      );
     });
   });
 
   describe('keychains', function () {
     it('should properly backup and restore Simulator keychains', async function () {
       if (await sim.backupKeychains()) {
-        expect(await sim.restoreKeychains(['*.db*'])).to.be.true;
+        assert.strictEqual(await sim.restoreKeychains(['*.db*']), true);
       }
     });
 
     it('should clear Simulator keychains while it is running', async function () {
-      await expect(sim.clearKeychains()).to.eventually.be.fulfilled;
+      await assert.doesNotReject(sim.clearKeychains());
     });
   });
 
@@ -348,9 +348,9 @@ describe('advanced features', function () {
     it('should scrub Safari', async function () {
       await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
       await sim.scrubSafari();
-      await expect(sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID)).to.eventually.be.false;
+      assert.strictEqual(await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID), false);
       await sim.launchApp(MOBILE_SAFARI_BUNDLE_ID, {wait: true});
-      await expect(sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID)).to.eventually.be.true;
+      assert.strictEqual(await sim.isAppRunning(MOBILE_SAFARI_BUNDLE_ID), true);
     });
 
     it('should set arbitrary preferences on Safari', async function () {
@@ -364,23 +364,23 @@ describe('advanced features', function () {
   describe('Permission', function () {
     it('should set and get with simctrl privacy command', async function () {
       // no exceptions
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'yes')).to.not.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'NO')).to.not.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'unset')).to.not.be.rejected;
-      await expect(sim.setPermission('com.apple.Maps', 'location', 'unsupported')).to.be.rejected;
+      await assert.doesNotReject(sim.setPermission('com.apple.Maps', 'location', 'yes'));
+      await assert.doesNotReject(sim.setPermission('com.apple.Maps', 'location', 'NO'));
+      await assert.doesNotReject(sim.setPermission('com.apple.Maps', 'location', 'unset'));
+      await assert.rejects(sim.setPermission('com.apple.Maps', 'location', 'unsupported'));
     });
 
     it('should set and get with wix command', async function () {
       await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
-      await expect(sim.getPermission('com.apple.Maps', 'contacts')).to.eventually.eql('yes');
+      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
       await sim.setPermission('com.apple.Maps', 'contacts', 'no');
-      await expect(sim.getPermission('com.apple.Maps', 'contacts')).to.eventually.eql('no');
+      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
 
       // unset sets as 'no'
       await sim.setPermission('com.apple.Maps', 'contacts', 'yes');
-      await expect(sim.getPermission('com.apple.Maps', 'contacts')).to.eventually.eql('yes');
+      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'yes');
       await sim.setPermission('com.apple.Maps', 'contacts', 'unset');
-      await expect(sim.getPermission('com.apple.Maps', 'contacts')).to.eventually.eql('no');
+      assert.deepStrictEqual(await sim.getPermission('com.apple.Maps', 'contacts'), 'no');
     });
   });
 });
@@ -429,7 +429,7 @@ describe(`multiple instances of ${OS_VERSION} simulator on Xcode9+`, function ()
     });
 
     // Should be called before launching simulator
-    await expect(simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog')).to.eventually.eql([]);
+    assert.deepStrictEqual(await simulators[0].getUserInstalledBundleIdsByBundleName('UICatalog'), []);
 
     for (const sim of Object.values(simulatorsMapping)) {
       await sim.run({startupTimeout: LONG_TIMEOUT});
@@ -465,8 +465,9 @@ describe('getWebInspectorSocket', function () {
   it('should get a socket when appropriate', async function () {
     const socket = await sim.getWebInspectorSocket();
 
-    expect(socket).to.include('com.apple.launchd');
-    expect(socket).to.include('com.apple.webinspectord_sim.socket');
+    assert.ok(socket);
+    assert.ok(socket.includes('com.apple.launchd'));
+    assert.ok(socket.includes('com.apple.webinspectord_sim.socket'));
   });
   describe('two simulators', function () {
     let sim2: Simulator;
@@ -486,19 +487,19 @@ describe('getWebInspectorSocket', function () {
     });
     it('should not confuse two different simulators', async function () {
       const socket = await sim.getWebInspectorSocket();
-      expect(socket).to.exist;
+      assert.notStrictEqual(socket, null);
 
       const socket2 = await sim2.getWebInspectorSocket();
-      expect(socket2).to.exist;
+      assert.notStrictEqual(socket2, null);
 
-      expect(socket).to.not.eql(socket2);
+      assert.notDeepStrictEqual(socket, socket2);
     });
     it('should always get the same socket', async function () {
       let socket = await sim.getWebInspectorSocket();
       for (let i = 0; i < 10; i++) {
         sim._webInspectorSocket = null;
         const socket2 = await sim.getWebInspectorSocket();
-        expect(socket).to.eql(socket2);
+        assert.deepStrictEqual(socket, socket2);
         socket = socket2;
       }
     });

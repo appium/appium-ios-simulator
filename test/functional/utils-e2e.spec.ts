@@ -1,15 +1,11 @@
 import {describe, it, beforeEach, afterEach} from 'node:test';
 
-import {use as chaiUse} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import {Simctl} from 'node-simctl';
 
 import {getSimulator} from '../../lib/simulator.js';
 import type {Simulator} from '../../lib/types.js';
 import {killAllSimulators} from '../../lib/utils/index.js';
 import {LONG_TIMEOUT, verifyStates} from './helpers.js';
-
-chaiUse(chaiAsPromised);
 
 const OS_VERSION = process.env.MOBILE_OS_VERSION || '14.0';
 const DEVICE_NAME = process.env.MOBILE_DEVICE_NAME || 'iPhone 11';

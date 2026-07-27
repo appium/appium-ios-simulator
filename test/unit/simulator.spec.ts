@@ -1,7 +1,6 @@
+import assert from 'node:assert/strict';
 import {describe, it, beforeEach, afterEach} from 'node:test';
 
-import {use as chaiUse, expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import esmock from 'esmock';
 import sinon from 'sinon';
 
@@ -9,8 +8,6 @@ import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
 import {SimulatorXcode15} from '../../lib/simulator-xcode-15.js';
 import {SimulatorXcode27} from '../../lib/simulator-xcode-27.js';
 import {devices} from './device-list.js';
-
-chaiUse(chaiAsPromised);
 
 const UDID = devices['10.0'][0].udid;
 
@@ -71,8 +68,8 @@ describe('simulator', function () {
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sim = await getSimulator(UDID);
-      expect(sim.xcodeVersion).to.equal(xcodeVersion);
-      expect(sim.constructor.name).to.eql(SimulatorXcode14.name);
+      assert.strictEqual(sim.xcodeVersion, xcodeVersion);
+      assert.strictEqual(sim.constructor.name, SimulatorXcode14.name);
     });
 
     const xcodeVersions: Array<
@@ -88,8 +85,8 @@ describe('simulator', function () {
         const xcodeVersion = {major, minor, versionString};
         assertXcodeVersionStub.callsFake(() => xcodeVersion);
         const sim = await getSimulator(UDID);
-        expect(sim.xcodeVersion).to.equal(xcodeVersion);
-        expect(sim.constructor.name).to.eql(expectedXcodeClass.name);
+        assert.strictEqual(sim.xcodeVersion, xcodeVersion);
+        assert.strictEqual(sim.constructor.name, expectedXcodeClass.name);
       });
     }
 
@@ -101,16 +98,16 @@ describe('simulator', function () {
             `but only Xcode version 14 and up are supported`,
         );
       });
-      await expect(getSimulator(UDID)).to.eventually.be.rejected;
+      await assert.rejects(getSimulator(UDID));
     });
 
     it('should throw an error if xcode version does not match', async function () {
       assertXcodeVersionStub.throws();
-      await expect(getSimulator(UDID)).to.eventually.be.rejected;
+      await assert.rejects(getSimulator(UDID));
     });
 
     it('should throw an error if udid does not exist', async function () {
-      await expect(getSimulator('123')).to.be.rejectedWith('No sim found');
+      await assert.rejects(getSimulator('123'), /No sim found/);
     });
 
     it('should list stats for sim', async function () {
@@ -129,10 +126,10 @@ describe('simulator', function () {
       });
 
       const stats = await Promise.all(sims.map((sim) => sim.stat()));
-      expect(stats[0].state).to.equal('Shutdown');
-      expect(stats[0].name).to.equal('Resizable iPhone');
-      expect(stats[1].state).to.equal('Shutdown');
-      expect(stats[1].name).to.equal('Resizable iPad');
+      assert.strictEqual(stats[0].state, 'Shutdown');
+      assert.strictEqual(stats[0].name, 'Resizable iPhone');
+      assert.strictEqual(stats[1].state, 'Shutdown');
+      assert.strictEqual(stats[1].name, 'Resizable iPad');
     });
   });
 
@@ -182,7 +179,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it(`should find a Web Inspector socket when it appears at the ${line} line of grouped records`, async function () {
         const sim = await getSimulator(udid);
         const webInspectorSocket = await sim.getWebInspectorSocket();
-        expect(webInspectorSocket).to.equal(expected);
+        assert.strictEqual(webInspectorSocket, expected);
       });
     });
 
@@ -190,7 +187,7 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       const sim = await getSimulator(testParams[0].udid);
       await sim.getWebInspectorSocket();
       await sim.getWebInspectorSocket();
-      expect(innerExecStub.callCount).to.equal(1);
+      assert.strictEqual(innerExecStub.callCount, 1);
     });
   });
 
@@ -212,51 +209,51 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     describe('locale', function () {
       it('should configure locale', async function () {
         const options = {locale: {name: 'en_US', calendar: 'gregorian'}};
-        expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+        assert.strictEqual(await sim.configureLocalization(options), true);
+        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
           'defaults',
           'write',
           '.GlobalPreferences.plist',
           'AppleLocale',
           '<string>en_US@calendar=gregorian</string>',
         ]);
-        expect(spawnProcessSpy.callCount).to.eql(1);
+        assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
     });
 
     describe('keyboard', function () {
       it('should configure keyboard', async function () {
         const options = {keyboard: {name: 'en_US', layout: 'QWERTY'}};
-        expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+        assert.strictEqual(await sim.configureLocalization(options), true);
+        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
           'defaults',
           'write',
           '.GlobalPreferences.plist',
           'AppleKeyboards',
           '<array><string>en_US@sw=QWERTY</string></array>',
         ]);
-        expect(spawnProcessSpy.secondCall.args[0]).to.eql([
+        assert.deepStrictEqual(spawnProcessSpy.secondCall.args[0], [
           'defaults',
           'write',
           'com.apple.Preferences',
           'KeyboardsCurrentAndNext',
           '<array><string>en_US@sw=QWERTY</string></array>',
         ]);
-        expect(spawnProcessSpy.thirdCall.args[0]).to.eql([
+        assert.deepStrictEqual(spawnProcessSpy.thirdCall.args[0], [
           'defaults',
           'write',
           'com.apple.Preferences',
           'KeyboardLastUsed',
           '<string>en_US@sw=QWERTY</string>',
         ]);
-        expect(spawnProcessSpy.getCall(3).args[0]).to.eql([
+        assert.deepStrictEqual(spawnProcessSpy.getCall(3).args[0], [
           'defaults',
           'write',
           'com.apple.Preferences',
           'KeyboardLastUsedForLanguage',
           '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>',
         ]);
-        expect(spawnProcessSpy.callCount).to.eql(4);
+        assert.strictEqual(spawnProcessSpy.callCount, 4);
       });
     });
 
@@ -269,45 +266,45 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
 
       it('should configure language and restart services', async function () {
         const options = {language: {name: 'ja'}};
-        expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+        assert.strictEqual(await sim.configureLocalization(options), true);
+        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
           'defaults',
           'write',
           '.GlobalPreferences.plist',
           'AppleLanguages',
           '<array><string>ja</string></array>',
         ]);
-        expect(spawnProcessSpy.secondCall.args[0]).to.eql(['launchctl', 'stop', 'com.apple.SpringBoard']);
-        expect(spawnProcessSpy.thirdCall.args[0]).to.eql(['launchctl', 'stop', 'com.apple.locationd']);
-        expect(spawnProcessSpy.getCall(3).args[0]).to.eql(['launchctl', 'stop', 'com.apple.tccd']);
-        expect(spawnProcessSpy.getCall(4).args[0]).to.eql(['launchctl', 'stop', 'com.apple.akd']);
-        expect(spawnProcessSpy.callCount).to.eql(5);
+        assert.deepStrictEqual(spawnProcessSpy.secondCall.args[0], ['launchctl', 'stop', 'com.apple.SpringBoard']);
+        assert.deepStrictEqual(spawnProcessSpy.thirdCall.args[0], ['launchctl', 'stop', 'com.apple.locationd']);
+        assert.deepStrictEqual(spawnProcessSpy.getCall(3).args[0], ['launchctl', 'stop', 'com.apple.tccd']);
+        assert.deepStrictEqual(spawnProcessSpy.getCall(4).args[0], ['launchctl', 'stop', 'com.apple.akd']);
+        assert.strictEqual(spawnProcessSpy.callCount, 5);
       });
 
       it('should confirm skip restarting services if already applied', async function () {
         const options = {language: {name: 'en'}};
-        expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+        assert.strictEqual(await sim.configureLocalization(options), true);
+        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
           'defaults',
           'write',
           '.GlobalPreferences.plist',
           'AppleLanguages',
           '<array><string>en</string></array>',
         ]);
-        expect(spawnProcessSpy.callCount).to.eql(1);
+        assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
 
       it('should confirm skip restarting services if skipSyncUiDialogTranslation is true', async function () {
         const options = {language: {name: 'ja', skipSyncUiDialogTranslation: true}};
-        expect(await sim.configureLocalization(options)).to.be.true;
-        expect(spawnProcessSpy.firstCall.args[0]).to.eql([
+        assert.strictEqual(await sim.configureLocalization(options), true);
+        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
           'defaults',
           'write',
           '.GlobalPreferences.plist',
           'AppleLanguages',
           '<array><string>ja</string></array>',
         ]);
-        expect(spawnProcessSpy.callCount).to.eql(1);
+        assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
     });
   });

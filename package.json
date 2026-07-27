@@ -65,12 +65,8 @@
     "@appium/tsconfig": "^1.2.0",
     "@appium/types": "^1.0.0-rc.1",
     "@types/async-lock": "^1.4.2",
-    "@types/chai": "^5.2.3",
-    "@types/chai-as-promised": "^8.0.2",
     "@types/node": "^26.0.0",
     "@types/sinon": "^22.0.0",
-    "chai": "^6.0.0",
-    "chai-as-promised": "^8.0.2",
     "esmock": "^2.7.6",
     "pem": "^1.8.3",
     "sinon": "^22.0.0"
