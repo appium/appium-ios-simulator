@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
-import {describe, it, beforeEach, afterEach} from 'node:test';
+import {describe, it, beforeEach, afterEach, mock} from 'node:test';
 
-import esmock from 'esmock';
+import * as appiumXcode from 'appium-xcode';
 import sinon from 'sinon';
+import * as teenProcess from 'teen_process';
 
 import {toBiometricDomainComponent} from '../../lib/extensions/biometric.js';
-import {verifyDevicePreferences} from '../../lib/extensions/settings.js';
-import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
 import {DEVICE_HUB_UI_CLIENT_BUNDLE_ID, SIMULATOR_UI_CLIENT_BUNDLE_ID} from '../../lib/utils/constants.js';
 import {devices} from './device-list.js';
 
@@ -36,22 +35,31 @@ let currentExec: (...args: any[]) => any = async () => ({stdout: '', stderr: ''}
 let currentGetVersion: (...args: any[]) => any = async () => XCODE_VERSION_10;
 let currentGetDevices: (...args: any[]) => any = async () => devices;
 
-const {killAllSimulators, simExists} = await esmock(
-  '../../lib/utils/index.js',
-  import.meta.url,
-  {},
-  {
-    teen_process: {
-      exec: (...args: any[]) => currentExec(...args),
-    },
-    'appium-xcode': {
-      getVersion: (...args: any[]) => currentGetVersion(...args),
-    },
-    '../../lib/utils/get-devices.js': {
-      getDevices: (...args: any[]) => currentGetDevices(...args),
-    },
+mock.module('teen_process', {
+  namedExports: {
+    spawn: teenProcess.spawn,
+    SubProcess: teenProcess.SubProcess,
+    exec: (...args: any[]) => currentExec(...args),
   },
-);
+});
+mock.module('appium-xcode', {
+  namedExports: {
+    getPath: appiumXcode.getPath,
+    getClangVersion: appiumXcode.getClangVersion,
+    getMaxIOSSDK: appiumXcode.getMaxIOSSDK,
+    getMaxTVOSSDK: appiumXcode.getMaxTVOSSDK,
+    getVersion: (...args: any[]) => currentGetVersion(...args),
+  },
+});
+mock.module('../../lib/utils/get-devices.js', {
+  namedExports: {
+    getDevices: (...args: any[]) => currentGetDevices(...args),
+  },
+});
+
+const {killAllSimulators, simExists} = await import('../../lib/utils/index.js');
+const {SimulatorXcode14} = await import('../../lib/simulator-xcode-14.js');
+const {verifyDevicePreferences} = await import('../../lib/extensions/settings.js');
 
 describe('util', function () {
   let sandbox: sinon.SinonSandbox;
