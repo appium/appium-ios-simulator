@@ -1,3 +1,9 @@
+## [9.1.2](https://github.com/appium/appium-ios-simulator/compare/v9.1.1...v9.1.2) (2026-07-30)
+
+### Miscellaneous Chores
+
+* Drop esmock ([#500](https://github.com/appium/appium-ios-simulator/issues/500)) ([4f4c35d](https://github.com/appium/appium-ios-simulator/commit/4f4c35dee2e4eab38d70bbb48748237809ab9d97))
+
 ## [9.1.1](https://github.com/appium/appium-ios-simulator/compare/v9.1.0...v9.1.1) (2026-07-27)
 
 ### Miscellaneous Chores
