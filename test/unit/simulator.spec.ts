@@ -19,26 +19,29 @@ let currentAssertXcodeVersion: (...args: any[]) => any = (v: any) => v;
 let currentGetDevices: (...args: any[]) => any = async () => devices;
 
 mock.module('teen_process', {
-  exports: {
+  namedExports: {
     spawn: teenProcess.spawn,
     SubProcess: teenProcess.SubProcess,
     exec: (...args: any[]) => currentExec(...args),
   },
 });
 mock.module('appium-xcode', {
-  exports: {
-    ...appiumXcode,
+  namedExports: {
+    getPath: appiumXcode.getPath,
+    getClangVersion: appiumXcode.getClangVersion,
+    getMaxIOSSDK: appiumXcode.getMaxIOSSDK,
+    getMaxTVOSSDK: appiumXcode.getMaxTVOSSDK,
     getVersion: (...args: any[]) => currentGetVersion(...args),
   },
 });
 mock.module('../../lib/utils/xcode.js', {
-  exports: {
+  namedExports: {
     ...xcodeUtils,
     assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
   },
 });
 mock.module('../../lib/utils/get-devices.js', {
-  exports: {
+  namedExports: {
     getDevices: (...args: any[]) => currentGetDevices(...args),
   },
 });
