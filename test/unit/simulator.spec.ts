@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
-import {describe, it, beforeEach, afterEach} from 'node:test';
+import {describe, it, beforeEach, afterEach, mock} from 'node:test';
 
-import esmock from 'esmock';
+import * as appiumXcode from 'appium-xcode';
 import sinon from 'sinon';
+import * as teenProcess from 'teen_process';
 
-import {SimulatorXcode14} from '../../lib/simulator-xcode-14.js';
-import {SimulatorXcode15} from '../../lib/simulator-xcode-15.js';
-import {SimulatorXcode27} from '../../lib/simulator-xcode-27.js';
+import * as xcodeUtils from '../../lib/utils/xcode.js';
 import {devices} from './device-list.js';
 
 const UDID = devices['10.0'][0].udid;
@@ -19,25 +18,35 @@ let currentGetVersion: (...args: any[]) => any = async () => ({
 let currentAssertXcodeVersion: (...args: any[]) => any = (v: any) => v;
 let currentGetDevices: (...args: any[]) => any = async () => devices;
 
-const {getSimulator} = await esmock(
-  '../../lib/simulator.js',
-  import.meta.url,
-  {},
-  {
-    teen_process: {
-      exec: (...args: any[]) => currentExec(...args),
-    },
-    'appium-xcode': {
-      getVersion: (...args: any[]) => currentGetVersion(...args),
-    },
-    '../../lib/utils/xcode.js': {
-      assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
-    },
-    '../../lib/utils/get-devices.js': {
-      getDevices: (...args: any[]) => currentGetDevices(...args),
-    },
+mock.module('teen_process', {
+  exports: {
+    spawn: teenProcess.spawn,
+    SubProcess: teenProcess.SubProcess,
+    exec: (...args: any[]) => currentExec(...args),
   },
-);
+});
+mock.module('appium-xcode', {
+  exports: {
+    ...appiumXcode,
+    getVersion: (...args: any[]) => currentGetVersion(...args),
+  },
+});
+mock.module('../../lib/utils/xcode.js', {
+  exports: {
+    ...xcodeUtils,
+    assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
+  },
+});
+mock.module('../../lib/utils/get-devices.js', {
+  exports: {
+    getDevices: (...args: any[]) => currentGetDevices(...args),
+  },
+});
+
+const {getSimulator} = await import('../../lib/simulator.js');
+const {SimulatorXcode14} = await import('../../lib/simulator-xcode-14.js');
+const {SimulatorXcode15} = await import('../../lib/simulator-xcode-15.js');
+const {SimulatorXcode27} = await import('../../lib/simulator-xcode-27.js');
 
 describe('simulator', function () {
   let sandbox: sinon.SinonSandbox;
