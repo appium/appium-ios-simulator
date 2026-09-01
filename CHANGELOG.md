@@ -1,3 +1,9 @@
+## [9.1.3](https://github.com/appium/appium-ios-simulator/compare/v9.1.2...v9.1.3) (2026-09-01)
+
+### Miscellaneous Chores
+
+* bump support & other dependencies ([#501](https://github.com/appium/appium-ios-simulator/issues/501)) ([12156af](https://github.com/appium/appium-ios-simulator/commit/12156afc6dc44b039fad449f84b0da256d06735c))
+
 ## [9.1.2](https://github.com/appium/appium-ios-simulator/compare/v9.1.1...v9.1.2) (2026-07-30)
 
 ### Miscellaneous Chores
