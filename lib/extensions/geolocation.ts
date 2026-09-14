@@ -1,5 +1,9 @@
 import type {CoreSimulator, SupportsGeolocation} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends SupportsGeolocation {}
+}
+
 type CoreSimulatorWithGeolocation = CoreSimulator & SupportsGeolocation;
 
 /**

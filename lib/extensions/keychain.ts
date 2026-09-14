@@ -5,6 +5,10 @@ import {exec} from 'teen_process';
 
 import type {CoreSimulator, InteractsWithKeychain} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends InteractsWithKeychain {}
+}
+
 type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
 
 /**
