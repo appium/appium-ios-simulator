@@ -48,9 +48,8 @@ jobs:
         xcode-version: "${{ matrix.xcodeVersion }}"
     - run: |
         brew update
-        brew tap wix/brew
         brew trust --formula wix/brew/applesimutils
-        brew install applesimutils
+        brew install wix/brew/applesimutils
         xcrun simctl list devices available
       name: Install Utilities
     - run: npm install
