@@ -15,6 +15,10 @@ import type {
 } from '../types.js';
 import {NSUserDefaults, generateDefaultsCommandArgs} from '../utils/index.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends HasSettings {}
+}
+
 type CoreSimulatorWithSettings = CoreSimulator & HasSettings;
 
 // com.apple.SpringBoard: translates com.apple.SpringBoard and system prompts for push notification

@@ -7,6 +7,10 @@ import {exec} from 'teen_process';
 
 import type {CoreSimulator, SupportsAppPermissions} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends SupportsAppPermissions {}
+}
+
 type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions;
 
 const STATUS = Object.freeze({

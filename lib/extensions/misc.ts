@@ -2,6 +2,10 @@ import type {StringRecord} from '@appium/types';
 
 import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends HasMiscFeatures {}
+}
+
 type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;
 
 /**

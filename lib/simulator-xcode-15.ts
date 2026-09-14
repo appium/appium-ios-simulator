@@ -15,7 +15,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    * @param bundleId - The bundle id of the application to be checked.
    * @return True if the given application is installed.
    */
-  isAppInstalled = async (bundleId: string): Promise<boolean> => {
+  async isAppInstalled(bundleId: string): Promise<boolean> {
     try {
       const appContainer = await this.simctl.getAppContainer(bundleId);
       return appContainer.endsWith('.app') && (await fs.exists(appContainer));
@@ -24,7 +24,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
       // as well as the hidden appinfo command
       return (await this._fetchSystemAppBundleIds()).has(bundleId);
     }
-  };
+  }
 
   /**
    * @override
@@ -45,9 +45,9 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    * @param value valid increase constrast configuration value.
    *                       Acceptable value is 'enabled' or 'disabled' with Xcode 16.2.
    */
-  setIncreaseContrast = async (value: string): Promise<void> => {
+  async setIncreaseContrast(value: string): Promise<void> {
     await this.simctl.setIncreaseContrast(value);
-  };
+  }
 
   /**
    * Retrieves the current increase contrast configuration value from the given simulator.
@@ -59,7 +59,9 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                            Possible return value is 'enabled', 'disabled',
    *                            'unsupported' or 'unknown' with Xcode 16.2.
    */
-  getIncreaseContrast = async (): Promise<string> => await this.simctl.getIncreaseContrast();
+  async getIncreaseContrast(): Promise<string> {
+    return await this.simctl.getIncreaseContrast();
+  }
 
   /**
    * Sets content size for the given simulator.
@@ -73,9 +75,9 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                       accessibility-extra-large, accessibility-extra-extra-large,
    *                       accessibility-extra-extra-extra-large with Xcode 16.2.
    */
-  setContentSize = async (value: string): Promise<void> => {
+  async setContentSize(value: string): Promise<void> {
     await this.simctl.setContentSize(value);
-  };
+  }
 
   /**
    * Retrieves the current content size value from the given simulator.
@@ -90,7 +92,9 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                            accessibility-extra-extra-extra-large,
    *                            unknown or unsupported with Xcode 16.2.
    */
-  getContentSize = async (): Promise<string> => await this.simctl.getContentSize();
+  async getContentSize(): Promise<string> {
+    return await this.simctl.getContentSize();
+  }
 
   /**
    * Retrives the full path to where the simulator system R/O volume is mounted

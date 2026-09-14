@@ -5,6 +5,10 @@ import {waitForCondition} from 'asyncbox';
 
 import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends InteractsWithApps {}
+}
+
 type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
 
 /**

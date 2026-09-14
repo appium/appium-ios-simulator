@@ -21,13 +21,6 @@ import * as settingsExtensions from './extensions/settings.js';
 import {log as defaultLog} from './logger.js';
 import type {
   CoreSimulator,
-  HasSettings,
-  InteractsWithApps,
-  InteractsWithKeychain,
-  SupportsGeolocation,
-  HasMiscFeatures,
-  InteractsWithSafariBrowser,
-  SupportsBiometric,
   DeviceStat,
   ShutdownOptions,
   RunOptions,
@@ -41,67 +34,15 @@ const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const STARTUP_LOCK = new AsyncLock();
 const STARTUP_TIMEOUT_MS = 120 * 1000;
 
-export class SimulatorXcode14
-  extends EventEmitter
-  implements
-    CoreSimulator,
-    HasSettings,
-    InteractsWithApps,
-    InteractsWithKeychain,
-    SupportsGeolocation,
-    HasMiscFeatures,
-    InteractsWithSafariBrowser,
-    SupportsBiometric
-{
+// Extension methods are mixed in onto the prototype below (see the `Object.assign` call
+// at the bottom of this file), so that subclasses can override them as regular methods
+// and still call `super.methodName()`. Each `extensions/*.ts` module declares its own
+// methods on the `SimulatorXcode14` type via a `declare module` augmentation, since the
+// class body itself never defines them.
+export class SimulatorXcode14 extends EventEmitter implements CoreSimulator {
   _keychainsBackupPath: string | null | undefined;
   _platformVersion: string | null | undefined;
   _webInspectorSocket: string | null | undefined;
-
-  // Extension methods
-  installApp = appExtensions.installApp;
-  getUserInstalledBundleIdsByBundleName = appExtensions.getUserInstalledBundleIdsByBundleName;
-  isAppInstalled = appExtensions.isAppInstalled;
-  removeApp = appExtensions.removeApp;
-  launchApp = appExtensions.launchApp;
-  terminateApp = appExtensions.terminateApp;
-  isAppRunning = appExtensions.isAppRunning;
-  scrubApp = appExtensions.scrubApp;
-
-  openUrl = safariExtensions.openUrl;
-  scrubSafari = safariExtensions.scrubSafari;
-  updateSafariSettings = safariExtensions.updateSafariSettings;
-  getWebInspectorSocket = safariExtensions.getWebInspectorSocket as unknown as () => Promise<string | null>;
-
-  isBiometricEnrolled = biometricExtensions.isBiometricEnrolled;
-  enrollBiometric = biometricExtensions.enrollBiometric;
-  sendBiometricMatch = biometricExtensions.sendBiometricMatch;
-
-  backupKeychains = keychainExtensions.backupKeychains as unknown as () => Promise<boolean>;
-  restoreKeychains = keychainExtensions.restoreKeychains as unknown as (excludePatterns: string[]) => Promise<boolean>;
-  clearKeychains = keychainExtensions.clearKeychains;
-
-  setGeolocation = geolocationExtensions.setGeolocation;
-
-  shake = miscExtensions.shake;
-  addCertificate = miscExtensions.addCertificate;
-  pushNotification = miscExtensions.pushNotification;
-
-  setPermission = permissionsExtensions.setPermission;
-  setPermissions = permissionsExtensions.setPermissions;
-  getPermission = permissionsExtensions.getPermission;
-
-  updateSettings = settingsExtensions.updateSettings;
-  setAppearance = settingsExtensions.setAppearance;
-  getAppearance = settingsExtensions.getAppearance;
-  setIncreaseContrast = settingsExtensions.setIncreaseContrast;
-  getIncreaseContrast = settingsExtensions.getIncreaseContrast;
-  setContentSize = settingsExtensions.setContentSize;
-  getContentSize = settingsExtensions.getContentSize;
-  configureLocalization = settingsExtensions.configureLocalization;
-  setAutoFillPasswords = settingsExtensions.setAutoFillPasswords;
-  setReduceMotion = settingsExtensions.setReduceMotion;
-  setReduceTransparency = settingsExtensions.setReduceTransparency;
-  disableKeyboardIntroduction = settingsExtensions.disableKeyboardIntroduction;
 
   private readonly _udid: string;
   private readonly _simctl: Simctl;
@@ -652,3 +593,58 @@ export class SimulatorXcode14
     return this._uiClientAppPath;
   }
 }
+
+Object.assign(SimulatorXcode14.prototype, {
+  // applications
+  installApp: appExtensions.installApp,
+  getUserInstalledBundleIdsByBundleName: appExtensions.getUserInstalledBundleIdsByBundleName,
+  isAppInstalled: appExtensions.isAppInstalled,
+  removeApp: appExtensions.removeApp,
+  launchApp: appExtensions.launchApp,
+  terminateApp: appExtensions.terminateApp,
+  isAppRunning: appExtensions.isAppRunning,
+  scrubApp: appExtensions.scrubApp,
+
+  // safari
+  openUrl: safariExtensions.openUrl,
+  scrubSafari: safariExtensions.scrubSafari,
+  updateSafariSettings: safariExtensions.updateSafariSettings,
+  getWebInspectorSocket: safariExtensions.getWebInspectorSocket,
+
+  // biometric
+  isBiometricEnrolled: biometricExtensions.isBiometricEnrolled,
+  enrollBiometric: biometricExtensions.enrollBiometric,
+  sendBiometricMatch: biometricExtensions.sendBiometricMatch,
+
+  // keychain
+  backupKeychains: keychainExtensions.backupKeychains,
+  restoreKeychains: keychainExtensions.restoreKeychains,
+  clearKeychains: keychainExtensions.clearKeychains,
+
+  // geolocation
+  setGeolocation: geolocationExtensions.setGeolocation,
+
+  // misc
+  shake: miscExtensions.shake,
+  addCertificate: miscExtensions.addCertificate,
+  pushNotification: miscExtensions.pushNotification,
+
+  // permissions
+  setPermission: permissionsExtensions.setPermission,
+  setPermissions: permissionsExtensions.setPermissions,
+  getPermission: permissionsExtensions.getPermission,
+
+  // settings
+  updateSettings: settingsExtensions.updateSettings,
+  setAppearance: settingsExtensions.setAppearance,
+  getAppearance: settingsExtensions.getAppearance,
+  setIncreaseContrast: settingsExtensions.setIncreaseContrast,
+  getIncreaseContrast: settingsExtensions.getIncreaseContrast,
+  setContentSize: settingsExtensions.setContentSize,
+  getContentSize: settingsExtensions.getContentSize,
+  configureLocalization: settingsExtensions.configureLocalization,
+  setAutoFillPasswords: settingsExtensions.setAutoFillPasswords,
+  setReduceMotion: settingsExtensions.setReduceMotion,
+  setReduceTransparency: settingsExtensions.setReduceTransparency,
+  disableKeyboardIntroduction: settingsExtensions.disableKeyboardIntroduction,
+});

@@ -2,6 +2,10 @@ import {util} from '@appium/support';
 
 import type {CoreSimulator, SupportsBiometric} from '../types.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends SupportsBiometric {}
+}
+
 type CoreSimulatorWithBiometric = CoreSimulator & SupportsBiometric;
 
 const ENROLLMENT_NOTIFICATION_RECEIVER = 'com.apple.BiometricKit.enrollmentChanged';

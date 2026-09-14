@@ -8,6 +8,10 @@ import {exec} from 'teen_process';
 import type {CoreSimulator, InteractsWithSafariBrowser, InteractsWithApps, HasSettings} from '../types.js';
 import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils/index.js';
 
+declare module '../simulator-xcode-14.js' {
+  interface SimulatorXcode14 extends InteractsWithSafariBrowser {}
+}
+
 type CoreSimulatorWithSafariBrowser = CoreSimulator & InteractsWithSafariBrowser & InteractsWithApps & HasSettings;
 
 // The root of all these files is located under Safari data container root
