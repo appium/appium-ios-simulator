@@ -15,7 +15,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    * @param bundleId - The bundle id of the application to be checked.
    * @return True if the given application is installed.
    */
-  async isAppInstalled(bundleId: string): Promise<boolean> {
+  override async isAppInstalled(bundleId: string): Promise<boolean> {
     try {
       const appContainer = await this.simctl.getAppContainer(bundleId);
       return appContainer.endsWith('.app') && (await fs.exists(appContainer));
@@ -32,7 +32,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *
    * @returns The full path to the LaunchDaemons directory
    */
-  async getLaunchDaemonsRoot(): Promise<string> {
+  override async getLaunchDaemonsRoot(): Promise<string> {
     return path.resolve(await this._getSystemRoot(), 'System', 'Library', 'LaunchDaemons');
   }
 
@@ -45,7 +45,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    * @param value valid increase constrast configuration value.
    *                       Acceptable value is 'enabled' or 'disabled' with Xcode 16.2.
    */
-  async setIncreaseContrast(value: string): Promise<void> {
+  override async setIncreaseContrast(value: string): Promise<void> {
     await this.simctl.setIncreaseContrast(value);
   }
 
@@ -59,7 +59,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                            Possible return value is 'enabled', 'disabled',
    *                            'unsupported' or 'unknown' with Xcode 16.2.
    */
-  async getIncreaseContrast(): Promise<string> {
+  override async getIncreaseContrast(): Promise<string> {
     return await this.simctl.getIncreaseContrast();
   }
 
@@ -75,7 +75,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                       accessibility-extra-large, accessibility-extra-extra-large,
    *                       accessibility-extra-extra-extra-large with Xcode 16.2.
    */
-  async setContentSize(value: string): Promise<void> {
+  override async setContentSize(value: string): Promise<void> {
     await this.simctl.setContentSize(value);
   }
 
@@ -92,7 +92,7 @@ export class SimulatorXcode15 extends SimulatorXcode14 {
    *                            accessibility-extra-extra-extra-large,
    *                            unknown or unsupported with Xcode 16.2.
    */
-  async getContentSize(): Promise<string> {
+  override async getContentSize(): Promise<string> {
     return await this.simctl.getContentSize();
   }
 
