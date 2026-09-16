@@ -5,7 +5,6 @@ import * as appiumXcode from 'appium-xcode';
 import sinon from 'sinon';
 import * as teenProcess from 'teen_process';
 
-import {toBiometricDomainComponent} from '../../lib/extensions/biometric.js';
 import {DEVICE_HUB_UI_CLIENT_BUNDLE_ID, SIMULATOR_UI_CLIENT_BUNDLE_ID} from '../../lib/utils/constants.js';
 import {devices} from './device-list.js';
 
@@ -31,9 +30,13 @@ const XCODE_VERSION_27 = {
   patch: undefined,
 };
 
+const FAKE_UI_CLIENT_APP = '/fake/UIClient.app';
+
 let currentExec: (...args: any[]) => any = async () => ({stdout: '', stderr: ''});
 let currentGetVersion: (...args: any[]) => any = async () => XCODE_VERSION_10;
 let currentGetDevices: (...args: any[]) => any = async () => devices;
+let currentShutdownAllDevices: (...args: any[]) => any = async () => {};
+let currentGetUiClientAppPath: (...args: any[]) => any = async () => FAKE_UI_CLIENT_APP;
 
 mock.module('teen_process', {
   namedExports: {
@@ -56,9 +59,21 @@ mock.module('../../lib/utils/get-devices.js', {
     getDevices: (...args: any[]) => currentGetDevices(...args),
   },
 });
+mock.module('../../lib/native/native-simctl.js', {
+  namedExports: {
+    createNativeSimctl: () => ({shutdownAllDevices: (...args: any[]) => currentShutdownAllDevices(...args)}),
+  },
+});
+mock.module('../../lib/utils/xcode.js', {
+  namedExports: {
+    assertXcodeVersion: (v: unknown) => v,
+    readBundleIdFromPlist: async () => null,
+    getUiClientAppPath: (...args: any[]) => currentGetUiClientAppPath(...args),
+  },
+});
 
 const {killAllSimulators, simExists} = await import('../../lib/utils/index.js');
-const {SimulatorXcode14} = await import('../../lib/simulator-xcode-14.js');
+const {SimulatorXcode15} = await import('../../lib/simulator-xcode-15.js');
 const {verifyDevicePreferences} = await import('../../lib/extensions/settings.js');
 
 describe('util', function () {
@@ -73,6 +88,8 @@ describe('util', function () {
     getDevicesStub = sandbox.stub().resolves(devices);
     currentGetDevices = getDevicesStub;
     currentGetVersion = sandbox.stub();
+    currentShutdownAllDevices = sandbox.stub().resolves();
+    currentGetUiClientAppPath = sandbox.stub().resolves(FAKE_UI_CLIENT_APP);
   });
   afterEach(function () {
     sandbox.verify();
@@ -83,37 +100,35 @@ describe('util', function () {
     it('should use the Simulator UI client bundle id', async function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_10));
       innerExecStub = sandbox.stub();
-      innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub.withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]).throws({code: 1});
+      innerExecStub.withArgs('pgrep', ['-f', FAKE_UI_CLIENT_APP]).throws({code: 1});
       currentExec = innerExecStub;
       await killAllSimulators();
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
+      sinon.assert.calledWith(currentGetUiClientAppPath as sinon.SinonStub, SIMULATOR_UI_CLIENT_BUNDLE_ID);
+      sinon.assert.calledWith(innerExecStub, 'pgrep', ['-f', FAKE_UI_CLIENT_APP]);
     });
     it('should use the DeviceHub UI client bundle id', async function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_27));
       innerExecStub = sandbox.stub();
-      innerExecStub.withArgs('xcrun').returns(undefined);
-      innerExecStub.withArgs('lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID]).throws({code: 1});
+      innerExecStub.withArgs('pgrep', ['-f', FAKE_UI_CLIENT_APP]).throws({code: 1});
       currentExec = innerExecStub;
       await killAllSimulators();
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', DEVICE_HUB_UI_CLIENT_BUNDLE_ID]);
+      sinon.assert.calledWith(currentGetUiClientAppPath as sinon.SinonStub, DEVICE_HUB_UI_CLIENT_BUNDLE_ID);
+      sinon.assert.calledWith(innerExecStub, 'pgrep', ['-f', FAKE_UI_CLIENT_APP]);
     });
-    it('should kill UI client by bundle id when shutdown fails', async function () {
+    it('should kill UI client by app path when shutdown fails', async function () {
       currentGetVersion = sandbox.stub().withArgs(true).returns(Promise.resolve(XCODE_VERSION_6));
+      currentShutdownAllDevices = sandbox.stub().rejects(new Error('shutdown all failed'));
       innerExecStub = sandbox.stub();
-      innerExecStub.withArgs('xcrun').throws(new Error('xcrun failed'));
-      innerExecStub
-        .withArgs('lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID])
-        .returns({stdout: '"pid"=12345\n'});
-      innerExecStub.withArgs('lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID]).returns(undefined);
+      innerExecStub.withArgs('pgrep', ['-f', FAKE_UI_CLIENT_APP]).returns({stdout: '12345\n'});
+      innerExecStub.withArgs('pkill', ['-9', '-f', FAKE_UI_CLIENT_APP]).returns(undefined);
       // getDevices is stubbed, so it won't call exec internally
       // The stub returns devices immediately, so waitForCondition will complete quickly
       currentExec = innerExecStub;
       try {
         await killAllSimulators(500);
       } catch {}
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['info', '-only', 'pid', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
-      sinon.assert.calledWith(innerExecStub, 'lsappinfo', ['kill', '-hard', SIMULATOR_UI_CLIENT_BUNDLE_ID]);
+      sinon.assert.calledWith(innerExecStub, 'pgrep', ['-f', FAKE_UI_CLIENT_APP]);
+      sinon.assert.calledWith(innerExecStub, 'pkill', ['-9', '-f', FAKE_UI_CLIENT_APP]);
     });
   });
 
@@ -147,7 +162,7 @@ describe('util', function () {
 });
 
 describe('Device preferences verification', function () {
-  const sim = new SimulatorXcode14('1234', XCODE_VERSION_10);
+  const sim = new SimulatorXcode15('1234', XCODE_VERSION_10);
 
   describe('for SimulatorWindowLastScale option', function () {
     it('should pass if correct', function () {
@@ -271,21 +286,6 @@ describe('Device preferences verification', function () {
           /is expected to be a valid number/,
         );
       }
-    });
-  });
-
-  describe('toBiometricDomainComponent', function () {
-    it('return touch id object', function () {
-      assert.strictEqual(toBiometricDomainComponent('touchId'), 'fingerTouch');
-    });
-    it('return face id object', function () {
-      assert.strictEqual(toBiometricDomainComponent('faceId'), 'pearl');
-    });
-
-    it('raise an error since the argument does not exist in biometric', function () {
-      assert.throws(function () {
-        toBiometricDomainComponent('no-touchId');
-      });
     });
   });
 });

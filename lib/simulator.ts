@@ -1,16 +1,10 @@
 import * as xcode from 'appium-xcode';
 
 import {log} from './logger.js';
-import {SimulatorXcode14} from './simulator-xcode-14.js';
 import {SimulatorXcode15} from './simulator-xcode-15.js';
 import {SimulatorXcode27} from './simulator-xcode-27.js';
 import type {Simulator, SimulatorLookupOptions} from './types.js';
-import {
-  assertXcodeVersion,
-  getSimulatorInfo,
-  MIN_DEVICE_HUB_XCODE_VERSION,
-  MIN_SUPPORTED_XCODE_VERSION,
-} from './utils/index.js';
+import {assertXcodeVersion, getSimulatorInfo, MIN_DEVICE_HUB_XCODE_VERSION} from './utils/index.js';
 
 /**
  * Finds and returns the corresponding Simulator instance for the given ID.
@@ -18,8 +12,7 @@ import {
  * @param udid - The ID of an existing Simulator.
  * @param opts - Simulator lookup options
  * @throws {Error} If the Simulator with given udid does not exist in devices list.
- *   If you want to create a new simulator, you can use the `createDevice()` method of
- *   [node-simctl](github.com/appium/node-simctl).
+ *   If you want to create a new simulator, you can use `@appium/coresim`'s `createDevice()`.
  * @return Simulator object associated with the udid passed in.
  */
 export async function getSimulator(udid: string, opts: SimulatorLookupOptions = {}): Promise<Simulator> {
@@ -42,14 +35,8 @@ export async function getSimulator(udid: string, opts: SimulatorLookupOptions = 
   (logger ?? log).info(
     `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`,
   );
-  let SimClass: typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27;
-  if (xcodeVersion.major === MIN_SUPPORTED_XCODE_VERSION) {
-    SimClass = SimulatorXcode14;
-  } else if (xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION) {
-    SimClass = SimulatorXcode27;
-  } else {
-    SimClass = SimulatorXcode15;
-  }
+  const SimClass: typeof SimulatorXcode15 | typeof SimulatorXcode27 =
+    xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION ? SimulatorXcode27 : SimulatorXcode15;
 
   const result = new SimClass(udid, xcodeVersion, logger);
   if (devicesSetPath) {

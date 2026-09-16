@@ -1,8 +1,8 @@
 import type {EventEmitter} from 'node:events';
 
+import type {ScreenshotOptions, SpawnedProcess, SpawnOptions} from '@appium/coresim';
 import type {AppiumLogger, StringRecord} from '@appium/types';
 import type {XcodeVersion} from 'appium-xcode';
-import type {Simctl} from 'node-simctl';
 
 export interface ProcessInfo {
   /**
@@ -107,7 +107,7 @@ export interface ShutdownOptions {
 export interface KillUiClientOptions {
   /** Process id of the UI Simulator window */
   pid?: number | string | null;
-  /** The signal number to send to the. 2 (SIGINT) by default */
+  /** POSIX signal number to send via `kill` instead of the default Apple Event quit */
   signal?: number | string;
 }
 
@@ -125,10 +125,12 @@ export interface DeviceStat {
 export interface CoreSimulator extends EventEmitter {
   _keychainsBackupPath: string | null | undefined;
   _webInspectorSocket: string | null | undefined;
+  _platformVersion: string | null | undefined;
+  _uiClientAppPath: Promise<string> | undefined;
+  _systemAppBundleIds: Set<string> | undefined;
 
   get keychainPath(): string;
   get udid(): string;
-  get simctl(): Simctl;
   get xcodeVersion(): XcodeVersion;
 
   set devicesSetPath(value: string | null);
@@ -149,6 +151,8 @@ export interface CoreSimulator extends EventEmitter {
   isFresh(): Promise<boolean>;
   isRunning(): Promise<boolean>;
   isShutdown(): Promise<boolean>;
+  boot(): Promise<void>;
+  launchWindow(isUiClientRunning: boolean, opts?: RunOptions): Promise<void>;
   startUIClient(opts?: StartUiClientOptions): Promise<void>;
   run(opts?: RunOptions): Promise<void>;
   clean(): Promise<void>;
@@ -171,7 +175,14 @@ export interface LaunchAppOptions {
    * the app is fully started. Only applicatble if `wait` is true. 10000 ms by default.
    */
   timeoutMs?: number;
+  /** Environment variables to set for the launched app's process. */
+  environment?: StringRecord;
+  /** Whether to terminate an already-running instance of the app before launching it. */
+  terminateExisting?: boolean;
 }
+
+/** Which of an app's on-disk containers {@link InteractsWithApps.getAppContainer} should resolve. */
+export type AppContainerType = 'app' | 'data' | 'groups' | string;
 
 export interface InteractsWithApps {
   installApp(app: string): Promise<void>;
@@ -182,6 +193,20 @@ export interface InteractsWithApps {
   terminateApp(bundleId: string): Promise<void>;
   isAppRunning(bundleId: string): Promise<boolean>;
   scrubApp(bundleId: string): Promise<void>;
+  /**
+   * Resolves the full filesystem path to one of an installed app's on-disk containers.
+   *
+   * @param bundleId Bundle identifier of the installed app.
+   * @param containerType `'app'` (the default) for the `.app` bundle itself, `'data'` for its
+   * data container, `'groups'` for its sole App Group container (if it has exactly one), or any
+   * other string naming a specific App Group identifier.
+   */
+  getAppContainer(bundleId: string, containerType?: AppContainerType): Promise<string>;
+  /**
+   * @param bundleId Bundle identifier of the installed app.
+   * @returns The app's properties, as reported by CoreSimulator's own `propertiesOfApplication:`.
+   */
+  appInfo(bundleId: string): Promise<Record<string, unknown>>;
 }
 
 export interface SupportsBiometric {
@@ -263,6 +288,42 @@ export interface HasMiscFeatures {
   shake(): Promise<void>;
   addCertificate(payload: string, opts?: CertificateOptions): Promise<boolean>;
   pushNotification(payload: StringRecord): Promise<void>;
+  /**
+   * Adds one or more photo/video files to the Simulator's Photos library. Each file's type is
+   * auto-detected.
+   *
+   * @param filePaths Paths to the media files on the local filesystem.
+   */
+  addMedia(filePaths: string[]): Promise<void>;
+}
+
+export interface SupportsPasteboard {
+  /** @returns The Simulator's current pasteboard content, or `""` if it holds no string content. */
+  getPasteboard(): Promise<string>;
+  /** @param content String content to set as the Simulator's pasteboard content. */
+  setPasteboard(content: string): Promise<void>;
+}
+
+export interface SupportsScreenshot {
+  /**
+   * Captures the Simulator's display. The Simulator must be booted.
+   *
+   * @param options `format` (defaults to `'png'`), `displayId` (defaults to the primary
+   * display), and `quality` (JPEG only, 0-100).
+   */
+  getScreenshot(options?: ScreenshotOptions): Promise<Buffer>;
+}
+
+export interface SupportsGuestProcessSpawn {
+  /**
+   * Spawns a process inside the Simulator (the native equivalent of `simctl spawn`) — an escape
+   * hatch for guest-side operations with no dedicated `Simulator` method, such as streaming a
+   * guest log. `path` is a literal path, not resolved against the guest's `$PATH`.
+   *
+   * @param path Path to the executable to spawn inside the Simulator.
+   * @param options `arguments`/`environment` for the spawned process.
+   */
+  spawnProcess(path: string, options?: SpawnOptions): Promise<SpawnedProcess>;
 }
 
 export interface SimulatorLookupOptions {
@@ -289,7 +350,10 @@ export type Simulator = CoreSimulator &
   SupportsGeolocation &
   InteractsWithKeychain &
   SupportsAppPermissions &
-  HasMiscFeatures;
+  HasMiscFeatures &
+  SupportsPasteboard &
+  SupportsScreenshot &
+  SupportsGuestProcessSpawn;
 
 interface KeyboardOptions {
   /** The name of the keyboard locale, for example `en_US` or `de_CH` */

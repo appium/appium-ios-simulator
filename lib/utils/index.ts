@@ -10,6 +10,6 @@ export type {SimulatorInfoOptions} from './types.js';
 export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults.js';
 export {getDevices} from './get-devices.js';
 export {getSimulatorInfo, simExists} from './devices.js';
-export {getMacAppPidByBundleId} from './process.js';
+export {getMacAppPidByPath} from './process.js';
 export {assertXcodeVersion, getUiClientAppPath, readBundleIdFromPlist} from './xcode.js';
 export {killAllSimulators} from './lifecycle.js';

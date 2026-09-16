@@ -1,2 +1,0 @@
-This product uses [applesimutils](https://github.com/wix/AppleSimulatorUtils) software written by
-Copyright 2017 Wix Engineering <https://wix.com> under MIT license

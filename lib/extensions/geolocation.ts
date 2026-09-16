@@ -1,10 +1,11 @@
+import type {HasNativeSimctl} from '../native/types.js';
 import type {CoreSimulator, SupportsGeolocation} from '../types.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends SupportsGeolocation {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends SupportsGeolocation {}
 }
 
-type CoreSimulatorWithGeolocation = CoreSimulator & SupportsGeolocation;
+type CoreSimulatorWithGeolocation = CoreSimulator & SupportsGeolocation & HasNativeSimctl;
 
 /**
  * Sets the geolocation for the simulator.
@@ -18,6 +19,6 @@ export async function setGeolocation(
   latitude: string | number,
   longitude: string | number,
 ): Promise<boolean> {
-  await this.simctl.setLocation(latitude, longitude);
+  await this._native.setLocation(this.udid, Number(latitude), Number(longitude));
   return true;
 }

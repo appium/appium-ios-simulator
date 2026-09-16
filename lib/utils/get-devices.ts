@@ -1,10 +1,13 @@
-import type {StringRecord} from '@appium/types';
-import {Simctl} from 'node-simctl';
+import {toDeviceListEntry, type DeviceListEntry} from '../native/device-info.js';
+import {createNativeSimctl} from '../native/native-simctl.js';
+import type {SimulatorInfoOptions} from './types.js';
 
 /**
- * @param simctlOpts - Optional simctl options
- * @returns Promise that resolves to a record of devices grouped by SDK version
+ * @param opts - Optional lookup options (currently just `devicesSetPath`)
+ * @returns Promise that resolves to the flat list of every device in the device set
  */
-export async function getDevices(simctlOpts?: StringRecord): Promise<Record<string, any[]>> {
-  return await new Simctl(simctlOpts).getDevices();
+export async function getDevices(opts: SimulatorInfoOptions = {}): Promise<DeviceListEntry[]> {
+  const nativeSimctl = createNativeSimctl(opts.devicesSetPath);
+  const devices = await nativeSimctl.getDevices();
+  return devices.map(toDeviceListEntry);
 }

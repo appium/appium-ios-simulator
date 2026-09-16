@@ -19,8 +19,12 @@ jobs:
     strategy:
       matrix:
         include:
-        - xcodeVersion: '26.4'
-          iosVersion: '26.4'
+        - xcodeVersion: '27.0-beta'
+          iosVersion: '27.0'
+          deviceName: 'iPhone 17'
+          platform: xcode-27
+        - xcodeVersion: '26.5'
+          iosVersion: '26.5'
           deviceName: 'iPhone 17'
           platform: macos-26
         - xcodeVersion: '16.4'
@@ -46,12 +50,8 @@ jobs:
     - uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: "${{ matrix.xcodeVersion }}"
-    - run: |
-        brew update
-        brew trust --formula wix/brew/applesimutils
-        brew install wix/brew/applesimutils
-        xcrun simctl list devices available
-      name: Install Utilities
+    - run: xcrun simctl list devices available
+      name: List available devices
     - run: npm install
       name: Install dev dependencies
     - run: npm run e2e-test

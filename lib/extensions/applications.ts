@@ -3,13 +3,21 @@ import path from 'node:path';
 import {fs, plist, util} from '@appium/support';
 import {waitForCondition} from 'asyncbox';
 
-import type {CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types.js';
+import {getSystemRoot} from '../native/system-root.js';
+import type {HasNativeSimctl} from '../native/types.js';
+import type {AppContainerType, CoreSimulator, InteractsWithApps, LaunchAppOptions} from '../types.js';
+import {readBundleIdFromPlist} from '../utils/index.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends InteractsWithApps {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends InteractsWithApps {}
 }
 
-type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
+type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps & HasNativeSimctl;
+
+interface PlistBundleInfo {
+  CFBundleName?: string;
+  CFBundleIdentifier?: string;
+}
 
 /**
  * Install valid .app package on Simulator.
@@ -17,7 +25,7 @@ type CoreSimulatorWithApps = CoreSimulator & InteractsWithApps;
  * @param app The path to the .app package.
  */
 export async function installApp(this: CoreSimulatorWithApps, app: string): Promise<void> {
-  return await this.simctl.installApp(app);
+  return await this._native.installApp(this.udid, app);
 }
 
 /**
@@ -40,19 +48,21 @@ export async function getUserInstalledBundleIdsByBundleName(
     return [];
   }
 
-  const bundleInfoPromises: Promise<any>[] = [];
+  const bundleInfoPromises: Promise<PlistBundleInfo | null>[] = [];
   for (const infoPlist of infoPlists) {
     bundleInfoPromises.push(
       (async () => {
         try {
-          return await plist.parsePlistFile(infoPlist);
+          return (await plist.parsePlistFile(infoPlist)) as PlistBundleInfo;
         } catch {
           return null;
         }
       })(),
     );
   }
-  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter((info) => util.isPlainObject(info));
+  const bundleInfos = (await Promise.all(bundleInfoPromises)).filter((info): info is PlistBundleInfo =>
+    util.isPlainObject(info),
+  );
   const bundleIds = bundleInfos
     .filter(
       ({CFBundleName, CFBundleIdentifier}) => CFBundleName === bundleName && typeof CFBundleIdentifier === 'string',
@@ -70,38 +80,12 @@ export async function getUserInstalledBundleIdsByBundleName(
 }
 
 /**
- * Verify whether the particular application is installed on Simulator.
- *
- * @param bundleId The bundle id of the application to be checked.
- * @return True if the given application is installed.
- */
-export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
-  try {
-    const appContainer = await this.simctl.getAppContainer(bundleId);
-    if (!appContainer.endsWith('.app')) {
-      return false;
-    }
-    return await fs.exists(appContainer);
-  } catch {
-    // get_app_container subcommand fails for system applications,
-    // so we try the hidden appinfo subcommand, which prints correct info for
-    // system/hidden apps
-    try {
-      await this.simctl.appInfo(bundleId);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
-
-/**
  * Uninstall the given application from the current Simulator.
  *
  * @param bundleId The bundle ID of the application to be removed.
  */
 export async function removeApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
-  await this.simctl.removeApp(bundleId);
+  await this._native.removeApp(this.udid, bundleId);
 }
 
 /**
@@ -115,8 +99,15 @@ export async function launchApp(
   bundleId: string,
   opts: LaunchAppOptions = {},
 ): Promise<void> {
-  await this.simctl.launchApp(bundleId);
-  const {wait = false, timeoutMs = 10000} = opts;
+  const {wait = false, timeoutMs = 10000, environment, terminateExisting} = opts;
+  const nativeOptions: Record<string, unknown> = {};
+  if (environment) {
+    nativeOptions.environment = environment;
+  }
+  if (terminateExisting) {
+    nativeOptions.terminate_running_process = true;
+  }
+  await this._native.launchApp(this.udid, bundleId, nativeOptions);
   if (!wait) {
     return;
   }
@@ -137,7 +128,65 @@ export async function launchApp(
  * @param bundleId The bundle ID of the application to be stopped
  */
 export async function terminateApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
-  await this.simctl.terminateApp(bundleId);
+  await this._native.terminateApp(this.udid, bundleId);
+}
+
+/**
+ * Resolves the full filesystem path to one of an installed app's on-disk containers.
+ *
+ * @param bundleId Bundle identifier of the installed app.
+ * @param containerType `'app'` (the default) for the `.app` bundle itself, `'data'` for its data
+ * container, `'groups'` for its sole App Group container, or a specific App Group identifier.
+ */
+export async function getAppContainer(
+  this: CoreSimulatorWithApps,
+  bundleId: string,
+  containerType: AppContainerType = 'app',
+): Promise<string> {
+  return await this._native.getAppContainer(this.udid, bundleId, containerType);
+}
+
+/**
+ * @param bundleId Bundle identifier of the installed app.
+ * @returns The app's properties, as reported by CoreSimulator's own `propertiesOfApplication:`.
+ */
+export async function appInfo(this: CoreSimulatorWithApps, bundleId: string): Promise<Record<string, unknown>> {
+  return await this._native.appInfo(this.udid, bundleId);
+}
+
+/**
+ * Verify whether the particular application is installed on Simulator.
+ *
+ * @param bundleId The bundle id of the application to be checked.
+ * @return True if the given application is installed.
+ */
+export async function isAppInstalled(this: CoreSimulatorWithApps, bundleId: string): Promise<boolean> {
+  try {
+    const appContainer = await this.getAppContainer(bundleId);
+    return appContainer.endsWith('.app') && (await fs.exists(appContainer));
+  } catch {
+    // get_app_container fails for system applications, as well as appInfo
+    return (await fetchSystemAppBundleIds.call(this)).has(bundleId);
+  }
+}
+
+/**
+ * Collects and caches bundle identifiers of system Simulator apps.
+ *
+ * @returns A set of system app bundle identifiers
+ */
+async function fetchSystemAppBundleIds(this: CoreSimulatorWithApps): Promise<Set<string>> {
+  if (this._systemAppBundleIds) {
+    return this._systemAppBundleIds;
+  }
+
+  const appsRoot = path.resolve(await getSystemRoot(this._native, this.udid), 'Applications');
+  const allApps = (await fs.readdir(appsRoot)).filter((x) => x.endsWith('.app')).map((x) => path.join(appsRoot, x));
+  const bundleIds = await Promise.all(
+    allApps.map((appRoot) => readBundleIdFromPlist(path.resolve(appRoot, 'Info.plist'))),
+  );
+  this._systemAppBundleIds = new Set(bundleIds.filter((x): x is string => x !== null));
+  return this._systemAppBundleIds;
 }
 
 /**
@@ -157,7 +206,7 @@ export async function isAppRunning(this: CoreSimulatorWithApps, bundleId: string
  * @throws {Error} if the given app is not installed.
  */
 export async function scrubApp(this: CoreSimulatorWithApps, bundleId: string): Promise<void> {
-  const appDataRoot = await this.simctl.getAppContainer(bundleId, 'data');
+  const appDataRoot = await this.getAppContainer(bundleId, 'data');
   const appFiles = await fs.glob('**/*', {
     cwd: appDataRoot,
     nodir: true,

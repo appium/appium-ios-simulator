@@ -3,16 +3,20 @@ import path from 'node:path';
 import {fs, timing} from '@appium/support';
 import type {StringRecord} from '@appium/types';
 import {waitForCondition} from 'asyncbox';
-import {exec} from 'teen_process';
 
-import type {CoreSimulator, InteractsWithSafariBrowser, InteractsWithApps, HasSettings} from '../types.js';
+import type {HasNativeSimctl} from '../native/types.js';
+import type {CoreSimulator, InteractsWithSafariBrowser, InteractsWithApps, HasSettings, ProcessInfo} from '../types.js';
 import {MOBILE_SAFARI_BUNDLE_ID, SAFARI_STARTUP_TIMEOUT_MS} from '../utils/index.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends InteractsWithSafariBrowser {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends InteractsWithSafariBrowser {}
 }
 
-type CoreSimulatorWithSafariBrowser = CoreSimulator & InteractsWithSafariBrowser & InteractsWithApps & HasSettings;
+type CoreSimulatorWithSafariBrowser = CoreSimulator &
+  InteractsWithSafariBrowser &
+  InteractsWithApps &
+  HasSettings &
+  HasNativeSimctl;
 
 // The root of all these files is located under Safari data container root
 // in 'Library' subfolder
@@ -38,12 +42,12 @@ export async function openUrl(this: CoreSimulatorWithSafariBrowser, url: string)
     throw new Error(`Tried to open '${url}', but Simulator is not in Booted state`);
   }
   const timer = new timing.Timer().start();
-  await this.simctl.openUrl(url);
+  await this._native.openUrl(this.udid, url);
   let psError: Error | undefined | null;
   try {
     await waitForCondition(
       async () => {
-        let procList: any[] = [];
+        let procList: ProcessInfo[] = [];
         try {
           procList = await this.ps();
           psError = null;
@@ -88,7 +92,7 @@ export async function scrubSafari(this: CoreSimulatorWithSafariBrowser, keepPref
   } catch {}
 
   this.log.debug('Scrubbing Safari data files');
-  const safariData = await this.simctl.getAppContainer(MOBILE_SAFARI_BUNDLE_ID, 'data');
+  const safariData = await this.getAppContainer(MOBILE_SAFARI_BUNDLE_ID, 'data');
   const libraryDir = path.resolve(safariData, 'Library');
   const deletePromises = DATA_FILES.map((p) => fs.rimraf(path.join(libraryDir, ...p)));
   if (!keepPrefs) {
@@ -121,7 +125,7 @@ export async function updateSafariSettings(
     return false;
   }
 
-  const containerRoot = await this.simctl.getAppContainer(MOBILE_SAFARI_BUNDLE_ID, 'data');
+  const containerRoot = await this.getAppContainer(MOBILE_SAFARI_BUNDLE_ID, 'data');
   const plistPath = path.join(containerRoot, 'Library', 'Preferences', 'com.apple.mobilesafari.plist');
   return await this.updateSettings(plistPath, updates);
 }
@@ -134,27 +138,12 @@ export async function getWebInspectorSocket(this: CoreSimulatorWithSafariBrowser
     return this._webInspectorSocket;
   }
 
-  // lsof -aUc launchd_sim gives a set of records like
-  // https://github.com/appium/appium-ios-simulator/commit/c00901a9ddea178c5581a7a57d96d8cee3f17c59#diff-2be09dd2ea01cfd6bbbd73e10bc468da782a297365eec706999fc3709c01478dR102
-  // these _appear_ to always be grouped together by PID for each simulator.
-  // Therefore, by obtaining simulator PID with an expected simulator UDID,
-  // we can get the correct `com.apple.webinspectord_sim.socket`
-  // without depending on the order of `lsof -aUc launchd_sim` result.
-  const {stdout} = await exec('lsof', ['-aUc', 'launchd_sim']);
-  const udidPattern = `([0-9]{1,5}).+${this.udid}`;
-  const udidMatch = stdout.match(new RegExp(udidPattern));
-  if (!udidMatch) {
-    this.log.debug(`Failed to get Web Inspector socket. lsof result: ${stdout}`);
+  try {
+    const socketPath = await this._native.getWebInspectorSocket(this.udid);
+    this._webInspectorSocket = socketPath;
+    return socketPath;
+  } catch (e: any) {
+    this.log.debug(`Failed to get Web Inspector socket: ${e.message}`);
     return null;
   }
-
-  const pidPattern = `${udidMatch[1]}.+\\s+(\\S+com\\.apple\\.webinspectord_sim\\.socket)`;
-  const pidMatch = stdout.match(new RegExp(pidPattern));
-  if (!pidMatch || !pidMatch[1]) {
-    this.log.debug(`Failed to get Web Inspector socket. lsof result: ${stdout}`);
-    return null;
-  }
-  const socketPath = pidMatch[1];
-  this._webInspectorSocket = socketPath;
-  return socketPath;
 }
