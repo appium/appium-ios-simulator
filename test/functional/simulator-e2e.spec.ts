@@ -147,6 +147,32 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
       await assert.doesNotReject(sim.setPermission(bundleId, 'location', 'unset'));
       await assert.rejects(sim.setPermission(bundleId, 'location', 'unsupported'));
     });
+
+    it('grants, revokes, and resets faceid and userTracking, two services with no dedicated setter', async function () {
+      for (const service of ['faceid', 'userTracking']) {
+        assert.strictEqual(await sim.getPermission(bundleId, service), 'unset');
+
+        await sim.setPermission(bundleId, service, 'yes');
+        assert.strictEqual(await sim.getPermission(bundleId, service), 'yes');
+
+        await sim.setPermission(bundleId, service, 'no');
+        assert.strictEqual(await sim.getPermission(bundleId, service), 'no');
+
+        await sim.setPermission(bundleId, service, 'unset');
+        assert.strictEqual(await sim.getPermission(bundleId, service), 'unset');
+      }
+    });
+
+    it('grants "limited" (selected photos) access, exclusively for the photos service', async function () {
+      await sim.setPermission(bundleId, 'photos', 'limited');
+      assert.strictEqual(await sim.getPermission(bundleId, 'photos'), 'limited');
+      await sim.setPermission(bundleId, 'photos', 'unset');
+
+      await assert.rejects(
+        sim.setPermission(bundleId, 'camera', 'limited'),
+        /only a valid status for the 'photos' service/,
+      );
+    });
   });
 
   describe('biometric', function () {
@@ -408,8 +434,7 @@ describe('pasteboard', function () {
 });
 
 /**
- * `devicesSetPath` needs its own device set entirely, so it can't share the suite above's device —
- * kept cheap by never booting (device existence/lookup alone is enough to prove isolation).
+ * `devicesSetPath` needs its own device set entirely, so it can't share the suite above's device.
  */
 describe('devicesSetPath', function () {
   let customSetPath: string;
@@ -433,6 +458,18 @@ describe('devicesSetPath', function () {
     const sim = await getSimulator(udid, {devicesSetPath: customSetPath});
     assert.strictEqual(sim.devicesSetPath, customSetPath);
     assert.strictEqual((await sim.stat()).udid, udid);
+  });
+
+  it('grants a permission via the xcrun simctl privacy carve-out on a booted custom-set device', async function () {
+    // Regression test: `simctl privacy` must be told `--set <customSetPath>`, or it looks for the
+    // device in the default set and fails, since `location` isn't a plain TCC row (see permissions.ts).
+    const sim = await getSimulator(udid, {devicesSetPath: customSetPath});
+    await sim.run({startupTimeout: LONG_TIMEOUT});
+    try {
+      await assert.doesNotReject(sim.setPermission('com.appium.ios-simulator.doesnotexist', 'location', 'yes'));
+    } finally {
+      await sim.shutdown();
+    }
   });
 });
 

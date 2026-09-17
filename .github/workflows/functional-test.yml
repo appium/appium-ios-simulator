@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         include:
-        - xcodeVersion: '27.0-beta'
+        - xcodeVersion: '27.0'
           iosVersion: '27.0'
           deviceName: 'iPhone 17'
           platform: xcode-27

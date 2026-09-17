@@ -30,10 +30,15 @@ const SYSTEM_SERVICE_RESTART_TIMEOUT_MS = 15000;
 const PERMISSIONS_APPLIED_VIA_SIMCTL = ['location', 'location-always'];
 // Every service @appium/coresim's SimPermissionService union supports — kept as an explicit list
 // (rather than trusting caller input) so an unsupported name fails with a clear error up front.
+// `notifications` is intentionally NOT supported: unlike every service below, it was never a plain
+// TCC row — the previous AppleSimulatorUtils-backed setter wrote a hand-built legacy bplist into
+// BulletinBoard/SectionInfo.plist (itself marked "Legacy"/"Xcode 9 support" in that project's own
+// source), which has no confirmed modern equivalent. This is a deliberate breaking change.
 const SERVICES: readonly SimPermissionService[] = Object.freeze([
   'calendar',
   'camera',
   'contacts',
+  'faceid',
   'health',
   'homekit',
   'medialibrary',
@@ -43,6 +48,7 @@ const SERVICES: readonly SimPermissionService[] = Object.freeze([
   'reminders',
   'siri',
   'speech',
+  'usertracking',
 ]);
 
 /**
@@ -124,7 +130,8 @@ async function execSimctlPrivacy(
   service: string,
   bundleId: string,
 ): Promise<void> {
-  await exec('xcrun', ['simctl', 'privacy', this.udid, action, service, bundleId]);
+  const args = this.devicesSetPath ? ['--set', this.devicesSetPath] : [];
+  await exec('xcrun', ['simctl', ...args, 'privacy', this.udid, action, service, bundleId]);
 }
 
 /**
@@ -246,6 +253,10 @@ async function setNativePermission(
   switch (formatStatus(status).toLowerCase()) {
     case STATUS.YES:
       return await this._native.grantPermission(this.udid, service, bundleId);
+    case STATUS.LIMITED:
+      // Only valid for 'photos' ("selected photos" access) — @appium/coresim rejects it for every
+      // other service with a typed error, which is left to propagate as-is.
+      return await this._native.grantPermission(this.udid, service, bundleId, 'limited');
     case STATUS.NO:
       return await this._native.revokePermission(this.udid, service, bundleId);
     case STATUS.UNSET:
