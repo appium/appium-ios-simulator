@@ -1,3 +1,19 @@
+## [10.0.0](https://github.com/appium/appium-ios-simulator/compare/v9.1.3...v10.0.0) (2026-09-18)
+
+### ⚠ BREAKING CHANGES
+
+* Simulator/CoreSimulator no longer exposes a simctl property (a raw node-simctl Simctl instance).
+* Constructing a Simulator for Xcode < 15 now throws.
+* SimulatorXcode14 no longer exists. BaseSimulator is exported in its place for instanceof checks (e.g. replace 'simctl' in device with device instanceof BaseSimulator).
+
+### Features
+
+* replace node-simctl and applesimutils with @appium/coresim  ([#503](https://github.com/appium/appium-ios-simulator/issues/503)) ([0ebfa01](https://github.com/appium/appium-ios-simulator/commit/0ebfa0195b1967568a741237ff0a62a86778b7c0))
+
+### Code Refactoring
+
+* mix in extension methods via prototype instead of class fields ([#502](https://github.com/appium/appium-ios-simulator/issues/502)) ([f104016](https://github.com/appium/appium-ios-simulator/commit/f104016afea238b138054d7c9b868dfbec77be72))
+
 ## [9.1.3](https://github.com/appium/appium-ios-simulator/compare/v9.1.2...v9.1.3) (2026-09-01)
 
 ### Miscellaneous Chores
