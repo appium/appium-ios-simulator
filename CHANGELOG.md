@@ -1,3 +1,9 @@
+## [10.0.1](https://github.com/appium/appium-ios-simulator/compare/v10.0.0...v10.0.1) (2026-09-18)
+
+### Bug Fixes
+
+* match simulator udid lookups case-insensitively ([#504](https://github.com/appium/appium-ios-simulator/issues/504)) ([e4a44db](https://github.com/appium/appium-ios-simulator/commit/e4a44db608b27ba1d5f2ea44905e2582665acd33))
+
 ## [10.0.0](https://github.com/appium/appium-ios-simulator/compare/v9.1.3...v10.0.0) (2026-09-18)
 
 ### ⚠ BREAKING CHANGES
