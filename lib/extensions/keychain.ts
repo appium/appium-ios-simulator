@@ -3,13 +3,15 @@ import path from 'node:path';
 import {fs, mkdirp, tempDir, util} from '@appium/support';
 import {exec} from 'teen_process';
 
+import {resolveGuestLaunchctl, spawnAndWait} from '../native/spawn.js';
+import type {HasNativeSimctl} from '../native/types.js';
 import type {CoreSimulator, InteractsWithKeychain} from '../types.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends InteractsWithKeychain {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends InteractsWithKeychain {}
 }
 
-type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain;
+type CoreSimulatorWithKeychain = CoreSimulator & InteractsWithKeychain & HasNativeSimctl;
 
 /**
  * Create the backup of keychains folder.
@@ -83,7 +85,10 @@ export async function restoreKeychains(
     if (!(await fs.exists(plistPath))) {
       throw new Error(`Cannot clear keychains because '${plistPath}' does not exist`);
     }
-    await this.simctl.spawnProcess(['launchctl', 'unload', plistPath]);
+    await spawnAndWait(this._native, this.udid, await resolveGuestLaunchctl(this._native, this.udid), [
+      'unload',
+      plistPath,
+    ]);
   }
   try {
     await fs.rimraf(this.keychainPath);
@@ -107,7 +112,10 @@ export async function restoreKeychains(
     this._keychainsBackupPath = null;
   } finally {
     if (isServerRunning && plistPath) {
-      await this.simctl.spawnProcess(['launchctl', 'load', plistPath]);
+      await spawnAndWait(this._native, this.udid, await resolveGuestLaunchctl(this._native, this.udid), [
+        'load',
+        plistPath,
+      ]);
     }
   }
   return true;
@@ -124,13 +132,14 @@ export async function clearKeychains(this: CoreSimulatorWithKeychain): Promise<v
   if (!(await fs.exists(plistPath))) {
     throw new Error(`Cannot clear keychains because '${plistPath}' does not exist`);
   }
-  await this.simctl.spawnProcess(['launchctl', 'unload', plistPath]);
+  const launchctlPath = await resolveGuestLaunchctl(this._native, this.udid);
+  await spawnAndWait(this._native, this.udid, launchctlPath, ['unload', plistPath]);
   try {
     if (await fs.exists(this.keychainPath)) {
       await fs.rimraf(this.keychainPath);
       await mkdirp(this.keychainPath);
     }
   } finally {
-    await this.simctl.spawnProcess(['launchctl', 'load', plistPath]);
+    await spawnAndWait(this._native, this.udid, launchctlPath, ['load', plistPath]);
   }
 }

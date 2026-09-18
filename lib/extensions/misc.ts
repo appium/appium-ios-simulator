@@ -1,19 +1,21 @@
+import type {PushNotificationPayload} from '@appium/coresim';
 import type {StringRecord} from '@appium/types';
 
+import type {HasNativeSimctl} from '../native/types.js';
 import type {CoreSimulator, HasMiscFeatures, CertificateOptions} from '../types.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends HasMiscFeatures {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends HasMiscFeatures {}
 }
 
-type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures;
+type CoreSimulatorWithMiscFeatures = CoreSimulator & HasMiscFeatures & HasNativeSimctl;
 
 /**
  * Perform Shake gesture on Simulator window.
  */
 export async function shake(this: CoreSimulatorWithMiscFeatures): Promise<void> {
   this.log.info(`Performing shake gesture on ${this.udid} Simulator`);
-  await this.simctl.spawnProcess(['notifyutil', '-p', 'com.apple.UIKit.SimulatorShake']);
+  await this._native.shake(this.udid);
 }
 
 /**
@@ -32,8 +34,13 @@ export async function addCertificate(
   opts: CertificateOptions = {},
 ): Promise<boolean> {
   const {isRoot = true} = opts;
-  const methodName = isRoot ? 'addRootCertificate' : 'addCertificate';
-  await this.simctl[methodName](payload, {raw: true});
+  // coresim treats a string argument as a file path, not content, so wrap it as a Buffer.
+  const cert = Buffer.from(payload);
+  if (isRoot) {
+    await this._native.addRootCertificate(this.udid, cert);
+  } else {
+    await this._native.addCertificate(this.udid, cert);
+  }
   return true;
 }
 
@@ -55,5 +62,19 @@ export async function addCertificate(
  * }
  */
 export async function pushNotification(this: CoreSimulatorWithMiscFeatures, payload: StringRecord): Promise<void> {
-  await this.simctl.pushNotification(payload);
+  const bundleId = payload['Simulator Target Bundle'];
+  if (typeof bundleId !== 'string') {
+    throw new Error(`The push notification payload must contain a 'Simulator Target Bundle' string value`);
+  }
+  await this._native.pushNotification(this.udid, bundleId, payload as unknown as PushNotificationPayload);
+}
+
+/**
+ * Adds one or more photo/video files to the Simulator's Photos library. Each file's type is
+ * auto-detected.
+ *
+ * @param filePaths Paths to the media files on the local filesystem.
+ */
+export async function addMedia(this: CoreSimulatorWithMiscFeatures, filePaths: string[]): Promise<void> {
+  await this._native.addMedia(this.udid, filePaths);
 }

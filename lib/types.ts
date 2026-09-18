@@ -1,8 +1,83 @@
 import type {EventEmitter} from 'node:events';
+import type {Socket} from 'node:net';
 
 import type {AppiumLogger, StringRecord} from '@appium/types';
 import type {XcodeVersion} from 'appium-xcode';
-import type {Simctl} from 'node-simctl';
+
+export interface SimulatorInfoOptions {
+  devicesSetPath?: string | null;
+}
+
+export interface CreateSimulatorOptions extends SimulatorInfoOptions {
+  /** The name of the simulator platform, iOS by default */
+  platform?: string;
+}
+
+export interface SimulatorListEntry {
+  udid: string;
+  name: string;
+  /** Lowercase, e.g. `'booted'`, `'shutdown'`, `'booting'`, `'shutting down'`, `'creating'`. */
+  state: string;
+  /** e.g. `'17.4'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
+  sdk: string;
+  /** e.g. `'iOS'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
+  platform: string;
+  deviceTypeIdentifier: string;
+  runtimeIdentifier: string;
+}
+
+// Declared locally (structurally identical to `@appium/coresim`'s own types of the same name)
+// rather than imported from there, so this package's public API surface doesn't tie a consumer's
+// type-checking to `@appium/coresim`'s exact exports — only to this package's own `types.js`.
+
+export interface SpawnOptions {
+  /** Fully replaces argv, including argv[0] — `path` only selects the executable. */
+  arguments?: string[];
+  /** Merged additively into the spawned process's environment. */
+  environment?: Record<string, string>;
+  /**
+   * Defaults to `true` — required for CoreSimulator from Xcode 26.4+ to wire up the child's dyld
+   * shared-cache environment; without it, that CoreSimulator aborts the child with SIGABRT trying
+   * to load even `libSystem.B.dylib`. Defaults to `false` when `path` is `launchctl` itself, which
+   * needs to stay attached to the guest's own launchd bootstrap namespace to function at all — a
+   * standalone spawn is detached from it. Set explicitly to override either default.
+   */
+  standalone?: boolean;
+}
+
+/** A process spawned inside the Simulator via {@link SupportsGuestProcessSpawn.spawnProcess}. */
+export interface SpawnedProcess extends EventEmitter {
+  readonly pid: number;
+  /** Streams the process's live stdout as it runs. */
+  readonly stdout: Socket;
+  /** Streams the process's live stderr as it runs. */
+  readonly stderr: Socket;
+  exitCode: number | null;
+  signalCode: NodeJS.Signals | null;
+  /** Whether the process has neither exited nor been killed yet. */
+  readonly running: boolean;
+  /**
+   * Sends a signal to the process. A no-op returning `false` once exit has already been observed,
+   * rather than risking an error on an already-reaped pid.
+   */
+  kill(signal?: NodeJS.Signals | number): boolean;
+}
+
+/** Options for {@link SupportsScreenshot.getScreenshot}. */
+export interface ScreenshotOptions {
+  /** Image encoding — defaults to `'png'`. */
+  format?: 'png' | 'jpeg';
+  /**
+   * Which display to capture, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /**
+   * JPEG quality as a percentage (0 = smallest/most compressed, 100 = largest/least compressed).
+   * Only meaningful with `format: 'jpeg'`. Defaults to near-lossless when omitted.
+   */
+  quality?: number;
+}
 
 export interface ProcessInfo {
   /**
@@ -107,7 +182,7 @@ export interface ShutdownOptions {
 export interface KillUiClientOptions {
   /** Process id of the UI Simulator window */
   pid?: number | string | null;
-  /** The signal number to send to the. 2 (SIGINT) by default */
+  /** POSIX signal number to send via `kill` instead of the default Apple Event quit */
   signal?: number | string;
 }
 
@@ -125,10 +200,12 @@ export interface DeviceStat {
 export interface CoreSimulator extends EventEmitter {
   _keychainsBackupPath: string | null | undefined;
   _webInspectorSocket: string | null | undefined;
+  _platformVersion: string | null | undefined;
+  _uiClientAppPath: Promise<string> | undefined;
+  _systemAppBundleIds: Set<string> | undefined;
 
   get keychainPath(): string;
   get udid(): string;
-  get simctl(): Simctl;
   get xcodeVersion(): XcodeVersion;
 
   set devicesSetPath(value: string | null);
@@ -149,6 +226,8 @@ export interface CoreSimulator extends EventEmitter {
   isFresh(): Promise<boolean>;
   isRunning(): Promise<boolean>;
   isShutdown(): Promise<boolean>;
+  boot(): Promise<void>;
+  launchWindow(isUiClientRunning: boolean, opts?: RunOptions): Promise<void>;
   startUIClient(opts?: StartUiClientOptions): Promise<void>;
   run(opts?: RunOptions): Promise<void>;
   clean(): Promise<void>;
@@ -171,7 +250,14 @@ export interface LaunchAppOptions {
    * the app is fully started. Only applicatble if `wait` is true. 10000 ms by default.
    */
   timeoutMs?: number;
+  /** Environment variables to set for the launched app's process. */
+  environment?: StringRecord;
+  /** Whether to terminate an already-running instance of the app before launching it. */
+  terminateExisting?: boolean;
 }
+
+/** Which of an app's on-disk containers {@link InteractsWithApps.getAppContainer} should resolve. */
+export type AppContainerType = 'app' | 'data' | 'groups' | string;
 
 export interface InteractsWithApps {
   installApp(app: string): Promise<void>;
@@ -182,6 +268,20 @@ export interface InteractsWithApps {
   terminateApp(bundleId: string): Promise<void>;
   isAppRunning(bundleId: string): Promise<boolean>;
   scrubApp(bundleId: string): Promise<void>;
+  /**
+   * Resolves the full filesystem path to one of an installed app's on-disk containers.
+   *
+   * @param bundleId Bundle identifier of the installed app.
+   * @param containerType `'app'` (the default) for the `.app` bundle itself, `'data'` for its
+   * data container, `'groups'` for its sole App Group container (if it has exactly one), or any
+   * other string naming a specific App Group identifier.
+   */
+  getAppContainer(bundleId: string, containerType?: AppContainerType): Promise<string>;
+  /**
+   * @param bundleId Bundle identifier of the installed app.
+   * @returns The app's properties, as reported by CoreSimulator's own `propertiesOfApplication:`.
+   */
+  appInfo(bundleId: string): Promise<Record<string, unknown>>;
 }
 
 export interface SupportsBiometric {
@@ -263,6 +363,42 @@ export interface HasMiscFeatures {
   shake(): Promise<void>;
   addCertificate(payload: string, opts?: CertificateOptions): Promise<boolean>;
   pushNotification(payload: StringRecord): Promise<void>;
+  /**
+   * Adds one or more photo/video files to the Simulator's Photos library. Each file's type is
+   * auto-detected.
+   *
+   * @param filePaths Paths to the media files on the local filesystem.
+   */
+  addMedia(filePaths: string[]): Promise<void>;
+}
+
+export interface SupportsPasteboard {
+  /** @returns The Simulator's current pasteboard content, or `""` if it holds no string content. */
+  getPasteboard(): Promise<string>;
+  /** @param content String content to set as the Simulator's pasteboard content. */
+  setPasteboard(content: string): Promise<void>;
+}
+
+export interface SupportsScreenshot {
+  /**
+   * Captures the Simulator's display. The Simulator must be booted.
+   *
+   * @param options `format` (defaults to `'png'`), `displayId` (defaults to the primary
+   * display), and `quality` (JPEG only, 0-100).
+   */
+  getScreenshot(options?: ScreenshotOptions): Promise<Buffer>;
+}
+
+export interface SupportsGuestProcessSpawn {
+  /**
+   * Spawns a process inside the Simulator (the native equivalent of `simctl spawn`) — an escape
+   * hatch for guest-side operations with no dedicated `Simulator` method, such as streaming a
+   * guest log. `path` is a literal path, not resolved against the guest's `$PATH`.
+   *
+   * @param path Path to the executable to spawn inside the Simulator.
+   * @param options `arguments`/`environment` for the spawned process.
+   */
+  spawnProcess(path: string, options?: SpawnOptions): Promise<SpawnedProcess>;
 }
 
 export interface SimulatorLookupOptions {
@@ -289,7 +425,10 @@ export type Simulator = CoreSimulator &
   SupportsGeolocation &
   InteractsWithKeychain &
   SupportsAppPermissions &
-  HasMiscFeatures;
+  HasMiscFeatures &
+  SupportsPasteboard &
+  SupportsScreenshot &
+  SupportsGuestProcessSpawn;
 
 interface KeyboardOptions {
   /** The name of the keyboard locale, for example `en_US` or `de_CH` */

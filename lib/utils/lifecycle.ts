@@ -1,15 +1,16 @@
 import {getVersion} from 'appium-xcode';
-import {waitForCondition} from 'asyncbox';
-import {exec, type ExecError} from 'teen_process';
+import {retryInterval, waitForCondition} from 'asyncbox';
 
 import {log} from '../logger.js';
+import {createNativeSimctl} from '../native/native-simctl.js';
 import {
   DEVICE_HUB_UI_CLIENT_BUNDLE_ID,
   MIN_DEVICE_HUB_XCODE_VERSION,
   SIMULATOR_UI_CLIENT_BUNDLE_ID,
 } from './constants.js';
-import {getDevices} from './get-devices.js';
-import {getMacAppPidByBundleId, killMacAppByBundleId} from './process.js';
+import {listSimulators} from './list-simulators.js';
+import {getMacAppPidByPath, killMacAppByPath} from './process.js';
+import {getUiClientAppPath} from './xcode.js';
 
 const DEFAULT_SIM_SHUTDOWN_TIMEOUT_MS = 60000;
 
@@ -22,24 +23,28 @@ export async function killAllSimulators(timeout: number = DEFAULT_SIM_SHUTDOWN_T
   const xcodeVersion = await getVersion(true);
   const uiClientBundleId =
     xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION ? DEVICE_HUB_UI_CLIENT_BUNDLE_ID : SIMULATOR_UI_CLIENT_BUNDLE_ID;
+  const uiClientApp = await getUiClientAppPath(uiClientBundleId, xcodeVersion);
 
   const startedMs = performance.now();
   try {
-    await exec('xcrun', ['simctl', 'shutdown', 'all'], {timeout});
+    // @appium/coresim's underlying `xcode-select -p` call has been observed to occasionally not
+    // respond within its own hardcoded timeout on hosted CI runners — retry rather than give up
+    // on the whole shutdown for what's usually a one-off transient hiccup.
+    await retryInterval(3, 1000, () => createNativeSimctl().shutdownAllDevices());
   } catch (err: unknown) {
-    log.debug(`Failed to shutdown all simulators: ${(err as ExecError).stderr || (err as Error).message}`);
+    log.debug(`Failed to shutdown all simulators: ${(err as Error).message}`);
   }
 
-  const uiClientPid = await getMacAppPidByBundleId(uiClientBundleId);
+  const uiClientPid = await getMacAppPidByPath(uiClientApp);
   if (uiClientPid) {
     log.debug(`Killing UI client '${uiClientBundleId}' (pid ${uiClientPid})`);
-    await killMacAppByBundleId(uiClientBundleId);
+    await killMacAppByPath(uiClientApp);
   } else {
     log.debug(`UI client '${uiClientBundleId}' is not running`);
   }
 
   try {
-    await waitForCondition(allSimsAreDown, {
+    await waitForCondition(async () => (await allSimsAreDown()) && (await getMacAppPidByPath(uiClientApp)) === null, {
       waitMs: Math.max(1000, startedMs + timeout - performance.now()),
       intervalMs: 200,
     });
@@ -63,8 +68,8 @@ async function allSimsAreDown(): Promise<boolean> {
 }
 
 async function getNonShutdownDeviceDescriptions(): Promise<string[]> {
-  const devices = Object.values(await getDevices()).flat();
+  const devices = await listSimulators();
   return devices
-    .filter((sim) => !['shutdown', 'unavailable', 'disconnected'].includes(sim.state.toLowerCase()))
-    .map((sim) => `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${sim.state.toLowerCase()}'`);
+    .filter((sim) => sim.state !== 'Shutdown')
+    .map((sim) => `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${sim.state}'`);
 }

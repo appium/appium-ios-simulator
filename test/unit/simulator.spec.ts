@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import {EventEmitter} from 'node:events';
 import {describe, it, beforeEach, afterEach, mock} from 'node:test';
 
+import {SimDeviceState} from '@appium/coresim';
 import * as appiumXcode from 'appium-xcode';
 import sinon from 'sinon';
 import * as teenProcess from 'teen_process';
@@ -8,15 +10,28 @@ import * as teenProcess from 'teen_process';
 import * as xcodeUtils from '../../lib/utils/xcode.js';
 import {devices} from './device-list.js';
 
-const UDID = devices['10.0'][0].udid;
+const UDID = devices.find((d) => d.sdk === '10.0')!.udid;
+
+/** A fake `SpawnedProcess`-shaped object that immediately reports a clean exit. */
+function fakeSpawnedProcess(): any {
+  const proc = new EventEmitter() as any;
+  proc.stderr = new EventEmitter();
+  setImmediate(() => proc.emit('exit', 0, null));
+  return proc;
+}
+
+/** The `(path, options)` args `lib/native/spawn.js`'s `spawnAndWait` calls `spawnProcess` with. */
+function expectedSpawn(path: string, args: string[]): [string, {arguments: string[]}] {
+  return [path, {arguments: [path, ...args]}];
+}
 
 let currentExec: (...args: any[]) => any = async () => ({stdout: '', stderr: ''});
 let currentGetVersion: (...args: any[]) => any = async () => ({
-  major: 14,
-  versionString: '14.0.0',
+  major: 15,
+  versionString: '15.0.0',
 });
 let currentAssertXcodeVersion: (...args: any[]) => any = (v: any) => v;
-let currentGetDevices: (...args: any[]) => any = async () => devices;
+let currentListSimulators: (...args: any[]) => any = async () => devices;
 
 mock.module('teen_process', {
   namedExports: {
@@ -40,14 +55,13 @@ mock.module('../../lib/utils/xcode.js', {
     assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
   },
 });
-mock.module('../../lib/utils/get-devices.js', {
+mock.module('../../lib/utils/list-simulators.js', {
   namedExports: {
-    getDevices: (...args: any[]) => currentGetDevices(...args),
+    listSimulators: (...args: any[]) => currentListSimulators(...args),
   },
 });
 
 const {getSimulator} = await import('../../lib/simulator.js');
-const {SimulatorXcode14} = await import('../../lib/simulator-xcode-14.js');
 const {SimulatorXcode15} = await import('../../lib/simulator-xcode-15.js');
 const {SimulatorXcode27} = await import('../../lib/simulator-xcode-27.js');
 
@@ -55,7 +69,7 @@ describe('simulator', function () {
   let sandbox: sinon.SinonSandbox;
 
   let assertXcodeVersionStub: sinon.SinonStub;
-  let getDevicesStub: sinon.SinonStub;
+  let listSimulatorsStub: sinon.SinonStub;
   let getVersionStub: sinon.SinonStub;
 
   beforeEach(function () {
@@ -63,10 +77,10 @@ describe('simulator', function () {
     currentExec = sandbox.stub().resolves({stdout: '', stderr: ''});
     assertXcodeVersionStub = sandbox.stub();
     currentAssertXcodeVersion = assertXcodeVersionStub;
-    getDevicesStub = sandbox.stub().resolves(devices);
-    currentGetDevices = getDevicesStub;
+    listSimulatorsStub = sandbox.stub().resolves(devices);
+    currentListSimulators = listSimulatorsStub;
     getVersionStub = sandbox.stub();
-    getVersionStub.withArgs(true).returns(Promise.resolve({major: 14, versionString: '14.0.0'}));
+    getVersionStub.withArgs(true).returns(Promise.resolve({major: 15, versionString: '15.0.0'}));
     currentGetVersion = getVersionStub;
   });
   afterEach(function () {
@@ -76,19 +90,17 @@ describe('simulator', function () {
 
   describe('getSimulator', function () {
     it('should create a simulator with default xcode version', async function () {
-      const xcodeVersion = {major: 14, versionString: '14.0.0'};
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
       const sim = await getSimulator(UDID);
       assert.strictEqual(sim.xcodeVersion, xcodeVersion);
-      assert.strictEqual(sim.constructor.name, SimulatorXcode14.name);
+      assert.strictEqual(sim.constructor.name, SimulatorXcode15.name);
     });
 
-    const xcodeVersions: Array<
-      [number, number, string, typeof SimulatorXcode14 | typeof SimulatorXcode15 | typeof SimulatorXcode27]
-    > = [
-      [14, 0, '14.0.0', SimulatorXcode14],
+    const xcodeVersions: Array<[number, number, string, typeof SimulatorXcode15 | typeof SimulatorXcode27]> = [
       [15, 0, '15.0.0', SimulatorXcode15],
+      [26, 0, '26.0.0', SimulatorXcode15],
       [27, 0, '27.0.0', SimulatorXcode27],
     ];
 
@@ -107,7 +119,7 @@ describe('simulator', function () {
       assertXcodeVersionStub.callsFake(() => {
         throw new Error(
           `Tried to use an iOS simulator with xcode version ${xcodeVersion.versionString} ` +
-            `but only Xcode version 14 and up are supported`,
+            `but only Xcode version 15 and up are supported`,
         );
       });
       await assert.rejects(getSimulator(UDID));
@@ -123,9 +135,25 @@ describe('simulator', function () {
     });
 
     it('should list stats for sim', async function () {
-      const xcodeVersion = {major: 14, versionString: '14.0.0'};
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
 
+      const rawDevices = [
+        {
+          udid: 'F33783B2-9EE9-4A99-866E-E126ADBAD410',
+          name: 'Resizable iPhone',
+          state: SimDeviceState.Shutdown,
+          deviceTypeIdentifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone',
+          runtimeIdentifier: 'com.apple.CoreSimulator.SimRuntime.iOS-11-4',
+        },
+        {
+          udid: 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954',
+          name: 'Resizable iPad',
+          state: SimDeviceState.Shutdown,
+          deviceTypeIdentifier: 'com.apple.CoreSimulator.SimDeviceType.iPad',
+          runtimeIdentifier: 'com.apple.CoreSimulator.SimRuntime.iOS-11-4',
+        },
+      ];
       const sims = (
         await Promise.all(
           ['F33783B2-9EE9-4A99-866E-E126ADBAD410', 'DFBC2970-9455-4FD9-BB62-9E4AE5AA6954'].map((udid) =>
@@ -133,7 +161,9 @@ describe('simulator', function () {
           ),
         )
       ).map((sim) => {
-        sinon.stub(sim.simctl, 'getDevices').returns(Promise.resolve(devices as any));
+        sinon
+          .stub((sim as InstanceType<typeof SimulatorXcode15>)._native, 'getDevices')
+          .returns(Promise.resolve(rawDevices as any));
         return sim;
       });
 
@@ -146,60 +176,38 @@ describe('simulator', function () {
   });
 
   describe('getWebInspectorSocket', function () {
-    let innerExecStub: sinon.SinonStub;
-    const stdout = `COMMAND     PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
-launchd_s 81243 mwakizaka    3u  unix 0x9461828ef425ac31      0t0      /private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket
-launchd_s 81243 mwakizaka    4u  unix 0x9461828ef425bc99      0t0      /tmp/com.apple.CoreSimulator.SimDevice.0829568F-7479-4ADE-9E51-B208DC99C107/syslogsock
-launchd_s 81243 mwakizaka    6u  unix 0x9461828ef27d4c39      0t0      ->0x9461828ef27d4b71
-launchd_s 81243 mwakizaka    7u  unix 0x9461828ef27d4c39      0t0      ->0x9461828ef27d5021
-launchd_s 81243 mwakizaka    8u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
-launchd_s 81243 mwakizaka    9u  unix 0x9461828ef425be29      0t0      /private/tmp/com.apple.launchd.rbqFyGyXrT/com.apple.testmanagerd.unix-domain.socket
-launchd_s 81243 mwakizaka   10u  unix 0x9461828ef425b4c9      0t0      /private/tmp/com.apple.launchd.88z8qTMoJA/Listeners
-launchd_s 81243 mwakizaka   11u  unix 0x9461828ef425c081      0t0      /private/tmp/com.apple.launchd.zHidszZQUZ/com.apple.testmanagerd.remote-automation.unix-domain.socket
-launchd_s 81243 mwakizaka   12u  unix 0x9461828ef425def9      0t0      ->0x9461828ef425de31
-launchd_s 35621 mwakizaka    4u  unix 0x7b7dbedd6d63253f      0t0      /tmp/com.apple.CoreSimulator.SimDevice.B5048708-566E-45D5-9885-C878EF7D6D13/syslogsock
-launchd_s 35621 mwakizaka    5u  unix 0x7b7dbedd6d62f727      0t0      /private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket
-launchd_s 35621 mwakizaka    9u  unix 0x7b7dbedd6d632607      0t0      /private/tmp/com.apple.launchd.KbYwOrA36E/Listeners
-launchd_s 35621 mwakizaka   10u  unix 0x7b7dbedd6d62f727      0t0      /private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket
-launchd_s 35621 mwakizaka   11u  unix 0x7b7dbedd6d62e6bf      0t0      /private/tmp/com.apple.launchd.7wTVfXC9QX/com.apple.testmanagerd.unix-domain.socket
-launchd_s 35621 mwakizaka   12u  unix 0x7b7dbedd6d632607      0t0      /private/tmp/com.apple.launchd.KbYwOrA36E/Listeners
-launchd_s 35621 mwakizaka   13u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket
-launchd_s 35621 mwakizaka   15u  unix 0x7b7dbedd6d62e6bf      0t0      /private/tmp/com.apple.launchd.7wTVfXC9QX/com.apple.testmanagerd.unix-domain.socket
-launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/tmp/com.apple.launchd.g7KQlSsvXT/com.apple.testmanagerd.remote-automation.unix-domain.socket`;
+    const socketPath = '/private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket';
+    let getWebInspectorSocketStub: sinon.SinonStub;
 
     beforeEach(function () {
-      innerExecStub = sandbox.stub().callsFake(() => ({stdout}) as any);
-      currentExec = innerExecStub;
-      const xcodeVersion = {major: 14, versionString: '14.0.0'};
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
     });
 
-    const testParams = [
-      {
-        udid: '0829568F-7479-4ADE-9E51-B208DC99C107',
-        line: 'first',
-        expected: '/private/tmp/com.apple.launchd.ULf9wKNtd5/com.apple.webinspectord_sim.socket',
-      },
-      {
-        udid: 'B5048708-566E-45D5-9885-C878EF7D6D13',
-        line: 'second',
-        expected: '/private/tmp/com.apple.launchd.zuM1XDJcwr/com.apple.webinspectord_sim.socket',
-      },
-    ];
-
-    testParams.forEach(({udid, line, expected}) => {
-      it(`should find a Web Inspector socket when it appears at the ${line} line of grouped records`, async function () {
-        const sim = await getSimulator(udid);
-        const webInspectorSocket = await sim.getWebInspectorSocket();
-        assert.strictEqual(webInspectorSocket, expected);
-      });
+    it('should find a Web Inspector socket reported by the native driver', async function () {
+      const sim = await getSimulator(UDID);
+      getWebInspectorSocketStub = sinon
+        .stub((sim as InstanceType<typeof SimulatorXcode15>)._native, 'getWebInspectorSocket')
+        .resolves(socketPath);
+      assert.strictEqual(await sim.getWebInspectorSocket(), socketPath);
     });
 
-    it(`should assign webInspectorSocket value only once`, async function () {
-      const sim = await getSimulator(testParams[0].udid);
+    it('should return null when the native driver cannot find one', async function () {
+      const sim = await getSimulator(UDID);
+      getWebInspectorSocketStub = sinon
+        .stub((sim as InstanceType<typeof SimulatorXcode15>)._native, 'getWebInspectorSocket')
+        .rejects(new Error('not found'));
+      assert.strictEqual(await sim.getWebInspectorSocket(), null);
+    });
+
+    it('should assign webInspectorSocket value only once', async function () {
+      const sim = await getSimulator(UDID);
+      getWebInspectorSocketStub = sinon
+        .stub((sim as InstanceType<typeof SimulatorXcode15>)._native, 'getWebInspectorSocket')
+        .resolves(socketPath);
       await sim.getWebInspectorSocket();
       await sim.getWebInspectorSocket();
-      assert.strictEqual(innerExecStub.callCount, 1);
+      assert.strictEqual(getWebInspectorSocketStub.callCount, 1);
     });
   });
 
@@ -207,10 +215,11 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
     let sim: any;
     let spawnProcessSpy: sinon.SinonStub;
     beforeEach(async function () {
-      const xcodeVersion = {major: 14, versionString: '14.0.0'};
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
       sim = await getSimulator(UDID);
-      spawnProcessSpy = sinon.stub(sim.simctl, 'spawnProcess');
+      spawnProcessSpy = sinon.stub(sim._native, 'spawnProcess').callsFake(() => fakeSpawnedProcess());
+      sinon.stub(sim._native, 'getRuntimeRootPath').resolves('/fake/RuntimeRoot');
     });
     afterEach(function () {
       if (spawnProcessSpy) {
@@ -222,13 +231,15 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it('should configure locale', async function () {
         const options = {locale: {name: 'en_US', calendar: 'gregorian'}};
         assert.strictEqual(await sim.configureLocalization(options), true);
-        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
-          'defaults',
-          'write',
-          '.GlobalPreferences.plist',
-          'AppleLocale',
-          '<string>en_US@calendar=gregorian</string>',
-        ]);
+        assert.deepStrictEqual(
+          spawnProcessSpy.firstCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            '.GlobalPreferences.plist',
+            'AppleLocale',
+            '<string>en_US@calendar=gregorian</string>',
+          ]),
+        );
         assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
     });
@@ -237,34 +248,42 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it('should configure keyboard', async function () {
         const options = {keyboard: {name: 'en_US', layout: 'QWERTY'}};
         assert.strictEqual(await sim.configureLocalization(options), true);
-        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
-          'defaults',
-          'write',
-          '.GlobalPreferences.plist',
-          'AppleKeyboards',
-          '<array><string>en_US@sw=QWERTY</string></array>',
-        ]);
-        assert.deepStrictEqual(spawnProcessSpy.secondCall.args[0], [
-          'defaults',
-          'write',
-          'com.apple.Preferences',
-          'KeyboardsCurrentAndNext',
-          '<array><string>en_US@sw=QWERTY</string></array>',
-        ]);
-        assert.deepStrictEqual(spawnProcessSpy.thirdCall.args[0], [
-          'defaults',
-          'write',
-          'com.apple.Preferences',
-          'KeyboardLastUsed',
-          '<string>en_US@sw=QWERTY</string>',
-        ]);
-        assert.deepStrictEqual(spawnProcessSpy.getCall(3).args[0], [
-          'defaults',
-          'write',
-          'com.apple.Preferences',
-          'KeyboardLastUsedForLanguage',
-          '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>',
-        ]);
+        assert.deepStrictEqual(
+          spawnProcessSpy.firstCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            '.GlobalPreferences.plist',
+            'AppleKeyboards',
+            '<array><string>en_US@sw=QWERTY</string></array>',
+          ]),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.secondCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            'com.apple.Preferences',
+            'KeyboardsCurrentAndNext',
+            '<array><string>en_US@sw=QWERTY</string></array>',
+          ]),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.thirdCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            'com.apple.Preferences',
+            'KeyboardLastUsed',
+            '<string>en_US@sw=QWERTY</string>',
+          ]),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.getCall(3).args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            'com.apple.Preferences',
+            'KeyboardLastUsedForLanguage',
+            '<dict><key>en_US</key><string>en_US@sw=QWERTY</string></dict>',
+          ]),
+        );
         assert.strictEqual(spawnProcessSpy.callCount, 4);
       });
     });
@@ -279,43 +298,61 @@ launchd_s 35621 mwakizaka   16u  unix 0x7b7dbedd6d62e84f      0t0      /private/
       it('should configure language and restart services', async function () {
         const options = {language: {name: 'ja'}};
         assert.strictEqual(await sim.configureLocalization(options), true);
-        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
-          'defaults',
-          'write',
-          '.GlobalPreferences.plist',
-          'AppleLanguages',
-          '<array><string>ja</string></array>',
-        ]);
-        assert.deepStrictEqual(spawnProcessSpy.secondCall.args[0], ['launchctl', 'stop', 'com.apple.SpringBoard']);
-        assert.deepStrictEqual(spawnProcessSpy.thirdCall.args[0], ['launchctl', 'stop', 'com.apple.locationd']);
-        assert.deepStrictEqual(spawnProcessSpy.getCall(3).args[0], ['launchctl', 'stop', 'com.apple.tccd']);
-        assert.deepStrictEqual(spawnProcessSpy.getCall(4).args[0], ['launchctl', 'stop', 'com.apple.akd']);
+        assert.deepStrictEqual(
+          spawnProcessSpy.firstCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            '.GlobalPreferences.plist',
+            'AppleLanguages',
+            '<array><string>ja</string></array>',
+          ]),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.secondCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.SpringBoard']),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.thirdCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.locationd']),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.getCall(3).args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.tccd']),
+        );
+        assert.deepStrictEqual(
+          spawnProcessSpy.getCall(4).args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.akd']),
+        );
         assert.strictEqual(spawnProcessSpy.callCount, 5);
       });
 
       it('should confirm skip restarting services if already applied', async function () {
         const options = {language: {name: 'en'}};
         assert.strictEqual(await sim.configureLocalization(options), true);
-        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
-          'defaults',
-          'write',
-          '.GlobalPreferences.plist',
-          'AppleLanguages',
-          '<array><string>en</string></array>',
-        ]);
+        assert.deepStrictEqual(
+          spawnProcessSpy.firstCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            '.GlobalPreferences.plist',
+            'AppleLanguages',
+            '<array><string>en</string></array>',
+          ]),
+        );
         assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
 
       it('should confirm skip restarting services if skipSyncUiDialogTranslation is true', async function () {
         const options = {language: {name: 'ja', skipSyncUiDialogTranslation: true}};
         assert.strictEqual(await sim.configureLocalization(options), true);
-        assert.deepStrictEqual(spawnProcessSpy.firstCall.args[0], [
-          'defaults',
-          'write',
-          '.GlobalPreferences.plist',
-          'AppleLanguages',
-          '<array><string>ja</string></array>',
-        ]);
+        assert.deepStrictEqual(
+          spawnProcessSpy.firstCall.args.slice(1),
+          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+            'write',
+            '.GlobalPreferences.plist',
+            'AppleLanguages',
+            '<array><string>ja</string></array>',
+          ]),
+        );
         assert.strictEqual(spawnProcessSpy.callCount, 1);
       });
     });

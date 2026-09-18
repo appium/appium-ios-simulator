@@ -1,17 +1,17 @@
-import path from 'node:path';
-
-import {fs, timing, util} from '@appium/support';
+import type {SimPermissionService} from '@appium/coresim';
+import {timing, util} from '@appium/support';
 import type {StringRecord} from '@appium/types';
 import {waitForCondition} from 'asyncbox';
 import {exec} from 'teen_process';
 
-import type {CoreSimulator, SupportsAppPermissions} from '../types.js';
+import type {HasNativeSimctl} from '../native/types.js';
+import type {CoreSimulator, ProcessInfo, SupportsAppPermissions} from '../types.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends SupportsAppPermissions {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends SupportsAppPermissions {}
 }
 
-type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions;
+type CoreSimulatorWithAppPermissions = CoreSimulator & SupportsAppPermissions & HasNativeSimctl;
 
 const STATUS = Object.freeze({
   UNSET: 'unset',
@@ -21,33 +21,39 @@ const STATUS = Object.freeze({
 } as const);
 const SPRINGBOARD_BUNDLE_ID = 'com.apple.SpringBoard';
 const SPOTLIGHT_BUNDLE_ID = 'com.apple.Spotlight';
-const WIX_SIM_UTILS = 'applesimutils';
 const SERVICES_NEED_SPRINGBOARD_RESTART = ['notifications'];
 const SYSTEM_SERVICE_RESTART_TIMEOUT_MS = 15000;
-// `location` permission does not work with WIX/applesimutils.
-// Note that except for 'contacts', the Apple's privacy command sets
-// permissions properly but it kills the app process while WIX/applesimutils does not.
-// In the backward compatibility perspective,
-// we'd like to keep the app process as possible.
+// `location`/`location-always` are the only services CoreSimulator's TCC database doesn't model as
+// a plain row (CoreLocation simulation is a separate subsystem) — @appium/coresim's grantPermission/
+// revokePermission/resetPermission/getPermission deliberately exclude them, so these two keep going
+// through `xcrun simctl privacy` directly instead.
 const PERMISSIONS_APPLIED_VIA_SIMCTL = ['location', 'location-always'];
-const SERVICES = Object.freeze({
-  calendar: 'kTCCServiceCalendar',
-  camera: 'kTCCServiceCamera',
-  contacts: 'kTCCServiceAddressBook',
-  homekit: 'kTCCServiceWillow',
-  microphone: 'kTCCServiceMicrophone',
-  photos: 'kTCCServicePhotos',
-  reminders: 'kTCCServiceReminders',
-  medialibrary: 'kTCCServiceMediaLibrary',
-  motion: 'kTCCServiceMotion',
-  health: 'kTCCServiceMSO',
-  siri: 'kTCCServiceSiri',
-  speech: 'kTCCServiceSpeechRecognition',
-} as const);
+// Every service @appium/coresim's SimPermissionService union supports — kept as an explicit list
+// (rather than trusting caller input) so an unsupported name fails with a clear error up front.
+// `notifications` is intentionally NOT supported: unlike every service below, it was never a plain
+// TCC row — the previous AppleSimulatorUtils-backed setter wrote a hand-built legacy bplist into
+// BulletinBoard/SectionInfo.plist (itself marked "Legacy"/"Xcode 9 support" in that project's own
+// source), which has no confirmed modern equivalent. This is a deliberate breaking change.
+const SERVICES: readonly SimPermissionService[] = Object.freeze([
+  'calendar',
+  'camera',
+  'contacts',
+  'faceid',
+  'health',
+  'homekit',
+  'medialibrary',
+  'microphone',
+  'motion',
+  'photos',
+  'reminders',
+  'siri',
+  'speech',
+  'usertracking',
+]);
 
 /**
- * Sets the particular permission to the application bundle. See https://github.com/wix/AppleSimulatorUtils
- * or `xcrun simctl privacy` for more details on the available service names and statuses.
+ * Sets the particular permission to the application bundle. See `xcrun simctl privacy` for more
+ * details on the available service names and statuses.
  *
  * @param bundleId Application bundle identifier.
  * @param permission Service name to be set.
@@ -69,8 +75,7 @@ export async function setPermission(
  * @param bundleId Application bundle identifier.
  * @param permissionsMapping A mapping where keys
  * are service names and values are their corresponding status values.
- * See https://github.com/wix/AppleSimulatorUtils or `xcrun simctl privacy`
- * for more details on available service names and statuses.
+ * See `xcrun simctl privacy` for more details on available service names and statuses.
  * @throws {Error} If there was an error while changing permissions.
  */
 export async function setPermissions(
@@ -100,13 +105,13 @@ export async function getPermission(
   return result;
 }
 
-function toInternalServiceName(serviceName: string): string {
+function toPermissionService(serviceName: string): SimPermissionService {
   const lowerName = serviceName.toLowerCase();
-  if (Object.hasOwn(SERVICES, lowerName)) {
-    return SERVICES[lowerName as keyof typeof SERVICES] as string;
+  if ((SERVICES as readonly string[]).includes(lowerName)) {
+    return lowerName as SimPermissionService;
   }
   throw new Error(
-    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(Object.keys(SERVICES))}`,
+    `'${serviceName}' is unknown. Only the following service names are supported: ${JSON.stringify(SERVICES)}`,
   );
 }
 
@@ -115,46 +120,18 @@ function formatStatus(status: string): string {
 }
 
 /**
- * Runs a command line sqlite3 query
- *
- * @param db Full path to sqlite database
- * @param query The actual query string
- * @returns Promise that resolves to sqlite command stdout
+ * Runs `xcrun simctl privacy <udid> <action> <service> <bundleId>` — the one permission action
+ * CoreSimulator models outside a plain TCC row (see `PERMISSIONS_APPLIED_VIA_SIMCTL`), so it stays
+ * CLI-based rather than going through `@appium/coresim`.
  */
-async function execSQLiteQuery(this: CoreSimulatorWithAppPermissions, db: string, query: string): Promise<string> {
-  this.log.debug(`Executing SQL query "${query}" on '${db}'`);
-  try {
-    return (await exec('sqlite3', ['-line', db, query])).stdout;
-  } catch (err: any) {
-    throw new Error(`Cannot execute SQLite query "${query}" to '${db}'. Original error: ${err.stderr}`, {cause: err});
-  }
-}
-
-/**
- * @param args Command arguments
- * @returns Promise that resolves to command stdout
- */
-async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): Promise<string> {
-  try {
-    await fs.which(WIX_SIM_UTILS);
-  } catch {
-    throw new Error(
-      `${WIX_SIM_UTILS} binary has not been found in your PATH. ` +
-        `Please install it ('brew tap wix/brew && brew install wix/brew/applesimutils') to ` +
-        `be able to change application permissions`,
-    );
-  }
-
-  this.log.debug(`Executing: ${WIX_SIM_UTILS} ${util.quote(args)}`);
-  try {
-    const {stdout} = await exec(WIX_SIM_UTILS, args);
-    this.log.debug(`Command output: ${stdout}`);
-    return stdout;
-  } catch (e: any) {
-    throw new Error(`Cannot execute "${WIX_SIM_UTILS} ${util.quote(args)}". Original error: ${e.stderr || e.message}`, {
-      cause: e,
-    });
-  }
+async function execSimctlPrivacy(
+  this: CoreSimulatorWithAppPermissions,
+  action: 'grant' | 'revoke' | 'reset',
+  service: string,
+  bundleId: string,
+): Promise<void> {
+  const args = this.devicesSetPath ? ['--set', this.devicesSetPath] : [];
+  await exec('xcrun', ['simctl', ...args, 'privacy', this.udid, action, service, bundleId]);
 }
 
 /**
@@ -163,10 +140,8 @@ async function execWix(this: CoreSimulatorWithAppPermissions, args: string[]): P
  * @param bundleId bundle identifier of the target application.
  * @param permissionsMapping An object, where keys are service names
  * and values are corresponding state values. Services listed in PERMISSIONS_APPLIED_VIA_SIMCTL
- * will be set with `xcrun simctl privacy` command by Apple otherwise AppleSimulatorUtils by WIX.
- * See the result of `xcrun simctl privacy` and https://github.com/wix/AppleSimulatorUtils
- * for more details on available service names and statuses.
- * Note that the `xcrun simctl privacy` command kill the app process.
+ * will be set with `xcrun simctl privacy` command by Apple otherwise via the native TCC database.
+ * See the result of `xcrun simctl privacy` for more details on available service names and statuses.
  * @throws {Error} If there was an error while changing permissions.
  */
 async function setAccess(
@@ -174,7 +149,7 @@ async function setAccess(
   bundleId: string,
   permissionsMapping: StringRecord,
 ): Promise<boolean> {
-  const wixPermissions: Record<string, string> = {};
+  const nativePermissions: Record<string, string> = {};
 
   const grantPermissions: string[] = [];
   const revokePermissions: string[] = [];
@@ -182,10 +157,10 @@ async function setAccess(
 
   for (const serviceName in permissionsMapping) {
     if (!PERMISSIONS_APPLIED_VIA_SIMCTL.includes(serviceName)) {
-      wixPermissions[serviceName] = permissionsMapping[serviceName];
+      nativePermissions[serviceName] = permissionsMapping[serviceName];
     } else {
-      // xcrun simctl privacy expects to be lower case while AppleSimulatorUtils is upper case.
-      // To keep the compatibility,  we should convert here to lower case explicitly.
+      // xcrun simctl privacy expects to be lower case while the previous WIX-based path was upper
+      // case. To keep the compatibility, we should convert here to lower case explicitly.
       switch (permissionsMapping[serviceName]?.toLowerCase()) {
         case STATUS.YES:
           grantPermissions.push(serviceName);
@@ -204,14 +179,14 @@ async function setAccess(
     }
   }
 
-  const permissionPromises: Promise<any>[] = [];
+  const permissionPromises: Promise<void>[] = [];
 
   if (grantPermissions.length > 0) {
     this.log.debug(
       `Granting ${util.pluralize('permission', grantPermissions.length, false)} for ${bundleId}: ${grantPermissions}`,
     );
-    for (const action of grantPermissions) {
-      permissionPromises.push(this.simctl.grantPermission(bundleId, action));
+    for (const service of grantPermissions) {
+      permissionPromises.push(execSimctlPrivacy.call(this, 'grant', service, bundleId));
     }
   }
 
@@ -219,8 +194,8 @@ async function setAccess(
     this.log.debug(
       `Revoking ${util.pluralize('permission', revokePermissions.length, false)} for ${bundleId}: ${revokePermissions}`,
     );
-    for (const action of revokePermissions) {
-      permissionPromises.push(this.simctl.revokePermission(bundleId, action));
+    for (const service of revokePermissions) {
+      permissionPromises.push(execSimctlPrivacy.call(this, 'revoke', service, bundleId));
     }
   }
 
@@ -228,8 +203,8 @@ async function setAccess(
     this.log.debug(
       `Resetting ${util.pluralize('permission', resetPermissions.length, false)} for ${bundleId}: ${resetPermissions}`,
     );
-    for (const action of resetPermissions) {
-      permissionPromises.push(this.simctl.resetPermission(bundleId, action));
+    for (const service of resetPermissions) {
+      permissionPromises.push(execSimctlPrivacy.call(this, 'reset', service, bundleId));
     }
   }
 
@@ -237,16 +212,23 @@ async function setAccess(
     await Promise.all(permissionPromises);
   }
 
-  if (Object.keys(wixPermissions).length > 0) {
-    this.log.debug(`Setting permissions for ${bundleId} with ${WIX_SIM_UTILS} as ${JSON.stringify(wixPermissions)}`);
-    const permissionsArg = Object.entries(wixPermissions)
-      .map(([name, status]) => `${name}=${formatStatus(status)}`)
-      .join(',');
-    const execWixFn = async () =>
-      await execWix.bind(this)(['--byId', this.udid, '--bundle', bundleId, '--setPermissions', permissionsArg]);
-    const shouldWaitForSystemReadiness = SERVICES_NEED_SPRINGBOARD_RESTART.some((service) => service in wixPermissions);
+  if (Object.keys(nativePermissions).length > 0) {
+    this.log.debug(`Setting permissions for ${bundleId} natively: ${JSON.stringify(nativePermissions)}`);
+    const setNativePermissions = async () => {
+      await Promise.all(
+        Object.entries(nativePermissions).map(([name, status]) =>
+          setNativePermission.call(this, bundleId, name, status),
+        ),
+      );
+    };
+    const shouldWaitForSystemReadiness = SERVICES_NEED_SPRINGBOARD_RESTART.some(
+      (service) => service in nativePermissions,
+    );
     if (shouldWaitForSystemReadiness) {
-      const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(execWixFn, SYSTEM_SERVICE_RESTART_TIMEOUT_MS);
+      const [didTimeout] = await runAndWaitForSystemReadiness.bind(this)(
+        setNativePermissions,
+        SYSTEM_SERVICE_RESTART_TIMEOUT_MS,
+      );
       if (didTimeout) {
         this.log.warn(
           `The required system services did not restart after ` +
@@ -254,11 +236,34 @@ async function setAccess(
         );
       }
     } else {
-      await execWixFn();
+      await setNativePermissions();
     }
   }
 
   return true;
+}
+
+async function setNativePermission(
+  this: CoreSimulatorWithAppPermissions,
+  bundleId: string,
+  serviceName: string,
+  status: string,
+): Promise<void> {
+  const service = toPermissionService(serviceName);
+  switch (formatStatus(status).toLowerCase()) {
+    case STATUS.YES:
+      return await this._native.grantPermission(this.udid, service, bundleId);
+    case STATUS.LIMITED:
+      // Only valid for 'photos' ("selected photos" access) — @appium/coresim rejects it for every
+      // other service with a typed error, which is left to propagate as-is.
+      return await this._native.grantPermission(this.udid, service, bundleId, 'limited');
+    case STATUS.NO:
+      return await this._native.revokePermission(this.udid, service, bundleId);
+    case STATUS.UNSET:
+      return await this._native.resetPermission(this.udid, service, bundleId);
+    default:
+      throw this.log.errorWithException(`'${status}' is not a supported value for '${serviceName}'`);
+  }
 }
 
 /**
@@ -289,7 +294,7 @@ async function runAndWaitForSystemReadiness<T>(
     );
   };
 
-  let initialProcesses: any[] = [];
+  let initialProcesses: ProcessInfo[] = [];
   try {
     initialProcesses = await this.ps();
   } catch {}
@@ -327,8 +332,7 @@ async function runAndWaitForSystemReadiness<T>(
  * Retrieves the current permission status for the given service and application.
  *
  * @param bundleId bundle identifier of the target application.
- * @param serviceName the name of the service. Should be one of
- * `SERVICES` keys.
+ * @param serviceName the name of the service. Should be one of the supported service names.
  * @returns The current status: yes/no/unset/limited
  * @throws {Error} If there was an error while retrieving permissions.
  */
@@ -337,40 +341,16 @@ async function getAccess(
   bundleId: string,
   serviceName: string,
 ): Promise<string> {
-  const internalServiceName = toInternalServiceName(serviceName);
-  const dbPath = path.resolve(this.getDir(), 'Library', 'TCC', 'TCC.db');
-  const getAccessStatus = async (statusPairs: [string, string][], statusKey: string) => {
-    for (const [statusValue, status] of statusPairs) {
-      const sql =
-        `SELECT count(*) FROM 'access' ` +
-        `WHERE client='${bundleId}' AND ${statusKey}=${statusValue} AND service='${internalServiceName}'`;
-      const count = await execSQLiteQuery.bind(this)(dbPath, sql);
-      if (parseInt(count.split('=')[1], 10) > 0) {
-        return status;
-      }
-    }
-    return STATUS.UNSET;
-  };
-
-  // 'auth_value' existence depends on the OS version rather than Xcode version.
-  // Thus here check the newer one first, then fallback to the older version way.
-  try {
-    // iOS 14+
-    return await getAccessStatus(
-      [
-        ['0', STATUS.NO],
-        ['2', STATUS.YES],
-        ['3', STATUS.LIMITED],
-      ],
-      'auth_value',
-    );
-  } catch {
-    return await getAccessStatus(
-      [
-        ['0', STATUS.NO],
-        ['1', STATUS.YES],
-      ],
-      'allowed',
-    );
+  const service = toPermissionService(serviceName);
+  const status = await this._native.getPermission(this.udid, service, bundleId);
+  switch (status) {
+    case 'granted':
+      return STATUS.YES;
+    case 'denied':
+      return STATUS.NO;
+    case 'limited':
+      return STATUS.LIMITED;
+    default:
+      return STATUS.UNSET;
   }
 }

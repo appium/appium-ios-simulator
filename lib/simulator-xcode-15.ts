@@ -1,130 +1,235 @@
 import path from 'node:path';
 
-import {fs} from '@appium/support';
+import type {NativeSimctl} from '@appium/coresim';
+import type {AppiumLogger} from '@appium/types';
+import type {XcodeVersion} from 'appium-xcode';
 
-import {SimulatorXcode14} from './simulator-xcode-14.js';
-import {readBundleIdFromPlist} from './utils/index.js';
+import {BaseSimulator} from './base-simulator.js';
+import * as appExtensions from './extensions/applications.js';
+import * as biometricExtensions from './extensions/biometric.js';
+import * as geolocationExtensions from './extensions/geolocation.js';
+import * as keychainExtensions from './extensions/keychain.js';
+import * as lifecycleExtensions from './extensions/lifecycle.js';
+import * as miscExtensions from './extensions/misc.js';
+import * as pasteboardExtensions from './extensions/pasteboard.js';
+import * as pathsExtensions from './extensions/paths.js';
+import * as permissionsExtensions from './extensions/permissions.js';
+import * as processExtensions from './extensions/process.js';
+import * as safariExtensions from './extensions/safari.js';
+import * as screenshotExtensions from './extensions/screenshot.js';
+import * as settingsExtensions from './extensions/settings.js';
+import * as systemRootExtensions from './extensions/system-root.js';
+import * as uiClientExtensions from './extensions/ui-client.js';
+import {log as defaultLog} from './logger.js';
+import {createNativeSimctl} from './native/native-simctl.js';
+import type {CoreSimulator} from './types.js';
+import {SIMULATOR_UI_CLIENT_BUNDLE_ID} from './utils/index.js';
 
-export class SimulatorXcode15 extends SimulatorXcode14 {
-  private _systemAppBundleIds?: Set<string>;
+const STARTUP_TIMEOUT_MS = 120 * 1000;
+
+// Every method beyond the identity getters/setters below is mixed in onto the prototype via the
+// `Object.assign` call at the bottom of this file, grouped by concern into `extensions/*.ts`
+// modules — this class itself only holds construction/identity state, so subclasses can override
+// any mixed-in method as a regular class method (and still call `super.methodName()`). Each
+// `extensions/*.ts` module declares its own methods on the `SimulatorXcode15` type via a
+// `declare module` augmentation, since the class body itself never defines them.
+export class SimulatorXcode15 extends BaseSimulator implements CoreSimulator {
+  _keychainsBackupPath: string | null | undefined;
+  _platformVersion: string | null | undefined;
+  _webInspectorSocket: string | null | undefined;
+  _uiClientAppPath: Promise<string> | undefined;
+  _systemAppBundleIds: Set<string> | undefined;
+
+  private readonly _udid: string;
+  /**
+   * @internal Not part of the public `CoreSimulator`/`Simulator` API — see `lib/native/types.ts`'s
+   * `HasNativeSimctl`, which extension modules type their `this` against to reach this.
+   */
+  _native: NativeSimctl;
+  private _devicesSetPath: string | null = null;
+  private readonly _xcodeVersion: XcodeVersion;
+  private readonly _log: AppiumLogger;
 
   /**
-   * @override
-   * @inheritdoc
+   * Constructs the object with the `udid` and version of Xcode.
+   * Use the exported `getSimulator(udid)` method instead.
    *
-   * @param bundleId - The bundle id of the application to be checked.
-   * @return True if the given application is installed.
+   * @param udid - The Simulator ID.
+   * @param xcodeVersion - The target Xcode version in format {major, minor, build}.
+   * @param log - Optional logger instance.
    */
-  override async isAppInstalled(bundleId: string): Promise<boolean> {
-    try {
-      const appContainer = await this.simctl.getAppContainer(bundleId);
-      return appContainer.endsWith('.app') && (await fs.exists(appContainer));
-    } catch {
-      // get_app_container subcommand fails for system applications,
-      // as well as the hidden appinfo command
-      return (await this._fetchSystemAppBundleIds()).has(bundleId);
-    }
+  constructor(udid: string, xcodeVersion: XcodeVersion, log: AppiumLogger | null = null) {
+    super();
+
+    this._udid = String(udid);
+    this._native = createNativeSimctl(this._devicesSetPath);
+    this._xcodeVersion = xcodeVersion;
+    // platformVersion cannot be found initially, since getting it has side effects for
+    // our logic for figuring out if a sim has been run
+    // it will be set when it is needed
+    this._platformVersion = null;
+    this._webInspectorSocket = null;
+    this._uiClientAppPath = undefined;
+    this._systemAppBundleIds = undefined;
+    this._log = log ?? defaultLog;
   }
 
   /**
-   * @override
-   * @inheritdoc
-   *
-   * @returns The full path to the LaunchDaemons directory
+   * @returns The unique device identifier (UDID) of the simulator.
    */
-  override async getLaunchDaemonsRoot(): Promise<string> {
-    return path.resolve(await this._getSystemRoot(), 'System', 'Library', 'LaunchDaemons');
+  get udid(): string {
+    return this._udid;
   }
 
   /**
-   * Sets the increase contrast configuration for the given simulator.
-   * This function can only be called on a booted simulator.
-   *
-   * @override
-   * @since Xcode SDK 15 (but lower xcode could have this command)
-   * @param value valid increase constrast configuration value.
-   *                       Acceptable value is 'enabled' or 'disabled' with Xcode 16.2.
+   * @returns The Xcode version information.
    */
-  override async setIncreaseContrast(value: string): Promise<void> {
-    await this.simctl.setIncreaseContrast(value);
+  get xcodeVersion(): XcodeVersion {
+    return this._xcodeVersion;
   }
 
   /**
-   * Retrieves the current increase contrast configuration value from the given simulator.
-   * This function can only be called on a booted simulator.
-   *
-   * @override
-   * @since Xcode SDK 15 (but lower xcode could have this command)
-   * @returns the contrast configuration value.
-   *                            Possible return value is 'enabled', 'disabled',
-   *                            'unsupported' or 'unknown' with Xcode 16.2.
+   * @returns The full path to the keychain directory for this simulator.
    */
-  override async getIncreaseContrast(): Promise<string> {
-    return await this.simctl.getIncreaseContrast();
+  get keychainPath(): string {
+    return path.resolve(this.getDir(), 'Library', 'Keychains');
   }
 
   /**
-   * Sets content size for the given simulator.
-   * This function can only be called on a booted simulator.
-   *
-   * @override
-   * @since Xcode SDK 15 (but lower xcode could have this command)
-   * @param value valid content size or action value. Acceptable value is
-   *                       extra-small, small, medium, large, extra-large, extra-extra-large,
-   *                       extra-extra-extra-large, accessibility-medium, accessibility-large,
-   *                       accessibility-extra-large, accessibility-extra-extra-large,
-   *                       accessibility-extra-extra-extra-large with Xcode 16.2.
+   * @returns The logger instance used by this simulator.
    */
-  override async setContentSize(value: string): Promise<void> {
-    await this.simctl.setContentSize(value);
+  get log(): AppiumLogger {
+    return this._log;
   }
 
   /**
-   * Retrieves the current content size value from the given simulator.
-   * This function can only be called on a booted simulator.
-   *
-   * @override
-   * @since Xcode SDK 15 (but lower xcode could have this command)
-   * @returns the content size value. Possible return value is
-   *                            extra-small, small, medium, large, extra-large, extra-extra-large,
-   *                            extra-extra-extra-large, accessibility-medium, accessibility-large,
-   *                            accessibility-extra-large, accessibility-extra-extra-large,
-   *                            accessibility-extra-extra-extra-large,
-   *                            unknown or unsupported with Xcode 16.2.
+   * @returns The bundle identifier of the Simulator UI client.
    */
-  override async getContentSize(): Promise<string> {
-    return await this.simctl.getContentSize();
+  get uiClientBundleId(): string {
+    return SIMULATOR_UI_CLIENT_BUNDLE_ID;
   }
 
   /**
-   * Retrives the full path to where the simulator system R/O volume is mounted
-   *
-   * @returns The full path to the system root
+   * @returns The maximum number of milliseconds to wait until Simulator booting is completed.
    */
-  private async _getSystemRoot(): Promise<string> {
-    const simRoot = await this.simctl.getEnv('IPHONE_SIMULATOR_ROOT');
-    if (!simRoot) {
-      throw new Error('The IPHONE_SIMULATOR_ROOT environment variable value cannot be retrieved');
-    }
-    return simRoot.trim();
+  get startupTimeout(): number {
+    return STARTUP_TIMEOUT_MS;
   }
 
   /**
-   * Collects and caches bundle indetifier of system Simulator apps
-   *
-   * @returns A set of system app bundle identifiers
+   * @returns The full path to the devices set where the current simulator is located.
+   * `null` value means that the default path is used.
    */
-  private async _fetchSystemAppBundleIds(): Promise<Set<string>> {
-    if (this._systemAppBundleIds) {
-      return this._systemAppBundleIds;
-    }
+  get devicesSetPath(): string | null {
+    return this._devicesSetPath;
+  }
 
-    const appsRoot = path.resolve(await this._getSystemRoot(), 'Applications');
-    const allApps = (await fs.readdir(appsRoot)).filter((x) => x.endsWith('.app')).map((x) => path.join(appsRoot, x));
-    const bundleIds = await Promise.all(
-      allApps.map((appRoot) => readBundleIdFromPlist(path.resolve(appRoot, 'Info.plist'))),
-    );
-    this._systemAppBundleIds = new Set(bundleIds.filter((x): x is string => x !== null));
-    return this._systemAppBundleIds;
+  /**
+   * Set the full path to the devices set. It is recommended to set this value
+   * once right after Simulator instance is created and to not change it during
+   * the instance lifecycle.
+   *
+   * @param value - The full path to the devices set root on the local file system.
+   */
+  set devicesSetPath(value: string | null) {
+    this._devicesSetPath = value;
+    this._native = createNativeSimctl(value);
   }
 }
+
+Object.assign(SimulatorXcode15.prototype, {
+  // paths
+  getRootDir: pathsExtensions.getRootDir,
+  getDir: pathsExtensions.getDir,
+  getLogDir: pathsExtensions.getLogDir,
+
+  // lifecycle
+  stat: lifecycleExtensions.stat,
+  isFresh: lifecycleExtensions.isFresh,
+  isRunning: lifecycleExtensions.isRunning,
+  isShutdown: lifecycleExtensions.isShutdown,
+  getPlatformVersion: lifecycleExtensions.getPlatformVersion,
+  boot: lifecycleExtensions.boot,
+  waitForBoot: lifecycleExtensions.waitForBoot,
+  clean: lifecycleExtensions.clean,
+  delete: lifecycleExtensions.deleteDevice,
+  shutdown: lifecycleExtensions.shutdown,
+
+  // UI client
+  getUIClientPid: uiClientExtensions.getUIClientPid,
+  isUIClientRunning: uiClientExtensions.isUIClientRunning,
+  startUIClient: uiClientExtensions.startUIClient,
+  killUIClient: uiClientExtensions.killUIClient,
+  launchWindow: uiClientExtensions.launchWindow,
+  run: uiClientExtensions.run,
+
+  // system root
+  getLaunchDaemonsRoot: systemRootExtensions.getLaunchDaemonsRoot,
+
+  // applications
+  installApp: appExtensions.installApp,
+  getUserInstalledBundleIdsByBundleName: appExtensions.getUserInstalledBundleIdsByBundleName,
+  isAppInstalled: appExtensions.isAppInstalled,
+  removeApp: appExtensions.removeApp,
+  launchApp: appExtensions.launchApp,
+  terminateApp: appExtensions.terminateApp,
+  isAppRunning: appExtensions.isAppRunning,
+  scrubApp: appExtensions.scrubApp,
+  getAppContainer: appExtensions.getAppContainer,
+  appInfo: appExtensions.appInfo,
+
+  // pasteboard
+  getPasteboard: pasteboardExtensions.getPasteboard,
+  setPasteboard: pasteboardExtensions.setPasteboard,
+
+  // screenshot
+  getScreenshot: screenshotExtensions.getScreenshot,
+
+  // process
+  spawnProcess: processExtensions.spawnProcess,
+  ps: processExtensions.ps,
+
+  // safari
+  openUrl: safariExtensions.openUrl,
+  scrubSafari: safariExtensions.scrubSafari,
+  updateSafariSettings: safariExtensions.updateSafariSettings,
+  getWebInspectorSocket: safariExtensions.getWebInspectorSocket,
+
+  // biometric
+  isBiometricEnrolled: biometricExtensions.isBiometricEnrolled,
+  enrollBiometric: biometricExtensions.enrollBiometric,
+  sendBiometricMatch: biometricExtensions.sendBiometricMatch,
+
+  // keychain
+  backupKeychains: keychainExtensions.backupKeychains,
+  restoreKeychains: keychainExtensions.restoreKeychains,
+  clearKeychains: keychainExtensions.clearKeychains,
+
+  // geolocation
+  setGeolocation: geolocationExtensions.setGeolocation,
+
+  // misc
+  shake: miscExtensions.shake,
+  addCertificate: miscExtensions.addCertificate,
+  pushNotification: miscExtensions.pushNotification,
+  addMedia: miscExtensions.addMedia,
+
+  // permissions
+  setPermission: permissionsExtensions.setPermission,
+  setPermissions: permissionsExtensions.setPermissions,
+  getPermission: permissionsExtensions.getPermission,
+
+  // settings
+  updateSettings: settingsExtensions.updateSettings,
+  setAppearance: settingsExtensions.setAppearance,
+  getAppearance: settingsExtensions.getAppearance,
+  setIncreaseContrast: settingsExtensions.setIncreaseContrast,
+  getIncreaseContrast: settingsExtensions.getIncreaseContrast,
+  setContentSize: settingsExtensions.setContentSize,
+  getContentSize: settingsExtensions.getContentSize,
+  configureLocalization: settingsExtensions.configureLocalization,
+  setAutoFillPasswords: settingsExtensions.setAutoFillPasswords,
+  setReduceMotion: settingsExtensions.setReduceMotion,
+  setReduceTransparency: settingsExtensions.setReduceTransparency,
+  disableKeyboardIntroduction: settingsExtensions.disableKeyboardIntroduction,
+});

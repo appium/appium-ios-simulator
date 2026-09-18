@@ -1,16 +1,17 @@
-import {getDevices} from './get-devices.js';
-import type {SimulatorInfoOptions} from './types.js';
+import type {SimulatorInfoOptions, SimulatorListEntry} from '../types.js';
+import {listSimulators} from './list-simulators.js';
 
 /**
  * @param udid - The simulator UDID.
  * @param opts - Options including devicesSetPath.
  * @returns Promise that resolves to simulator info or undefined if not found.
  */
-export async function getSimulatorInfo(udid: string, opts: SimulatorInfoOptions = {}): Promise<any> {
-  const {devicesSetPath} = opts;
-  // see the README for github.com/appium/node-simctl for example output of getDevices()
-  const devices = Object.values(await getDevices({devicesSetPath})).flat();
-  return devices.find((sim: any) => sim.udid === udid);
+export async function getSimulatorInfo(
+  udid: string,
+  opts: SimulatorInfoOptions = {},
+): Promise<SimulatorListEntry | undefined> {
+  const devices = await listSimulators(opts);
+  return devices.find((sim) => sim.udid === udid);
 }
 
 /**

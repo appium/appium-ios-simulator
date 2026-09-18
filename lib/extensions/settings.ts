@@ -5,6 +5,16 @@ import type {StringRecord} from '@appium/types';
 import AsyncLock from 'async-lock';
 import {exec} from 'teen_process';
 
+import {resolveGuestDefaults, resolveGuestLaunchctl, spawnAndWait} from '../native/spawn.js';
+import type {HasNativeSimctl} from '../native/types.js';
+import {
+  appearanceToRaw,
+  contentSizeToRaw,
+  contrastToEnabled,
+  rawToAppearance,
+  rawToContentSize,
+  rawToContrast,
+} from '../native/ui-mappings.js';
 import type {
   CoreSimulator,
   HasSettings,
@@ -15,11 +25,11 @@ import type {
 } from '../types.js';
 import {NSUserDefaults, generateDefaultsCommandArgs} from '../utils/index.js';
 
-declare module '../simulator-xcode-14.js' {
-  interface SimulatorXcode14 extends HasSettings {}
+declare module '../simulator-xcode-15.js' {
+  interface SimulatorXcode15 extends HasSettings {}
 }
 
-type CoreSimulatorWithSettings = CoreSimulator & HasSettings;
+type CoreSimulatorWithSettings = CoreSimulator & HasSettings & HasNativeSimctl;
 
 // com.apple.SpringBoard: translates com.apple.SpringBoard and system prompts for push notification
 // com.apple.locationd: translates system prompts for location
@@ -94,7 +104,10 @@ export async function updateSettings(
   }
 
   const argChunks = generateDefaultsCommandArgs(updates);
-  await Promise.all(argChunks.map((args) => this.simctl.spawnProcess(['defaults', 'write', domain, ...args])));
+  const defaultsPath = await resolveGuestDefaults(this._native, this.udid);
+  await Promise.all(
+    argChunks.map((args) => spawnAndWait(this._native, this.udid, defaultsPath, ['write', domain, ...args])),
+  );
   return true;
 }
 
@@ -108,7 +121,7 @@ export async function updateSettings(
  * @since Xcode SDK 11.4
  */
 export async function setAppearance(this: CoreSimulatorWithSettings, value: string): Promise<void> {
-  await this.simctl.setAppearance(value.toLowerCase());
+  await this._native.setAppearance(this.udid, appearanceToRaw(value));
 }
 
 /**
@@ -122,20 +135,19 @@ export async function setAppearance(this: CoreSimulatorWithSettings, value: stri
  * @since Xcode SDK 11.4
  */
 export async function getAppearance(this: CoreSimulatorWithSettings): Promise<string> {
-  return await this.simctl.getAppearance();
+  return rawToAppearance(await this._native.getAppearance(this.udid));
 }
 
 /**
  * Sets the increase contrast configuration for the given simulator.
  * This function can only be called on a booted simulator.
  *
- * @param _value valid increase contrast configuration value.
+ * @param value valid increase contrast configuration value.
  *                       Acceptable value is 'enabled' or 'disabled' with Xcode 16.2.
- * @since Xcode SDK 15 (but lower xcode could have this command)
+ * @since Xcode SDK 15
  */
 export async function setIncreaseContrast(this: CoreSimulatorWithSettings, value: string): Promise<void> {
-  void value;
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
+  await this._native.setIncreaseContrast(this.udid, contrastToEnabled(value));
 }
 
 /**
@@ -145,26 +157,25 @@ export async function setIncreaseContrast(this: CoreSimulatorWithSettings, value
  * @returns the contrast configuration value.
  *                            Possible return value is 'enabled', 'disabled',
  *                            'unsupported' or 'unknown' with Xcode 16.2.
- * @since Xcode SDK 15 (but lower xcode could have this command)
+ * @since Xcode SDK 15
  */
 export async function getIncreaseContrast(this: CoreSimulatorWithSettings): Promise<string> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to get content size`);
+  return rawToContrast(await this._native.getIncreaseContrast(this.udid));
 }
 
 /**
  * Sets content size for the given simulator.
  * This function can only be called on a booted simulator.
  *
- * @param _value valid content size or action value. Acceptable value is
+ * @param value valid content size or action value. Acceptable value is
  *                       extra-small, small, medium, large, extra-large, extra-extra-large,
  *                       extra-extra-extra-large, accessibility-medium, accessibility-large,
  *                       accessibility-extra-large, accessibility-extra-extra-large,
  *                       accessibility-extra-extra-extra-large with Xcode 16.2.
- * @since Xcode SDK 15 (but lower xcode could have this command)
+ * @since Xcode SDK 15
  */
 export async function setContentSize(this: CoreSimulatorWithSettings, value: string): Promise<void> {
-  void value;
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to set content size`);
+  await this._native.setContentSize(this.udid, contentSizeToRaw(value));
 }
 
 /**
@@ -177,10 +188,10 @@ export async function setContentSize(this: CoreSimulatorWithSettings, value: str
  *                           accessibility-extra-large, accessibility-extra-extra-large,
  *                           accessibility-extra-extra-extra-large,
  *                           unknown or unsupported with Xcode 16.2.
- * @since Xcode SDK 15 (but lower xcode could have this command)
+ * @since Xcode SDK 15
  */
 export async function getContentSize(this: CoreSimulatorWithSettings): Promise<string> {
-  throw new Error(`Xcode SDK '${this.xcodeVersion}' is too old to get content size`);
+  return rawToContentSize(await this._native.getContentSize(this.udid));
 }
 
 /**
@@ -237,7 +248,7 @@ export async function configureLocalization(
     return false;
   }
 
-  let previousAppleLanguages: any = null;
+  let previousAppleLanguages: unknown = null;
   if (globalPrefs.AppleLanguages) {
     const absolutePrefsPath = path.join(this.getDir(), 'Library', 'Preferences', GLOBAL_PREFS_PLIST);
     try {
@@ -248,9 +259,13 @@ export async function configureLocalization(
     }
   }
 
+  const defaultsPath = await resolveGuestDefaults(this._native, this.udid);
+
   const argChunks = generateDefaultsCommandArgs(globalPrefs, true);
   await Promise.all(
-    argChunks.map((args) => this.simctl.spawnProcess(['defaults', 'write', GLOBAL_PREFS_PLIST, ...args])),
+    argChunks.map((args) =>
+      spawnAndWait(this._native, this.udid, defaultsPath, ['write', GLOBAL_PREFS_PLIST, ...args]),
+    ),
   );
 
   if (keyboard && keyboardId) {
@@ -263,7 +278,9 @@ export async function configureLocalization(
       true,
     );
     await Promise.all(
-      argChunks.map((args) => this.simctl.spawnProcess(['defaults', 'write', 'com.apple.Preferences', ...args])),
+      argChunks.map((args) =>
+        spawnAndWait(this._native, this.udid, defaultsPath, ['write', 'com.apple.Preferences', ...args]),
+      ),
     );
   }
 
@@ -281,7 +298,12 @@ export async function configureLocalization(
           `${SERVICES_FOR_TRANSLATION}. This might have unexpected side effects, ` +
           `see https://github.com/appium/appium/issues/19440 for more details`,
       );
-      await Promise.all(SERVICES_FOR_TRANSLATION.map((arg) => this.simctl.spawnProcess(['launchctl', 'stop', arg])));
+      const launchctlPath = await resolveGuestLaunchctl(this._native, this.udid);
+      await Promise.all(
+        SERVICES_FOR_TRANSLATION.map((service) =>
+          spawnAndWait(this._native, this.udid, launchctlPath, ['stop', service]),
+        ),
+      );
     }
   }
 
@@ -336,7 +358,7 @@ export async function updatePreferences(
     const prefsToUpdate = {...commonPrefs};
     try {
       if (Object.keys(devicePrefs).length > 0) {
-        let existingDevicePrefs: any;
+        let existingDevicePrefs: DevicePreferences | undefined;
         const udidKey = this.udid.toUpperCase();
         if (await fs.exists(plistPath)) {
           const currentPlistContent = await defaults.asJson();
