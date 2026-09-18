@@ -134,6 +134,37 @@ describe('simulator', function () {
       await assert.rejects(getSimulator('123'), /No sim found/);
     });
 
+    it('should match a udid that differs from the listed one only by letter case, and canonicalize it', async function () {
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
+
+      const sim = await getSimulator(UDID.toLowerCase());
+      assert.strictEqual(sim.udid, UDID);
+    });
+
+    it('should match the device by udid case-insensitively when checkExistence is skipped', async function () {
+      // With checkExistence:false there is no lookup to canonicalize against, so this exercises
+      // stat()/isRunning()'s own defensive case-insensitive match against a udid that stayed
+      // whatever case the caller passed in.
+      const xcodeVersion = {major: 15, versionString: '15.0.0'};
+      assertXcodeVersionStub.callsFake(() => xcodeVersion);
+
+      const sim = await getSimulator(UDID.toLowerCase(), {checkExistence: false});
+      assert.strictEqual(sim.udid, UDID.toLowerCase());
+
+      sinon.stub((sim as InstanceType<typeof SimulatorXcode15>)._native, 'getDevices').resolves([
+        {
+          udid: UDID,
+          name: 'iPhone 4s',
+          state: SimDeviceState.Booted,
+          deviceTypeIdentifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone',
+          runtimeIdentifier: 'com.apple.CoreSimulator.SimRuntime.iOS-10-0',
+        },
+      ] as any);
+
+      assert.strictEqual(await sim.isRunning(), true);
+    });
+
     it('should list stats for sim', async function () {
       const xcodeVersion = {major: 15, versionString: '15.0.0'};
       assertXcodeVersionStub.callsFake(() => xcodeVersion);

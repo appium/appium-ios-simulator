@@ -20,6 +20,10 @@ export async function getSimulator(udid: string, opts: SimulatorLookupOptions = 
   const {checkExistence = true, devicesSetPath, logger} = opts;
 
   const xcodeVersion = assertXcodeVersion((await xcode.getVersion(true)) as xcode.XcodeVersion);
+  // Canonicalize to the case CoreSimulator itself reports, once we know it, so every later
+  // lookup keyed on this udid (native command dispatch, device-state checks, ...) agrees with it
+  // instead of depending on whatever case the caller happened to pass in.
+  let canonicalUdid = udid;
   if (checkExistence) {
     const simulatorInfo = await getSimulatorInfo(udid, {
       devicesSetPath,
@@ -30,15 +34,16 @@ export async function getSimulator(udid: string, opts: SimulatorLookupOptions = 
     }
 
     platform = simulatorInfo.platform;
+    canonicalUdid = simulatorInfo.udid;
   }
 
   (logger ?? log).info(
-    `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${udid}'`,
+    `Constructing ${platform} simulator for Xcode version ${xcodeVersion.versionString} with udid '${canonicalUdid}'`,
   );
   const SimClass: typeof SimulatorXcode15 | typeof SimulatorXcode27 =
     xcodeVersion.major >= MIN_DEVICE_HUB_XCODE_VERSION ? SimulatorXcode27 : SimulatorXcode15;
 
-  const result = new SimClass(udid, xcodeVersion, logger);
+  const result = new SimClass(canonicalUdid, xcodeVersion, logger);
   if (devicesSetPath) {
     result.devicesSetPath = devicesSetPath;
   }
