@@ -8,7 +8,7 @@ import {
   MIN_DEVICE_HUB_XCODE_VERSION,
   SIMULATOR_UI_CLIENT_BUNDLE_ID,
 } from './constants.js';
-import {getDevices} from './get-devices.js';
+import {listSimulators} from './list-simulators.js';
 import {getMacAppPidByPath, killMacAppByPath} from './process.js';
 import {getUiClientAppPath} from './xcode.js';
 
@@ -68,7 +68,7 @@ async function allSimsAreDown(): Promise<boolean> {
 }
 
 async function getNonShutdownDeviceDescriptions(): Promise<string[]> {
-  const devices = await getDevices();
+  const devices = await listSimulators();
   return devices
     .filter((sim) => sim.state !== 'Shutdown')
     .map((sim) => `${sim.name} (${sim.sdk}, udid: ${sim.udid}) is still in state '${sim.state}'`);

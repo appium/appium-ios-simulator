@@ -31,7 +31,7 @@ let currentGetVersion: (...args: any[]) => any = async () => ({
   versionString: '15.0.0',
 });
 let currentAssertXcodeVersion: (...args: any[]) => any = (v: any) => v;
-let currentGetDevices: (...args: any[]) => any = async () => devices;
+let currentListSimulators: (...args: any[]) => any = async () => devices;
 
 mock.module('teen_process', {
   namedExports: {
@@ -55,9 +55,9 @@ mock.module('../../lib/utils/xcode.js', {
     assertXcodeVersion: (...args: any[]) => currentAssertXcodeVersion(...args),
   },
 });
-mock.module('../../lib/utils/get-devices.js', {
+mock.module('../../lib/utils/list-simulators.js', {
   namedExports: {
-    getDevices: (...args: any[]) => currentGetDevices(...args),
+    listSimulators: (...args: any[]) => currentListSimulators(...args),
   },
 });
 
@@ -69,7 +69,7 @@ describe('simulator', function () {
   let sandbox: sinon.SinonSandbox;
 
   let assertXcodeVersionStub: sinon.SinonStub;
-  let getDevicesStub: sinon.SinonStub;
+  let listSimulatorsStub: sinon.SinonStub;
   let getVersionStub: sinon.SinonStub;
 
   beforeEach(function () {
@@ -77,8 +77,8 @@ describe('simulator', function () {
     currentExec = sandbox.stub().resolves({stdout: '', stderr: ''});
     assertXcodeVersionStub = sandbox.stub();
     currentAssertXcodeVersion = assertXcodeVersionStub;
-    getDevicesStub = sandbox.stub().resolves(devices);
-    currentGetDevices = getDevicesStub;
+    listSimulatorsStub = sandbox.stub().resolves(devices);
+    currentListSimulators = listSimulatorsStub;
     getVersionStub = sandbox.stub();
     getVersionStub.withArgs(true).returns(Promise.resolve({major: 15, versionString: '15.0.0'}));
     currentGetVersion = getVersionStub;

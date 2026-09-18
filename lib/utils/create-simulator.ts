@@ -1,5 +1,5 @@
 import {createNativeSimctl} from '../native/native-simctl.js';
-import type {CreateDeviceOptions} from '../types.js';
+import type {CreateSimulatorOptions} from '../types.js';
 
 /**
  * Creates a new Simulator device, resolving the given friendly `deviceTypeName`/`platformVersion`
@@ -15,11 +15,11 @@ import type {CreateDeviceOptions} from '../types.js';
  * @returns The new device's UDID.
  * @throws {Error} If no matching device type or platform runtime is available.
  */
-export async function createDevice(
+export async function createSimulator(
   name: string,
   deviceTypeName: string,
   platformVersion: string,
-  opts: CreateDeviceOptions = {},
+  opts: CreateSimulatorOptions = {},
 ): Promise<string> {
   const {platform = 'iOS', devicesSetPath} = opts;
   const nativeSimctl = createNativeSimctl(devicesSetPath);

@@ -1,4 +1,4 @@
-// for testing, this is a sample of what lib/utils/get-devices.js's getDevices() returns.
+// for testing, this is a sample of what lib/utils/list-simulators.js's listSimulators() returns.
 
 interface Device {
   name: string;

@@ -34,7 +34,7 @@ const FAKE_UI_CLIENT_APP = '/fake/UIClient.app';
 
 let currentExec: (...args: any[]) => any = async () => ({stdout: '', stderr: ''});
 let currentGetVersion: (...args: any[]) => any = async () => XCODE_VERSION_10;
-let currentGetDevices: (...args: any[]) => any = async () => devices;
+let currentListSimulators: (...args: any[]) => any = async () => devices;
 let currentShutdownAllDevices: (...args: any[]) => any = async () => {};
 let currentGetUiClientAppPath: (...args: any[]) => any = async () => FAKE_UI_CLIENT_APP;
 
@@ -54,9 +54,9 @@ mock.module('appium-xcode', {
     getVersion: (...args: any[]) => currentGetVersion(...args),
   },
 });
-mock.module('../../lib/utils/get-devices.js', {
+mock.module('../../lib/utils/list-simulators.js', {
   namedExports: {
-    getDevices: (...args: any[]) => currentGetDevices(...args),
+    listSimulators: (...args: any[]) => currentListSimulators(...args),
   },
 });
 mock.module('../../lib/native/native-simctl.js', {
@@ -79,14 +79,14 @@ const {verifyDevicePreferences} = await import('../../lib/extensions/settings.js
 describe('util', function () {
   let sandbox: sinon.SinonSandbox;
 
-  let getDevicesStub: sinon.SinonStub;
+  let listSimulatorsStub: sinon.SinonStub;
   let innerExecStub: sinon.SinonStub;
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
     currentExec = sandbox.stub().resolves({stdout: '', stderr: ''});
-    getDevicesStub = sandbox.stub().resolves(devices);
-    currentGetDevices = getDevicesStub;
+    listSimulatorsStub = sandbox.stub().resolves(devices);
+    currentListSimulators = listSimulatorsStub;
     currentGetVersion = sandbox.stub();
     currentShutdownAllDevices = sandbox.stub().resolves();
     currentGetUiClientAppPath = sandbox.stub().resolves(FAKE_UI_CLIENT_APP);

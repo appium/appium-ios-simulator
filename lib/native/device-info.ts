@@ -1,7 +1,7 @@
 import {SimDeviceState} from '@appium/coresim';
 import type {SimDeviceInfo} from '@appium/coresim';
 
-import type {DeviceListEntry} from '../types.js';
+import type {SimulatorListEntry} from '../types.js';
 
 // Matches simctl/CoreSimulator's own state-name capitalization (the same strings `stat()`'s
 // public contract has always documented), not a lowercase convention of this package's own.
@@ -23,7 +23,7 @@ function parseRuntimeIdentifier(runtimeIdentifier: string): {platform: string; s
   return match ? {platform: match[1], sdk: match[2].replace('-', '.')} : {platform: '', sdk: ''};
 }
 
-export function toDeviceListEntry(device: SimDeviceInfo): DeviceListEntry {
+export function toSimulatorListEntry(device: SimDeviceInfo): SimulatorListEntry {
   const {platform, sdk} = parseRuntimeIdentifier(device.runtimeIdentifier);
   return {
     udid: device.udid,

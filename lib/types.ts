@@ -8,12 +8,12 @@ export interface SimulatorInfoOptions {
   devicesSetPath?: string | null;
 }
 
-export interface CreateDeviceOptions extends SimulatorInfoOptions {
+export interface CreateSimulatorOptions extends SimulatorInfoOptions {
   /** The name of the simulator platform, iOS by default */
   platform?: string;
 }
 
-export interface DeviceListEntry {
+export interface SimulatorListEntry {
   udid: string;
   name: string;
   /** Lowercase, e.g. `'booted'`, `'shutdown'`, `'booting'`, `'shutting down'`, `'creating'`. */

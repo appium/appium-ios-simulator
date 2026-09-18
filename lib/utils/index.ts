@@ -7,8 +7,8 @@ export {
   MIN_DEVICE_HUB_XCODE_VERSION,
 } from './constants.js';
 export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults.js';
-export {createDevice} from './create-device.js';
-export {getDevices} from './get-devices.js';
+export {createSimulator} from './create-simulator.js';
+export {listSimulators} from './list-simulators.js';
 export {getSimulatorInfo, simExists} from './devices.js';
 export {getMacAppPidByPath} from './process.js';
 export {assertXcodeVersion, getUiClientAppPath, readBundleIdFromPlist} from './xcode.js';

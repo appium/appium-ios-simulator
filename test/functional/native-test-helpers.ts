@@ -1,6 +1,6 @@
 import {NativeSimctl} from '@appium/coresim';
 
-import {createDevice} from '../../lib/utils/create-device.js';
+import {createSimulator} from '../../lib/utils/create-simulator.js';
 
 /**
  * Creates a throwaway test device by the same friendly `deviceName`/`osVersion` strings the old
@@ -19,7 +19,7 @@ export async function createTestDevice(
   osVersion: string,
   devicesSetPath?: string,
 ): Promise<string> {
-  return await createDevice(name, deviceName, osVersion, {platform: 'iOS', devicesSetPath});
+  return await createSimulator(name, deviceName, osVersion, {platform: 'iOS', devicesSetPath});
 }
 
 /**

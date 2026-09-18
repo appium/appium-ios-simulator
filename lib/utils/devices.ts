@@ -1,5 +1,5 @@
-import type {DeviceListEntry, SimulatorInfoOptions} from '../types.js';
-import {getDevices} from './get-devices.js';
+import type {SimulatorInfoOptions, SimulatorListEntry} from '../types.js';
+import {listSimulators} from './list-simulators.js';
 
 /**
  * @param udid - The simulator UDID.
@@ -9,8 +9,8 @@ import {getDevices} from './get-devices.js';
 export async function getSimulatorInfo(
   udid: string,
   opts: SimulatorInfoOptions = {},
-): Promise<DeviceListEntry | undefined> {
-  const devices = await getDevices(opts);
+): Promise<SimulatorListEntry | undefined> {
+  const devices = await listSimulators(opts);
   return devices.find((sim) => sim.udid === udid);
 }
 

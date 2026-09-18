@@ -12,7 +12,7 @@ import {assertXcodeVersion, getSimulatorInfo, MIN_DEVICE_HUB_XCODE_VERSION} from
  * @param udid - The ID of an existing Simulator.
  * @param opts - Simulator lookup options
  * @throws {Error} If the Simulator with given udid does not exist in devices list.
- *   If you want to create a new simulator, you can use `@appium/coresim`'s `createDevice()`.
+ *   If you want to create a new simulator, use this package's own `createSimulator()`.
  * @return Simulator object associated with the udid passed in.
  */
 export async function getSimulator(udid: string, opts: SimulatorLookupOptions = {}): Promise<Simulator> {

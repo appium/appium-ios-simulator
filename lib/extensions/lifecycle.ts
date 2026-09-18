@@ -5,7 +5,7 @@ import {fs} from '@appium/support';
 import type {StringRecord} from '@appium/types';
 import {waitForCondition, retryInterval} from 'asyncbox';
 
-import {toDeviceListEntry} from '../native/device-info.js';
+import {toSimulatorListEntry} from '../native/device-info.js';
 import type {HasNativeSimctl} from '../native/types.js';
 import type {CoreSimulator, DeviceStat, ShutdownOptions} from '../types.js';
 
@@ -36,7 +36,7 @@ export async function stat(this: CoreSimulatorWithLifecycle): Promise<DeviceStat
   if (!device) {
     return {};
   }
-  const {name, udid, state, sdk} = toDeviceListEntry(device);
+  const {name, udid, state, sdk} = toSimulatorListEntry(device);
   return {name, udid, state, sdk};
 }
 
