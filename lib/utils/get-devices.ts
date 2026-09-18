@@ -1,6 +1,6 @@
-import {toDeviceListEntry, type DeviceListEntry} from '../native/device-info.js';
+import {toDeviceListEntry} from '../native/device-info.js';
 import {createNativeSimctl} from '../native/native-simctl.js';
-import type {SimulatorInfoOptions} from './types.js';
+import type {DeviceListEntry, SimulatorInfoOptions} from '../types.js';
 
 /**
  * @param opts - Optional lookup options (currently just `devicesSetPath`)

@@ -4,6 +4,28 @@ import type {Socket} from 'node:net';
 import type {AppiumLogger, StringRecord} from '@appium/types';
 import type {XcodeVersion} from 'appium-xcode';
 
+export interface SimulatorInfoOptions {
+  devicesSetPath?: string | null;
+}
+
+export interface CreateDeviceOptions extends SimulatorInfoOptions {
+  /** The name of the simulator platform, iOS by default */
+  platform?: string;
+}
+
+export interface DeviceListEntry {
+  udid: string;
+  name: string;
+  /** Lowercase, e.g. `'booted'`, `'shutdown'`, `'booting'`, `'shutting down'`, `'creating'`. */
+  state: string;
+  /** e.g. `'17.4'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
+  sdk: string;
+  /** e.g. `'iOS'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
+  platform: string;
+  deviceTypeIdentifier: string;
+  runtimeIdentifier: string;
+}
+
 // Declared locally (structurally identical to `@appium/coresim`'s own types of the same name)
 // rather than imported from there, so this package's public API surface doesn't tie a consumer's
 // type-checking to `@appium/coresim`'s exact exports — only to this package's own `types.js`.

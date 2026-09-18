@@ -1,18 +1,7 @@
 import {SimDeviceState} from '@appium/coresim';
 import type {SimDeviceInfo} from '@appium/coresim';
 
-export interface DeviceListEntry {
-  udid: string;
-  name: string;
-  /** Lowercase, e.g. `'booted'`, `'shutdown'`, `'booting'`, `'shutting down'`, `'creating'`. */
-  state: string;
-  /** e.g. `'17.4'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
-  sdk: string;
-  /** e.g. `'iOS'` — derived from `runtimeIdentifier`; `''` if it couldn't be parsed. */
-  platform: string;
-  deviceTypeIdentifier: string;
-  runtimeIdentifier: string;
-}
+import type {DeviceListEntry} from '../types.js';
 
 // Matches simctl/CoreSimulator's own state-name capitalization (the same strings `stat()`'s
 // public contract has always documented), not a lowercase convention of this package's own.

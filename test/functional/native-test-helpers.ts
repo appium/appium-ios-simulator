@@ -1,9 +1,10 @@
 import {NativeSimctl} from '@appium/coresim';
 
+import {createDevice} from '../../lib/utils/create-device.js';
+
 /**
  * Creates a throwaway test device by the same friendly `deviceName`/`osVersion` strings the old
- * `node-simctl`-based tests used (e.g. `'iPhone 17'`/`'26.0'`), resolving them to the exact
- * `deviceTypeIdentifier`/`runtimeIdentifier` `@appium/coresim`'s `createDevice` requires.
+ * `node-simctl`-based tests used (e.g. `'iPhone 17'`/`'26.0'`).
  *
  * @param name Display name for the new device.
  * @param deviceName Friendly device type name, e.g. `'iPhone 17'`.
@@ -18,30 +19,7 @@ export async function createTestDevice(
   osVersion: string,
   devicesSetPath?: string,
 ): Promise<string> {
-  const nativeSimctl = new NativeSimctl(undefined, devicesSetPath);
-  const [deviceTypes, runtimes] = await Promise.all([
-    nativeSimctl.getSupportedDeviceTypes(),
-    nativeSimctl.getSupportedRuntimes(),
-  ]);
-  const deviceType = deviceTypes.find((t) => t.name === deviceName);
-  if (!deviceType) {
-    throw new Error(
-      `No supported device type named '${deviceName}'. Available: ${deviceTypes.map((t) => t.name).join(', ')}`,
-    );
-  }
-  const iosRuntimes = runtimes.filter((r) => r.identifier.includes('.SimRuntime.iOS-'));
-  // Exact match first; CI images sometimes ship a patch bump (e.g. '26.4.1') for a runtime named
-  // after its minor version ('26.4'), so fall back to a dotted-prefix match for that case.
-  const runtime =
-    iosRuntimes.find((r) => r.versionString === osVersion) ??
-    iosRuntimes.find((r) => r.versionString.startsWith(`${osVersion}.`));
-  if (!runtime) {
-    throw new Error(
-      `No supported iOS runtime with version '${osVersion}'. Available: ${iosRuntimes.map((r) => r.versionString).join(', ')}`,
-    );
-  }
-  const device = await nativeSimctl.createDevice(name, deviceType.identifier, runtime.identifier);
-  return device.udid;
+  return await createDevice(name, deviceName, osVersion, {platform: 'iOS', devicesSetPath});
 }
 
 /**

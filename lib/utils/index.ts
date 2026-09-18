@@ -6,8 +6,8 @@ export {
   MIN_SUPPORTED_XCODE_VERSION,
   MIN_DEVICE_HUB_XCODE_VERSION,
 } from './constants.js';
-export type {SimulatorInfoOptions} from './types.js';
 export {NSUserDefaults, toXmlArg, generateDefaultsCommandArgs} from './defaults.js';
+export {createDevice} from './create-device.js';
 export {getDevices} from './get-devices.js';
 export {getSimulatorInfo, simExists} from './devices.js';
 export {getMacAppPidByPath} from './process.js';

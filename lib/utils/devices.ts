@@ -1,6 +1,5 @@
-import type {DeviceListEntry} from '../native/device-info.js';
+import type {DeviceListEntry, SimulatorInfoOptions} from '../types.js';
 import {getDevices} from './get-devices.js';
-import type {SimulatorInfoOptions} from './types.js';
 
 /**
  * @param udid - The simulator UDID.
