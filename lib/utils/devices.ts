@@ -11,7 +11,8 @@ export async function getSimulatorInfo(
   opts: SimulatorInfoOptions = {},
 ): Promise<SimulatorListEntry | undefined> {
   const devices = await listSimulators(opts);
-  return devices.find((sim) => sim.udid === udid);
+  const normalizedUdid = String(udid).toLowerCase();
+  return devices.find((sim) => sim.udid.toLowerCase() === normalizedUdid);
 }
 
 /**

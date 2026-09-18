@@ -32,7 +32,7 @@ type CoreSimulatorWithLifecycle = CoreSimulator & HasNativeSimctl;
  */
 export async function stat(this: CoreSimulatorWithLifecycle): Promise<DeviceStat | StringRecord<never>> {
   const devices = await this._native.getDevices();
-  const device = devices.find((d) => d.udid === this.udid);
+  const device = devices.find((d) => d.udid.toLowerCase() === this.udid.toLowerCase());
   if (!device) {
     return {};
   }
@@ -53,7 +53,7 @@ export async function isFresh(this: CoreSimulatorWithLifecycle): Promise<boolean
 
 async function deviceState(this: CoreSimulatorWithLifecycle): Promise<SimDeviceState | undefined> {
   const devices = await this._native.getDevices();
-  return devices.find((d) => d.udid === this.udid)?.state;
+  return devices.find((d) => d.udid.toLowerCase() === this.udid.toLowerCase())?.state;
 }
 
 /**
