@@ -1,7 +1,5 @@
-import type {SpawnedProcess, SpawnOptions} from '@appium/coresim';
-
 import type {HasNativeSimctl} from '../native/types.js';
-import type {CoreSimulator, ProcessInfo, SupportsGuestProcessSpawn} from '../types.js';
+import type {CoreSimulator, ProcessInfo, SpawnedProcess, SpawnOptions, SupportsGuestProcessSpawn} from '../types.js';
 
 declare module '../simulator-xcode-15.js' {
   interface SimulatorXcode15 extends SupportsGuestProcessSpawn {}

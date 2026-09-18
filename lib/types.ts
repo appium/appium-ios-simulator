@@ -1,8 +1,61 @@
 import type {EventEmitter} from 'node:events';
+import type {Socket} from 'node:net';
 
-import type {ScreenshotOptions, SpawnedProcess, SpawnOptions} from '@appium/coresim';
 import type {AppiumLogger, StringRecord} from '@appium/types';
 import type {XcodeVersion} from 'appium-xcode';
+
+// Declared locally (structurally identical to `@appium/coresim`'s own types of the same name)
+// rather than imported from there, so this package's public API surface doesn't tie a consumer's
+// type-checking to `@appium/coresim`'s exact exports — only to this package's own `types.js`.
+
+export interface SpawnOptions {
+  /** Fully replaces argv, including argv[0] — `path` only selects the executable. */
+  arguments?: string[];
+  /** Merged additively into the spawned process's environment. */
+  environment?: Record<string, string>;
+  /**
+   * Defaults to `true` — required for CoreSimulator from Xcode 26.4+ to wire up the child's dyld
+   * shared-cache environment; without it, that CoreSimulator aborts the child with SIGABRT trying
+   * to load even `libSystem.B.dylib`. Defaults to `false` when `path` is `launchctl` itself, which
+   * needs to stay attached to the guest's own launchd bootstrap namespace to function at all — a
+   * standalone spawn is detached from it. Set explicitly to override either default.
+   */
+  standalone?: boolean;
+}
+
+/** A process spawned inside the Simulator via {@link SupportsGuestProcessSpawn.spawnProcess}. */
+export interface SpawnedProcess extends EventEmitter {
+  readonly pid: number;
+  /** Streams the process's live stdout as it runs. */
+  readonly stdout: Socket;
+  /** Streams the process's live stderr as it runs. */
+  readonly stderr: Socket;
+  exitCode: number | null;
+  signalCode: NodeJS.Signals | null;
+  /** Whether the process has neither exited nor been killed yet. */
+  readonly running: boolean;
+  /**
+   * Sends a signal to the process. A no-op returning `false` once exit has already been observed,
+   * rather than risking an error on an already-reaped pid.
+   */
+  kill(signal?: NodeJS.Signals | number): boolean;
+}
+
+/** Options for {@link SupportsScreenshot.getScreenshot}. */
+export interface ScreenshotOptions {
+  /** Image encoding — defaults to `'png'`. */
+  format?: 'png' | 'jpeg';
+  /**
+   * Which display to capture, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /**
+   * JPEG quality as a percentage (0 = smallest/most compressed, 100 = largest/least compressed).
+   * Only meaningful with `format: 'jpeg'`. Defaults to near-lossless when omitted.
+   */
+  quality?: number;
+}
 
 export interface ProcessInfo {
   /**

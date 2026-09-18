@@ -1,6 +1,8 @@
 import {once} from 'node:events';
 
-import type {NativeSimctl, SpawnOptions} from '@appium/coresim';
+import type {NativeSimctl} from '@appium/coresim';
+
+import type {SpawnOptions} from '../types.js';
 
 /**
  * Resolves a binary path against the guest runtime root — the host's own copy of the same binary

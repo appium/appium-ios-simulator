@@ -1,7 +1,5 @@
-import type {ScreenshotOptions} from '@appium/coresim';
-
 import type {HasNativeSimctl} from '../native/types.js';
-import type {CoreSimulator, SupportsScreenshot} from '../types.js';
+import type {CoreSimulator, ScreenshotOptions, SupportsScreenshot} from '../types.js';
 
 declare module '../simulator-xcode-15.js' {
   interface SimulatorXcode15 extends SupportsScreenshot {}
