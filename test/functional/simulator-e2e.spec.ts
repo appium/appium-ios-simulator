@@ -284,18 +284,19 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
 
   describe('guest process spawn', function () {
     it('spawns a process with live stdout and reports a clean exit', async function () {
-      const proc = await sim.spawnProcess('/bin/echo', {arguments: ['/bin/echo', 'hello-from-e2e-test']});
+      const proc = await sim.spawnProcess('/bin/df', {arguments: ['/bin/df', '-h']});
       let stdout = '';
       proc.stdout.on('data', (chunk: Buffer) => {
         stdout += chunk;
       });
       const [[code, signal]] = await Promise.all([once(proc, 'exit'), once(proc.stdout, 'end')]);
       assert.deepStrictEqual({code, signal}, {code: 0, signal: null});
-      assert.match(stdout, /hello-from-e2e-test/);
+      assert.match(stdout, /Filesystem/);
     });
 
     it('kills a long-running spawned process', async function () {
-      const proc = await sim.spawnProcess('/bin/sleep', {arguments: ['/bin/sleep', '30']});
+      const proc = await sim.spawnProcess('/usr/bin/log', {arguments: ['/usr/bin/log', 'stream']});
+      proc.stdout.resume();
       const exitPromise = once(proc, 'exit');
       assert.ok(proc.kill());
       const [code, signal] = await exitPromise;
