@@ -250,7 +250,6 @@ describe('simulator', function () {
       assertXcodeVersionStub.callsFake(() => xcodeVersion);
       sim = await getSimulator(UDID);
       spawnProcessSpy = sinon.stub(sim._native, 'spawnProcess').callsFake(() => fakeSpawnedProcess());
-      sinon.stub(sim._native, 'getRuntimeRootPath').resolves('/fake/RuntimeRoot');
     });
     afterEach(function () {
       if (spawnProcessSpy) {
@@ -264,7 +263,7 @@ describe('simulator', function () {
         assert.strictEqual(await sim.configureLocalization(options), true);
         assert.deepStrictEqual(
           spawnProcessSpy.firstCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             '.GlobalPreferences.plist',
             'AppleLocale',
@@ -281,7 +280,7 @@ describe('simulator', function () {
         assert.strictEqual(await sim.configureLocalization(options), true);
         assert.deepStrictEqual(
           spawnProcessSpy.firstCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             '.GlobalPreferences.plist',
             'AppleKeyboards',
@@ -290,7 +289,7 @@ describe('simulator', function () {
         );
         assert.deepStrictEqual(
           spawnProcessSpy.secondCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             'com.apple.Preferences',
             'KeyboardsCurrentAndNext',
@@ -299,7 +298,7 @@ describe('simulator', function () {
         );
         assert.deepStrictEqual(
           spawnProcessSpy.thirdCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             'com.apple.Preferences',
             'KeyboardLastUsed',
@@ -308,7 +307,7 @@ describe('simulator', function () {
         );
         assert.deepStrictEqual(
           spawnProcessSpy.getCall(3).args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             'com.apple.Preferences',
             'KeyboardLastUsedForLanguage',
@@ -331,7 +330,7 @@ describe('simulator', function () {
         assert.strictEqual(await sim.configureLocalization(options), true);
         assert.deepStrictEqual(
           spawnProcessSpy.firstCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             '.GlobalPreferences.plist',
             'AppleLanguages',
@@ -340,19 +339,19 @@ describe('simulator', function () {
         );
         assert.deepStrictEqual(
           spawnProcessSpy.secondCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.SpringBoard']),
+          expectedSpawn('/bin/launchctl', ['stop', 'com.apple.SpringBoard']),
         );
         assert.deepStrictEqual(
           spawnProcessSpy.thirdCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.locationd']),
+          expectedSpawn('/bin/launchctl', ['stop', 'com.apple.locationd']),
         );
         assert.deepStrictEqual(
           spawnProcessSpy.getCall(3).args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.tccd']),
+          expectedSpawn('/bin/launchctl', ['stop', 'com.apple.tccd']),
         );
         assert.deepStrictEqual(
           spawnProcessSpy.getCall(4).args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/bin/launchctl', ['stop', 'com.apple.akd']),
+          expectedSpawn('/bin/launchctl', ['stop', 'com.apple.akd']),
         );
         assert.strictEqual(spawnProcessSpy.callCount, 5);
       });
@@ -362,7 +361,7 @@ describe('simulator', function () {
         assert.strictEqual(await sim.configureLocalization(options), true);
         assert.deepStrictEqual(
           spawnProcessSpy.firstCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             '.GlobalPreferences.plist',
             'AppleLanguages',
@@ -377,7 +376,7 @@ describe('simulator', function () {
         assert.strictEqual(await sim.configureLocalization(options), true);
         assert.deepStrictEqual(
           spawnProcessSpy.firstCall.args.slice(1),
-          expectedSpawn('/fake/RuntimeRoot/usr/bin/defaults', [
+          expectedSpawn('/usr/bin/defaults', [
             'write',
             '.GlobalPreferences.plist',
             'AppleLanguages',
