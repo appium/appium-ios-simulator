@@ -1,3 +1,9 @@
+## [10.1.0](https://github.com/appium/appium-ios-simulator/compare/v10.0.1...v10.1.0) (2026-09-19)
+
+### Features
+
+* confine spawnProcess to the Simulator runtime root ([#505](https://github.com/appium/appium-ios-simulator/issues/505)) ([a149623](https://github.com/appium/appium-ios-simulator/commit/a1496238db1ff0c0d68bcad83bda94b95310c3a7))
+
 ## [10.0.1](https://github.com/appium/appium-ios-simulator/compare/v10.0.0...v10.0.1) (2026-09-18)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "appium-ios-simulator",
-  "version": "10.0.1",
+  "version": "10.1.0",
   "description": "iOS Simulator interface for Appium.",
   "keywords": [
     "appium",
