@@ -5,7 +5,7 @@ import type {StringRecord} from '@appium/types';
 import AsyncLock from 'async-lock';
 import {exec} from 'teen_process';
 
-import {resolveGuestDefaults, resolveGuestLaunchctl, spawnAndWait} from '../native/spawn.js';
+import {DEFAULTS_PATH, LAUNCHCTL_PATH, spawnAndWait} from '../native/spawn.js';
 import type {HasNativeSimctl} from '../native/types.js';
 import {
   appearanceToRaw,
@@ -104,9 +104,8 @@ export async function updateSettings(
   }
 
   const argChunks = generateDefaultsCommandArgs(updates);
-  const defaultsPath = await resolveGuestDefaults(this._native, this.udid);
   await Promise.all(
-    argChunks.map((args) => spawnAndWait(this._native, this.udid, defaultsPath, ['write', domain, ...args])),
+    argChunks.map((args) => spawnAndWait(this._native, this.udid, DEFAULTS_PATH, ['write', domain, ...args])),
   );
   return true;
 }
@@ -259,12 +258,10 @@ export async function configureLocalization(
     }
   }
 
-  const defaultsPath = await resolveGuestDefaults(this._native, this.udid);
-
   const argChunks = generateDefaultsCommandArgs(globalPrefs, true);
   await Promise.all(
     argChunks.map((args) =>
-      spawnAndWait(this._native, this.udid, defaultsPath, ['write', GLOBAL_PREFS_PLIST, ...args]),
+      spawnAndWait(this._native, this.udid, DEFAULTS_PATH, ['write', GLOBAL_PREFS_PLIST, ...args]),
     ),
   );
 
@@ -279,7 +276,7 @@ export async function configureLocalization(
     );
     await Promise.all(
       argChunks.map((args) =>
-        spawnAndWait(this._native, this.udid, defaultsPath, ['write', 'com.apple.Preferences', ...args]),
+        spawnAndWait(this._native, this.udid, DEFAULTS_PATH, ['write', 'com.apple.Preferences', ...args]),
       ),
     );
   }
@@ -298,10 +295,9 @@ export async function configureLocalization(
           `${SERVICES_FOR_TRANSLATION}. This might have unexpected side effects, ` +
           `see https://github.com/appium/appium/issues/19440 for more details`,
       );
-      const launchctlPath = await resolveGuestLaunchctl(this._native, this.udid);
       await Promise.all(
         SERVICES_FOR_TRANSLATION.map((service) =>
-          spawnAndWait(this._native, this.udid, launchctlPath, ['stop', service]),
+          spawnAndWait(this._native, this.udid, LAUNCHCTL_PATH, ['stop', service]),
         ),
       );
     }

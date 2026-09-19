@@ -35,14 +35,6 @@ export interface SpawnOptions {
   arguments?: string[];
   /** Merged additively into the spawned process's environment. */
   environment?: Record<string, string>;
-  /**
-   * Defaults to `true` — required for CoreSimulator from Xcode 26.4+ to wire up the child's dyld
-   * shared-cache environment; without it, that CoreSimulator aborts the child with SIGABRT trying
-   * to load even `libSystem.B.dylib`. Defaults to `false` when `path` is `launchctl` itself, which
-   * needs to stay attached to the guest's own launchd bootstrap namespace to function at all — a
-   * standalone spawn is detached from it. Set explicitly to override either default.
-   */
-  standalone?: boolean;
 }
 
 /** A process spawned inside the Simulator via {@link SupportsGuestProcessSpawn.spawnProcess}. */
@@ -393,9 +385,11 @@ export interface SupportsGuestProcessSpawn {
   /**
    * Spawns a process inside the Simulator (the native equivalent of `simctl spawn`) — an escape
    * hatch for guest-side operations with no dedicated `Simulator` method, such as streaming a
-   * guest log. `path` is a literal path, not resolved against the guest's `$PATH`.
+   * guest log. `path` is resolved against the Simulator's own runtime root and confined there —
+   * it cannot be used to spawn an arbitrary host executable, and a `path` that would resolve
+   * outside the runtime (e.g. via `..`) throws.
    *
-   * @param path Path to the executable to spawn inside the Simulator.
+   * @param path Path to the executable, relative to the Simulator runtime root (e.g. `/usr/bin/log`).
    * @param options `arguments`/`environment` for the spawned process.
    */
   spawnProcess(path: string, options?: SpawnOptions): Promise<SpawnedProcess>;

@@ -4,35 +4,10 @@ import type {NativeSimctl} from '@appium/coresim';
 
 import type {SpawnOptions} from '../types.js';
 
-/**
- * Resolves a binary path against the guest runtime root — the host's own copy of the same binary
- * targets the wrong environment (see `@appium/coresim`'s CLAUDE.md).
- *
- * @param nativeSimctl The native driver to resolve the runtime root through.
- * @param udid UDID of the (booted) device.
- * @param relativePath Path relative to the runtime root, e.g. `bin/launchctl` or `usr/bin/defaults`.
- */
-export async function resolveGuestBinary(
-  nativeSimctl: NativeSimctl,
-  udid: string,
-  relativePath: string,
-): Promise<string> {
-  return `${await nativeSimctl.getRuntimeRootPath(udid)}/${relativePath}`;
-}
-
-/**
- * Resolves the path to the guest runtime's own `launchctl`. See {@link resolveGuestBinary}.
- */
-export async function resolveGuestLaunchctl(nativeSimctl: NativeSimctl, udid: string): Promise<string> {
-  return resolveGuestBinary(nativeSimctl, udid, 'bin/launchctl');
-}
-
-/**
- * Resolves the path to the guest runtime's own `defaults`. See {@link resolveGuestBinary}.
- */
-export async function resolveGuestDefaults(nativeSimctl: NativeSimctl, udid: string): Promise<string> {
-  return resolveGuestBinary(nativeSimctl, udid, 'usr/bin/defaults');
-}
+/** `/bin/launchctl` — see {@link spawnAndWait}. */
+export const LAUNCHCTL_PATH = '/bin/launchctl';
+/** `/usr/bin/defaults` — see {@link spawnAndWait}. */
+export const DEFAULTS_PATH = '/usr/bin/defaults';
 
 /**
  * Spawns a guest process via `@appium/coresim` and waits for it to exit, throwing if it exits
@@ -44,7 +19,8 @@ export async function resolveGuestDefaults(nativeSimctl: NativeSimctl, udid: str
  *
  * @param nativeSimctl The native driver to spawn through.
  * @param udid UDID of the target device.
- * @param path Literal path to the executable to spawn (not resolved against `$PATH`).
+ * @param path Path to the executable, relative to the Simulator runtime root (`@appium/coresim`
+ * resolves and confines it there) — e.g. {@link LAUNCHCTL_PATH}/{@link DEFAULTS_PATH}.
  * @param args Arguments to pass after argv[0].
  * @param environment Environment variables for the spawned process.
  */

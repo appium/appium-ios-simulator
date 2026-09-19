@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fs, mkdirp, tempDir, util} from '@appium/support';
 import {exec} from 'teen_process';
 
-import {resolveGuestLaunchctl, spawnAndWait} from '../native/spawn.js';
+import {LAUNCHCTL_PATH, spawnAndWait} from '../native/spawn.js';
 import type {HasNativeSimctl} from '../native/types.js';
 import type {CoreSimulator, InteractsWithKeychain} from '../types.js';
 
@@ -85,10 +85,7 @@ export async function restoreKeychains(
     if (!(await fs.exists(plistPath))) {
       throw new Error(`Cannot clear keychains because '${plistPath}' does not exist`);
     }
-    await spawnAndWait(this._native, this.udid, await resolveGuestLaunchctl(this._native, this.udid), [
-      'unload',
-      plistPath,
-    ]);
+    await spawnAndWait(this._native, this.udid, LAUNCHCTL_PATH, ['unload', plistPath]);
   }
   try {
     await fs.rimraf(this.keychainPath);
@@ -112,10 +109,7 @@ export async function restoreKeychains(
     this._keychainsBackupPath = null;
   } finally {
     if (isServerRunning && plistPath) {
-      await spawnAndWait(this._native, this.udid, await resolveGuestLaunchctl(this._native, this.udid), [
-        'load',
-        plistPath,
-      ]);
+      await spawnAndWait(this._native, this.udid, LAUNCHCTL_PATH, ['load', plistPath]);
     }
   }
   return true;
@@ -132,14 +126,13 @@ export async function clearKeychains(this: CoreSimulatorWithKeychain): Promise<v
   if (!(await fs.exists(plistPath))) {
     throw new Error(`Cannot clear keychains because '${plistPath}' does not exist`);
   }
-  const launchctlPath = await resolveGuestLaunchctl(this._native, this.udid);
-  await spawnAndWait(this._native, this.udid, launchctlPath, ['unload', plistPath]);
+  await spawnAndWait(this._native, this.udid, LAUNCHCTL_PATH, ['unload', plistPath]);
   try {
     if (await fs.exists(this.keychainPath)) {
       await fs.rimraf(this.keychainPath);
       await mkdirp(this.keychainPath);
     }
   } finally {
-    await spawnAndWait(this._native, this.udid, launchctlPath, ['load', plistPath]);
+    await spawnAndWait(this._native, this.udid, LAUNCHCTL_PATH, ['load', plistPath]);
   }
 }
