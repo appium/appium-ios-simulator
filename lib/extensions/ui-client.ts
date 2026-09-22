@@ -1,3 +1,6 @@
+import os from 'node:os';
+import path from 'node:path';
+
 import {timing, util} from '@appium/support';
 import AsyncLock from 'async-lock';
 import {waitForCondition} from 'asyncbox';
@@ -10,7 +13,12 @@ import {compileSimulatorPreferences, updatePreferences} from './settings.js';
 
 const SIMULATOR_SHUTDOWN_TIMEOUT = 15 * 1000;
 const UI_CLIENT_DISCOVERY_TIMEOUT_MS = 30 * 1000;
+// Guards against races within a single process. Separate Appium server processes each
+// get their own instance of this lock, which is why CROSS_PROCESS_LOCK_TIMEOUT_SEC below exists.
 const STARTUP_LOCK = new AsyncLock();
+// Serializes the UI client check-then-launch sequence across OS processes (e.g. parallel
+// Appium server processes), since AsyncLock only protects a single Node.js process.
+const CROSS_PROCESS_LOCK_TIMEOUT_SEC = 180;
 
 type CoreSimulatorWithUiClient = CoreSimulator & HasSettings & HasNativeSimctl;
 
@@ -42,6 +50,14 @@ async function getUiClientAppPathCached(this: CoreSimulatorWithUiClient): Promis
     this._uiClientAppPath = getUiClientAppPath(this.uiClientBundleId, this.xcodeVersion);
   }
   return this._uiClientAppPath;
+}
+
+/**
+ * Builds a stable, predictable lock file path for the given UI client bundle identifier,
+ * so unrelated OS processes can agree on and serialize around the same lock file.
+ */
+function getUiClientLockFilePath(uiClientBundleId: string): string {
+  return path.join(os.tmpdir(), `appium-ios-simulator-ui-client-${uiClientBundleId}.lock`);
 }
 
 /**
@@ -162,52 +178,58 @@ export async function run(this: CoreSimulatorWithUiClient, opts: RunOptions = {}
   await updatePreferences.bind(this)(devicePreferences, commonPreferences);
 
   const timer = new timing.Timer().start();
-  const shouldWaitForBoot = await STARTUP_LOCK.acquire(this.uiClientBundleId, async () => {
-    const isServerRunning = await this.isRunning();
-    const uiClientPid = await this.getUIClientPid();
-    if (runOpts.isHeadless) {
-      if (isServerRunning && !uiClientPid) {
-        this.log.info(`Simulator with UDID '${this.udid}' is already booted in headless mode.`);
-        return false;
-      }
-      if (await this.killUIClient({pid: uiClientPid})) {
-        this.log.info(
-          `Detected the Simulator UI client was running and killed it. Verifying the current Simulator state`,
-        );
-      }
-      try {
-        // Stopping the UI client kills all running servers for some early XCode versions. This is a known bug
-        await waitForCondition(async () => await this.isShutdown(), {
-          waitMs: 5000,
-          intervalMs: 100,
-        });
-      } catch {
-        if (!(await this.isRunning())) {
-          throw new Error(`Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`);
-        }
-        return false;
-      }
-      this.log.info(
-        `Booting Simulator with UDID '${this.udid}' in headless mode. ` +
-          `All UI-related capabilities are going to be ignored`,
-      );
-      await this.boot();
-    } else {
-      if (isServerRunning && uiClientPid) {
-        this.log.info(`Both Simulator with UDID '${this.udid}' and the UI client are currently running`);
-        return false;
-      }
-      if (isServerRunning) {
-        this.log.info(
-          `Simulator '${this.udid}' is booted while its UI is not visible. ` +
-            `Trying to restart it with the Simulator window visible`,
-        );
-        await this.shutdown({timeout: SIMULATOR_SHUTDOWN_TIMEOUT});
-      }
-      await this.launchWindow(Boolean(uiClientPid), runOpts);
-    }
-    return true;
+  const withCrossProcessLock = util.getLockFileGuard(getUiClientLockFilePath(this.uiClientBundleId), {
+    timeout: CROSS_PROCESS_LOCK_TIMEOUT_SEC,
+    tryRecovery: true,
   });
+  const shouldWaitForBoot = await STARTUP_LOCK.acquire(this.uiClientBundleId, async () =>
+    withCrossProcessLock(async () => {
+      const isServerRunning = await this.isRunning();
+      const uiClientPid = await this.getUIClientPid();
+      if (runOpts.isHeadless) {
+        if (isServerRunning && !uiClientPid) {
+          this.log.info(`Simulator with UDID '${this.udid}' is already booted in headless mode.`);
+          return false;
+        }
+        if (await this.killUIClient({pid: uiClientPid})) {
+          this.log.info(
+            `Detected the Simulator UI client was running and killed it. Verifying the current Simulator state`,
+          );
+        }
+        try {
+          // Stopping the UI client kills all running servers for some early XCode versions. This is a known bug
+          await waitForCondition(async () => await this.isShutdown(), {
+            waitMs: 5000,
+            intervalMs: 100,
+          });
+        } catch {
+          if (!(await this.isRunning())) {
+            throw new Error(`Simulator with UDID '${this.udid}' cannot be transitioned to headless mode`);
+          }
+          return false;
+        }
+        this.log.info(
+          `Booting Simulator with UDID '${this.udid}' in headless mode. ` +
+            `All UI-related capabilities are going to be ignored`,
+        );
+        await this.boot();
+      } else {
+        if (isServerRunning && uiClientPid) {
+          this.log.info(`Both Simulator with UDID '${this.udid}' and the UI client are currently running`);
+          return false;
+        }
+        if (isServerRunning) {
+          this.log.info(
+            `Simulator '${this.udid}' is booted while its UI is not visible. ` +
+              `Trying to restart it with the Simulator window visible`,
+          );
+          await this.shutdown({timeout: SIMULATOR_SHUTDOWN_TIMEOUT});
+        }
+        await this.launchWindow(Boolean(uiClientPid), runOpts);
+      }
+      return true;
+    }),
+  );
 
   if (shouldWaitForBoot && runOpts.startupTimeout) {
     await this.waitForBoot(runOpts.startupTimeout);
