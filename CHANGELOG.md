@@ -1,3 +1,9 @@
+## [10.1.1](https://github.com/appium/appium-ios-simulator/compare/v10.1.0...v10.1.1) (2026-09-23)
+
+### Bug Fixes
+
+* serialize UI client startup across processes with a file lock ([#507](https://github.com/appium/appium-ios-simulator/issues/507)) ([9deec7d](https://github.com/appium/appium-ios-simulator/commit/9deec7dbe86c6f22466b8f01180a40e7273395f0))
+
 ## [10.1.0](https://github.com/appium/appium-ios-simulator/compare/v10.0.1...v10.1.0) (2026-09-19)
 
 ### Features
