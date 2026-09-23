@@ -20,6 +20,8 @@ import * as screenshotExtensions from './extensions/screenshot.js';
 import * as settingsExtensions from './extensions/settings.js';
 import * as systemRootExtensions from './extensions/system-root.js';
 import * as uiClientExtensions from './extensions/ui-client.js';
+import * as videoRecordingExtensions from './extensions/video-recording.js';
+import * as videoStreamExtensions from './extensions/video-stream.js';
 import {log as defaultLog} from './logger.js';
 import {createNativeSimctl} from './native/native-simctl.js';
 import type {CoreSimulator} from './types.js';
@@ -184,6 +186,14 @@ Object.assign(SimulatorXcode15.prototype, {
 
   // screenshot
   getScreenshot: screenshotExtensions.getScreenshot,
+
+  // video recording
+  startVideoRecording: videoRecordingExtensions.startVideoRecording,
+  stopVideoRecording: videoRecordingExtensions.stopVideoRecording,
+  isVideoRecording: videoRecordingExtensions.isVideoRecording,
+
+  // video streaming
+  startVideoStream: videoStreamExtensions.startVideoStream,
 
   // process
   spawnProcess: processExtensions.spawnProcess,

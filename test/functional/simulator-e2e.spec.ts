@@ -260,6 +260,60 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
     });
   });
 
+  describe('video recording', function () {
+    it('records the display to a file', async function () {
+      const outputFile = path.join(os.tmpdir(), `appium-ios-simulator-recording-${Date.now()}.mov`);
+      try {
+        assert.strictEqual(await sim.isVideoRecording(), false);
+        await sim.startVideoRecording(outputFile);
+        assert.strictEqual(await sim.isVideoRecording(), true);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await sim.stopVideoRecording();
+        assert.strictEqual(await sim.isVideoRecording(), false);
+        const {size} = await fs.stat(outputFile);
+        assert.ok(size > 0, 'expected the recorded file to be non-empty');
+      } finally {
+        await fs.rm(outputFile, {force: true});
+      }
+    });
+
+    it('rejects a second concurrent recording on the same device', async function () {
+      const outputFile = path.join(os.tmpdir(), `appium-ios-simulator-recording-${Date.now()}.mov`);
+      try {
+        await sim.startVideoRecording(outputFile);
+        await assert.rejects(sim.startVideoRecording(outputFile));
+      } finally {
+        await sim.stopVideoRecording();
+        await fs.rm(outputFile, {force: true});
+      }
+    });
+  });
+
+  describe('video streaming', function () {
+    it('streams encoded H.264 access units from the display', async function () {
+      const stream = await sim.startVideoStream({fps: 15});
+      try {
+        assert.strictEqual(stream.codec, 'h264');
+        const controller = new AbortController();
+        const units = [];
+        for await (const unit of stream.accessUnits(controller.signal)) {
+          units.push(unit);
+          if (units.length >= 5) {
+            controller.abort();
+          }
+        }
+        assert.ok(units.length > 0, 'expected at least one access unit');
+        for (const unit of units) {
+          assert.strictEqual(unit.track, 'video');
+          assert.ok(Buffer.isBuffer(unit.data));
+          assert.strictEqual(typeof unit.isKeyFrame, 'boolean');
+        }
+      } finally {
+        await stream.stop();
+      }
+    });
+  });
+
   describe('media', function () {
     it('adds a photo to the Photos library', async function () {
       const photoPath = await createTestPhoto();
