@@ -50,7 +50,7 @@
     "e2e-test": "node --enable-source-maps --test --test-force-exit --test-concurrency=1 --test-timeout=3600000 \"./build/test/functional/**/*.spec.js\""
   },
   "dependencies": {
-    "@appium/coresim": "^1.6.0",
+    "@appium/coresim": "^1.8.0",
     "@appium/support": "^7.2.7",
     "@xmldom/xmldom": "^0.x",
     "appium-xcode": "^7.1.1",

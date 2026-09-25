@@ -468,16 +468,76 @@ export interface VideoStreamOptions {
   codec?: 'h264' | 'hevc';
   /**
    * Max frames/sec to poll the framebuffer at — an unchanged frame is never re-encoded, so this is
-   * an upper bound, not a guarantee. Must be >= 1. Defaults to 15.
+   * an upper bound, not a guarantee. Must be >= 1. Defaults to 60.
    */
   fps?: number;
-  /** Target average bitrate, in bits/sec. Defaults to 2,000,000 (2 Mbps). */
+  /** Target average bitrate, in bits/sec. Defaults to 4,000,000 (4 Mbps). */
   bitrate?: number;
   /**
    * Also stream the device's audio, interleaved into the same `accessUnits()` sequence. Defaults
    * to `false`. Same requirements and failure modes as {@link VideoRecordingOptions.audio}.
    */
   audio?: boolean;
+}
+
+/** Options for {@link SupportsScreenStreaming.startJpegStream}. Requires Xcode 26+. */
+export interface JpegStreamOptions {
+  /**
+   * Which display to stream, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /**
+   * Max frames/sec to poll the framebuffer at — an unchanged frame is never re-encoded, so this is
+   * an upper bound, not a guarantee. Must be >= 1. Defaults to 60.
+   */
+  fps?: number;
+  /**
+   * JPEG quality as a percentage (0 = smallest/most compressed, 100 = largest/least compressed).
+   * Defaults to 80 — noticeably smaller than {@link ScreenshotOptions.quality}'s own (near-
+   * lossless) default, more suitable for a continuous live stream than a one-off screenshot.
+   */
+  quality?: number;
+  /**
+   * Frame scale as a percentage of the original display resolution — 100 (default) performs no
+   * scaling; must be greater than 0 and no greater than 100.
+   */
+  scale?: number;
+}
+
+/**
+ * One JPEG-encoded frame from {@link JpegStream.frames}. Unlike {@link VideoAccessUnit}, every
+ * frame is independently decodable — there's no keyframe/interframe distinction — so consumers
+ * (e.g. an MJPEG multipart HTTP stream built from this sequence) can start from, or drop, any
+ * frame freely.
+ */
+export interface JpegFrame {
+  data: Buffer;
+  /** Monotonically increasing, starting at 0. */
+  sequence: number;
+  /** Microseconds since the stream started. */
+  timestampMicros: number;
+}
+
+/**
+ * A live JPEG frame stream from {@link SupportsScreenStreaming.startJpegStream} — polls the
+ * Simulator's display and delivers each changed frame as a standalone JPEG image, at a
+ * configurable fps/quality. Unlike {@link VideoStream}, this produces no video codec bitstream —
+ * it's meant for callers that want to build their own MJPEG (`multipart/x-mixed-replace`) HTTP
+ * stream, or otherwise just want a plain sequence of images, out of `frames()` themselves.
+ */
+export interface JpegStream extends EventEmitter {
+  /**
+   * Yields each JPEG frame as it's produced, until {@link stop} is called or the stream errors (in
+   * which case the error is thrown out of the loop). Pass `signal` to stop iterating without
+   * treating that as an error.
+   *
+   * Only one active consumer is supported at a time — a second concurrent call rejects rather
+   * than silently sharing (and corrupting) the first one's single internal waiter slot.
+   */
+  frames(signal?: AbortSignal): AsyncGenerator<JpegFrame>;
+  /** Stops the stream and releases the underlying encoder. Idempotent, including concurrently. */
+  stop(): Promise<void>;
 }
 
 /**
@@ -529,6 +589,16 @@ export interface SupportsScreenStreaming {
    * @param options `displayId`, `codec`, `fps`, `bitrate`, `audio` — see {@link VideoStreamOptions}.
    */
   startVideoStream(options?: VideoStreamOptions): Promise<VideoStream>;
+  /**
+   * Starts polling the Simulator's display and JPEG-encoding each changed frame in real time. The
+   * Simulator must be booted. Resolves once the encoder has actually started; the returned
+   * {@link JpegStream}'s `frames()` then yields each frame as it arrives. Independent of
+   * `startVideoStream`/`startVideoRecording` — any number of concurrent streams/recordings can run
+   * on the same device at once. Requires Xcode 26+.
+   *
+   * @param options `displayId`, `fps`, `quality`, `scale` — see {@link JpegStreamOptions}.
+   */
+  startJpegStream(options?: JpegStreamOptions): Promise<JpegStream>;
 }
 
 export interface SupportsGuestProcessSpawn {

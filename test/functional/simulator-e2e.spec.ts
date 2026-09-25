@@ -4,7 +4,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {describe, it, before, after} from 'node:test';
+import type {TestContext} from 'node:test';
 
+import {NativeSimUnavailableError} from '@appium/coresim';
 import {retryInterval, waitForCondition} from 'asyncbox';
 
 import {getSimulator} from '../../lib/simulator.js';
@@ -261,11 +263,21 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
   });
 
   describe('video recording', function () {
-    it('records the display to a file', async function () {
+    // The default (no `audio`/`fps`) recording path drives CoreSimulator's own private recorder,
+    // which is only available on Xcode 26+ — the functional-test matrix also runs against older
+    // Xcode versions, where this rejects with NativeSimUnavailableError instead of recording.
+    it('records the display to a file', async function (this: TestContext) {
       const outputFile = path.join(os.tmpdir(), `appium-ios-simulator-recording-${Date.now()}.mov`);
+      assert.strictEqual(await sim.isVideoRecording(), false);
       try {
-        assert.strictEqual(await sim.isVideoRecording(), false);
         await sim.startVideoRecording(outputFile);
+      } catch (err) {
+        if (err instanceof NativeSimUnavailableError) {
+          return this.skip(`video recording unavailable on this CoreSimulator: ${(err as Error).message}`);
+        }
+        throw err;
+      }
+      try {
         assert.strictEqual(await sim.isVideoRecording(), true);
         await new Promise((resolve) => setTimeout(resolve, 2000));
         await sim.stopVideoRecording();
@@ -277,10 +289,17 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
       }
     });
 
-    it('rejects a second concurrent recording on the same device', async function () {
+    it('rejects a second concurrent recording on the same device', async function (this: TestContext) {
       const outputFile = path.join(os.tmpdir(), `appium-ios-simulator-recording-${Date.now()}.mov`);
       try {
         await sim.startVideoRecording(outputFile);
+      } catch (err) {
+        if (err instanceof NativeSimUnavailableError) {
+          return this.skip(`video recording unavailable on this CoreSimulator: ${(err as Error).message}`);
+        }
+        throw err;
+      }
+      try {
         await assert.rejects(sim.startVideoRecording(outputFile));
       } finally {
         await sim.stopVideoRecording();
@@ -290,24 +309,42 @@ describe(`Simulator ${DEVICE_NAME} / iOS ${OS_VERSION} (shared instance)`, funct
   });
 
   describe('video streaming', function () {
-    it('streams encoded H.264 access units from the display', async function () {
+    it('streams an encoded H.264 access unit from the display', async function () {
       const stream = await sim.startVideoStream({fps: 15});
       try {
         assert.strictEqual(stream.codec, 'h264');
-        const controller = new AbortController();
-        const units = [];
-        for await (const unit of stream.accessUnits(controller.signal)) {
-          units.push(unit);
-          if (units.length >= 5) {
-            controller.abort();
-          }
+        // fps is only a polling upper bound — coresim skips encoding an unchanged frame, so a
+        // static screen can otherwise stall this indefinitely. A single unit within a bounded
+        // deadline is enough to prove the pipeline works; `break` stops the generator (and its
+        // underlying poll) as soon as it arrives instead of waiting for more.
+        let unit;
+        for await (const u of stream.accessUnits(AbortSignal.timeout(ciScale(15000)))) {
+          unit = u;
+          break;
         }
-        assert.ok(units.length > 0, 'expected at least one access unit');
-        for (const unit of units) {
-          assert.strictEqual(unit.track, 'video');
-          assert.ok(Buffer.isBuffer(unit.data));
-          assert.strictEqual(typeof unit.isKeyFrame, 'boolean');
+        assert.ok(unit, 'expected at least one access unit before the deadline');
+        assert.strictEqual(unit.track, 'video');
+        assert.ok(Buffer.isBuffer(unit.data));
+        assert.strictEqual(typeof unit.isKeyFrame, 'boolean');
+      } finally {
+        await stream.stop();
+      }
+    });
+  });
+
+  describe('JPEG streaming', function () {
+    it('streams a JPEG frame from the display', async function () {
+      const stream = await sim.startJpegStream({fps: 15});
+      try {
+        // Same bounded-first-frame rationale as the video streaming test above.
+        let frame;
+        for await (const f of stream.frames(AbortSignal.timeout(ciScale(15000)))) {
+          frame = f;
+          break;
         }
+        assert.ok(frame, 'expected at least one frame before the deadline');
+        assert.ok(Buffer.isBuffer(frame.data));
+        assert.deepStrictEqual(frame.data.subarray(0, 3), Buffer.from([0xff, 0xd8, 0xff]));
       } finally {
         await stream.stop();
       }

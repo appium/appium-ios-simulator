@@ -8,6 +8,7 @@ import {BaseSimulator} from './base-simulator.js';
 import * as appExtensions from './extensions/applications.js';
 import * as biometricExtensions from './extensions/biometric.js';
 import * as geolocationExtensions from './extensions/geolocation.js';
+import * as jpegStreamExtensions from './extensions/jpeg-stream.js';
 import * as keychainExtensions from './extensions/keychain.js';
 import * as lifecycleExtensions from './extensions/lifecycle.js';
 import * as miscExtensions from './extensions/misc.js';
@@ -194,6 +195,7 @@ Object.assign(SimulatorXcode15.prototype, {
 
   // video streaming
   startVideoStream: videoStreamExtensions.startVideoStream,
+  startJpegStream: jpegStreamExtensions.startJpegStream,
 
   // process
   spawnProcess: processExtensions.spawnProcess,

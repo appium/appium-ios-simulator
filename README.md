@@ -16,8 +16,9 @@ With it you can:
 - grant, revoke, and query app permissions (contacts, camera, photos, and more)
 - control biometrics, geolocation, the pasteboard, and keychain
 - change UI settings (appearance, content size, contrast, localization, ...)
-- capture screenshots, record the display to a file, or stream it as encoded H.264/HEVC in real
-  time — optionally muxing/interleaving the device's own audio (Xcode 26+)
+- capture screenshots, record the display to a file, or stream it as encoded H.264/HEVC or a
+  live sequence of JPEG frames — optionally muxing/interleaving the device's own audio into the
+  video paths (Xcode 26+)
 - add media to the Photos library, and spawn guest processes
 - look up Simulator-specific directories, apps, and settings on disk
 
