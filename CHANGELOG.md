@@ -1,3 +1,9 @@
+## [10.2.0](https://github.com/appium/appium-ios-simulator/compare/v10.1.1...v10.2.0) (2026-09-25)
+
+### Features
+
+* expose CoreSimulator video recording and streaming APIs ([#508](https://github.com/appium/appium-ios-simulator/issues/508)) ([b54b6bd](https://github.com/appium/appium-ios-simulator/commit/b54b6bd620d77bfef326145aeb61b13aabfee8cb))
+
 ## [10.1.1](https://github.com/appium/appium-ios-simulator/compare/v10.1.0...v10.1.1) (2026-09-23)
 
 ### Bug Fixes
