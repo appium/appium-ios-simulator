@@ -381,6 +381,226 @@ export interface SupportsScreenshot {
   getScreenshot(options?: ScreenshotOptions): Promise<Buffer>;
 }
 
+/** Options for {@link SupportsScreenRecording.startVideoRecording}. Requires Xcode 26+. */
+export interface VideoRecordingOptions {
+  /**
+   * Which display to record, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /** Video codec — `'h264'` (default) or `'hevc'`. */
+  codec?: 'h264' | 'hevc';
+  /**
+   * For a non-rectangular display (e.g. a Dynamic Island cutout): `'ignored'` (default) saves the
+   * unmasked framebuffer, `'black'` renders the mask black, `'alpha'` is not supported and behaves
+   * like `'black'`. Only applies when neither `audio` nor `fps` is set — see their doc comments.
+   */
+  mask?: 'ignored' | 'alpha' | 'black';
+  /**
+   * Also capture the device's audio into the same file, muxed as a second track. Defaults to
+   * `false`. Requires macOS 14.2+ (Core Audio process taps), the host's "System Audio Recording
+   * Only" privacy permission (System Settings > Privacy & Security — cannot be granted
+   * programmatically; a denial isn't a thrown error, it surfaces as a silent, audio-less/near-
+   * silent recording), a default audio output device on the host, and a booted device that has
+   * produced audio at least once.
+   *
+   * Like an explicit `fps`, this switches the implementation away from CoreSimulator's own private
+   * recorder (which can't mux audio) to `@appium/coresim`'s own encoders — that switch costs
+   * `mask` support, which only the private recorder implements.
+   */
+  audio?: boolean;
+  /**
+   * Max frames/sec to poll the framebuffer at — see {@link VideoStreamOptions.fps} for identical
+   * semantics. Meaningless against CoreSimulator's private recorder (it captures on its own
+   * cadence, not one that's polled), so setting `fps` — even without `audio` — switches this
+   * recording to the same own-encoder implementation `audio` does.
+   */
+  fps?: number;
+  /** Target average bitrate, in bits/sec. Respected on either implementation. */
+  bitrate?: number;
+}
+
+/** Options for {@link SupportsScreenRecording.stopVideoRecording}. */
+export interface StopVideoRecordingOptions {
+  /**
+   * Best-effort: still attempts the native stop, but releases this device's tracked-active-
+   * recording bookkeeping regardless of whether that attempt succeeds, instead of leaving it
+   * retryable. Useful for a best-effort teardown path that must not throw and has no other way to
+   * release a recording it can't otherwise stop cleanly — understand that this can leave a native
+   * resource dangling if the stop genuinely never lands.
+   */
+  force?: boolean;
+}
+
+export interface SupportsScreenRecording {
+  /**
+   * Starts recording the Simulator's display (and, with `options.audio`, its audio too, muxed as
+   * a second track) to `outputFile`. The Simulator must be booted. Resolves once the first frame
+   * has actually been recorded, so it's always safe to call {@link stopVideoRecording} immediately
+   * after. Only one recording may be active per device at a time; starting a second one while the
+   * first is still running rejects. Requires Xcode 26+.
+   *
+   * @param outputFile Filesystem path to write the video to.
+   * @param options `displayId`, `codec`, `mask`, `audio`, `fps`, `bitrate` — see {@link VideoRecordingOptions}.
+   * @throws {Error} if a recording is already in progress for this device.
+   */
+  startVideoRecording(outputFile: string, options?: VideoRecordingOptions): Promise<void>;
+  /**
+   * Stops a recording previously started by {@link startVideoRecording} on the same device.
+   * Resolves once the video file has been finalized on disk and is safe to read.
+   *
+   * @param options `force` — see {@link StopVideoRecordingOptions}.
+   * @throws {Error} if no recording is currently in progress for this device.
+   */
+  stopVideoRecording(options?: StopVideoRecordingOptions): Promise<void>;
+  /** @returns Whether a recording started by {@link startVideoRecording} is currently active. */
+  isVideoRecording(): Promise<boolean>;
+}
+
+/** Options for {@link SupportsScreenStreaming.startVideoStream}. Requires Xcode 26+. */
+export interface VideoStreamOptions {
+  /**
+   * Which display to stream, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /** Video codec — `'h264'` (default) or `'hevc'`. */
+  codec?: 'h264' | 'hevc';
+  /**
+   * Max frames/sec to poll the framebuffer at — an unchanged frame is never re-encoded, so this is
+   * an upper bound, not a guarantee. Must be >= 1. Defaults to 60.
+   */
+  fps?: number;
+  /** Target average bitrate, in bits/sec. Defaults to 4,000,000 (4 Mbps). */
+  bitrate?: number;
+  /**
+   * Also stream the device's audio, interleaved into the same `accessUnits()` sequence. Defaults
+   * to `false`. Same requirements and failure modes as {@link VideoRecordingOptions.audio}.
+   */
+  audio?: boolean;
+}
+
+/** Options for {@link SupportsScreenStreaming.startJpegStream}. Requires Xcode 26+. */
+export interface JpegStreamOptions {
+  /**
+   * Which display to stream, by id. Defaults to the primary display (falling back to the first
+   * renderable display if none is primary, e.g. tvOS).
+   */
+  displayId?: string;
+  /**
+   * Max frames/sec to poll the framebuffer at — an unchanged frame is never re-encoded, so this is
+   * an upper bound, not a guarantee. Must be >= 1. Defaults to 60.
+   */
+  fps?: number;
+  /**
+   * JPEG quality as a percentage (0 = smallest/most compressed, 100 = largest/least compressed).
+   * Defaults to 80 — noticeably smaller than {@link ScreenshotOptions.quality}'s own (near-
+   * lossless) default, more suitable for a continuous live stream than a one-off screenshot.
+   */
+  quality?: number;
+  /**
+   * Frame scale as a percentage of the original display resolution — 100 (default) performs no
+   * scaling; must be greater than 0 and no greater than 100.
+   */
+  scale?: number;
+}
+
+/**
+ * One JPEG-encoded frame from {@link JpegStream.frames}. Unlike {@link VideoAccessUnit}, every
+ * frame is independently decodable — there's no keyframe/interframe distinction — so consumers
+ * (e.g. an MJPEG multipart HTTP stream built from this sequence) can start from, or drop, any
+ * frame freely.
+ */
+export interface JpegFrame {
+  data: Buffer;
+  /** Monotonically increasing, starting at 0. */
+  sequence: number;
+  /** Microseconds since the stream started. */
+  timestampMicros: number;
+}
+
+/**
+ * A live JPEG frame stream from {@link SupportsScreenStreaming.startJpegStream} — polls the
+ * Simulator's display and delivers each changed frame as a standalone JPEG image, at a
+ * configurable fps/quality. Unlike {@link VideoStream}, this produces no video codec bitstream —
+ * it's meant for callers that want to build their own MJPEG (`multipart/x-mixed-replace`) HTTP
+ * stream, or otherwise just want a plain sequence of images, out of `frames()` themselves.
+ */
+export interface JpegStream extends EventEmitter {
+  /**
+   * Yields each JPEG frame as it's produced, until {@link stop} is called or the stream errors (in
+   * which case the error is thrown out of the loop). Pass `signal` to stop iterating without
+   * treating that as an error.
+   *
+   * Only one active consumer is supported at a time — a second concurrent call rejects rather
+   * than silently sharing (and corrupting) the first one's single internal waiter slot.
+   */
+  frames(signal?: AbortSignal): AsyncGenerator<JpegFrame>;
+  /** Stops the stream and releases the underlying encoder. Idempotent, including concurrently. */
+  stop(): Promise<void>;
+}
+
+/**
+ * One encoded unit from {@link VideoStream.accessUnits}, discriminated by `track`: a video unit
+ * (Annex-B NAL units — a keyframe's `data` has parameter sets, SPS/PPS or VPS/SPS/PPS for HEVC,
+ * prepended, so it's self-decodable alone) or, when {@link VideoStreamOptions.audio} was set, an
+ * interleaved audio unit (an ADTS-framed AAC-LC packet — always independently decodable, so
+ * `isKeyFrame` is always `true`). Without `audio`, every unit has `track: 'video'`.
+ */
+export interface VideoAccessUnit {
+  track: 'video' | 'audio';
+  data: Buffer;
+  isKeyFrame: boolean;
+  /** Monotonically increasing per track, starting at 0 — independent between `'video'` and `'audio'`. */
+  sequence: number;
+  /** Microseconds since the stream started, on one shared clock across both tracks. */
+  timestampMicros: number;
+}
+
+/**
+ * A live video stream from {@link SupportsScreenStreaming.startVideoStream} — encodes the
+ * Simulator's display (and, with `options.audio`, its audio too) in real time via
+ * VideoToolbox/Core Audio, unlike {@link SupportsScreenRecording.startVideoRecording}, which
+ * drives CoreSimulator's own private, file-only recorder.
+ */
+export interface VideoStream extends EventEmitter {
+  readonly codec: 'h264' | 'hevc';
+  /**
+   * Yields each encoded access unit as it's produced, until {@link stop} is called or the stream
+   * errors (in which case the error is thrown out of the loop). Pass `signal` to stop iterating
+   * without treating that as an error.
+   *
+   * Only one active consumer is supported at a time — a second concurrent call rejects rather
+   * than silently sharing (and corrupting) the first one's single internal waiter slot.
+   */
+  accessUnits(signal?: AbortSignal): AsyncGenerator<VideoAccessUnit>;
+  /** Stops the stream and releases the underlying encoder. Idempotent, including concurrently. */
+  stop(): Promise<void>;
+}
+
+export interface SupportsScreenStreaming {
+  /**
+   * Starts encoding the Simulator's display (and, with `options.audio`, its audio) in real time.
+   * The Simulator must be booted. Resolves once the encoder(s) have actually started; the returned
+   * {@link VideoStream}'s `accessUnits()` then yields each unit as it arrives. Independent of
+   * `startVideoRecording`/`stopVideoRecording` — both, and any number of concurrent streams, can
+   * run on the same device at once. Requires Xcode 26+.
+   *
+   * @param options `displayId`, `codec`, `fps`, `bitrate`, `audio` — see {@link VideoStreamOptions}.
+   */
+  startVideoStream(options?: VideoStreamOptions): Promise<VideoStream>;
+  /**
+   * Starts polling the Simulator's display and JPEG-encoding each changed frame in real time. The
+   * Simulator must be booted. Resolves once the encoder has actually started; the returned
+   * {@link JpegStream}'s `frames()` then yields each frame as it arrives. Independent of
+   * `startVideoStream`/`startVideoRecording` — any number of concurrent streams/recordings can run
+   * on the same device at once. Requires Xcode 26+.
+   *
+   * @param options `displayId`, `fps`, `quality`, `scale` — see {@link JpegStreamOptions}.
+   */
+  startJpegStream(options?: JpegStreamOptions): Promise<JpegStream>;
+}
+
 export interface SupportsGuestProcessSpawn {
   /**
    * Spawns a process inside the Simulator (the native equivalent of `simctl spawn`) — an escape
@@ -422,6 +642,8 @@ export type Simulator = CoreSimulator &
   HasMiscFeatures &
   SupportsPasteboard &
   SupportsScreenshot &
+  SupportsScreenRecording &
+  SupportsScreenStreaming &
   SupportsGuestProcessSpawn;
 
 interface KeyboardOptions {

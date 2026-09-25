@@ -8,6 +8,7 @@ import {BaseSimulator} from './base-simulator.js';
 import * as appExtensions from './extensions/applications.js';
 import * as biometricExtensions from './extensions/biometric.js';
 import * as geolocationExtensions from './extensions/geolocation.js';
+import * as jpegStreamExtensions from './extensions/jpeg-stream.js';
 import * as keychainExtensions from './extensions/keychain.js';
 import * as lifecycleExtensions from './extensions/lifecycle.js';
 import * as miscExtensions from './extensions/misc.js';
@@ -20,6 +21,8 @@ import * as screenshotExtensions from './extensions/screenshot.js';
 import * as settingsExtensions from './extensions/settings.js';
 import * as systemRootExtensions from './extensions/system-root.js';
 import * as uiClientExtensions from './extensions/ui-client.js';
+import * as videoRecordingExtensions from './extensions/video-recording.js';
+import * as videoStreamExtensions from './extensions/video-stream.js';
 import {log as defaultLog} from './logger.js';
 import {createNativeSimctl} from './native/native-simctl.js';
 import type {CoreSimulator} from './types.js';
@@ -184,6 +187,15 @@ Object.assign(SimulatorXcode15.prototype, {
 
   // screenshot
   getScreenshot: screenshotExtensions.getScreenshot,
+
+  // video recording
+  startVideoRecording: videoRecordingExtensions.startVideoRecording,
+  stopVideoRecording: videoRecordingExtensions.stopVideoRecording,
+  isVideoRecording: videoRecordingExtensions.isVideoRecording,
+
+  // video streaming
+  startVideoStream: videoStreamExtensions.startVideoStream,
+  startJpegStream: jpegStreamExtensions.startJpegStream,
 
   // process
   spawnProcess: processExtensions.spawnProcess,
