@@ -12,6 +12,7 @@ import * as jpegStreamExtensions from './extensions/jpeg-stream.js';
 import * as keychainExtensions from './extensions/keychain.js';
 import * as lifecycleExtensions from './extensions/lifecycle.js';
 import * as miscExtensions from './extensions/misc.js';
+import * as orientationExtensions from './extensions/orientation.js';
 import * as pasteboardExtensions from './extensions/pasteboard.js';
 import * as pathsExtensions from './extensions/paths.js';
 import * as permissionsExtensions from './extensions/permissions.js';
@@ -196,6 +197,10 @@ Object.assign(SimulatorXcode15.prototype, {
   // video streaming
   startVideoStream: videoStreamExtensions.startVideoStream,
   startJpegStream: jpegStreamExtensions.startJpegStream,
+
+  // orientation
+  setOrientation: orientationExtensions.setOrientation,
+  getOrientation: orientationExtensions.getOrientation,
 
   // process
   spawnProcess: processExtensions.spawnProcess,
