@@ -1,3 +1,5 @@
+import {DeviceOrientation as RawDeviceOrientation} from '@appium/coresim';
+
 // CoreSimulator's UI appearance/contrast/content-size setters and getters work in terms of raw
 // native enum values, not the friendly strings `xcrun simctl ui` accepts — and `simctl` itself
 // does that string<->enum translation internally with no published table. These mappings were
@@ -78,6 +80,29 @@ export function contentSizeToRaw(value: string): number {
 
 export function rawToContentSize(raw: number): string {
   return RAW_TO_CONTENT_SIZE[raw] ?? 'unknown';
+}
+
+/** `@appium/coresim`'s `DeviceOrientation` enum, keyed by our own friendly, hyphenated names. */
+const ORIENTATION_TO_RAW: Record<string, RawDeviceOrientation> = {
+  portrait: RawDeviceOrientation.Portrait,
+  'portrait-upside-down': RawDeviceOrientation.PortraitUpsideDown,
+  'landscape-left': RawDeviceOrientation.LandscapeLeft,
+  'landscape-right': RawDeviceOrientation.LandscapeRight,
+};
+const RAW_TO_ORIENTATION = invert(ORIENTATION_TO_RAW);
+
+export function orientationToRaw(value: string): RawDeviceOrientation {
+  const raw = ORIENTATION_TO_RAW[value.toLowerCase()];
+  if (raw === undefined) {
+    throw new Error(
+      `'${value}' is not a valid orientation. Use one of: ${JSON.stringify(Object.keys(ORIENTATION_TO_RAW))}`,
+    );
+  }
+  return raw;
+}
+
+export function rawToOrientation(raw: number): string {
+  return RAW_TO_ORIENTATION[raw] ?? 'unknown';
 }
 
 function invert(map: Record<string, number>): Record<number, string> {

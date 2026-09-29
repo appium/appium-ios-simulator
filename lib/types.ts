@@ -601,6 +601,33 @@ export interface SupportsScreenStreaming {
   startJpegStream(options?: JpegStreamOptions): Promise<JpegStream>;
 }
 
+/**
+ * Device orientations {@link SupportsOrientation.setOrientation}/{@link SupportsOrientation.getOrientation}
+ * accept/return.
+ */
+export type DeviceOrientation = 'portrait' | 'portrait-upside-down' | 'landscape-left' | 'landscape-right';
+
+export interface SupportsOrientation {
+  /**
+   * Rotates the device — the same effect as Simulator.app's Hardware > Rotate menu items. The
+   * Simulator must be booted. Known to silently no-op for a device this same process both created
+   * and booted — use a device booted by a different process (e.g. `getSimulator()` against an
+   * already-running Simulator) if this matters.
+   *
+   * @param orientation the orientation to rotate to — see {@link DeviceOrientation}.
+   */
+  setOrientation(orientation: DeviceOrientation): Promise<void>;
+  /**
+   * The device's current orientation — a live read (not just this process's own last
+   * {@link setOrientation} call). Reads `'portrait'` for a device that hasn't rotated yet this
+   * boot, indistinguishable from one that genuinely has, and can lag a real rotation by a few
+   * seconds while a video recording/stream is active on the same device.
+   *
+   * @returns the device's current orientation — see {@link DeviceOrientation}.
+   */
+  getOrientation(): Promise<DeviceOrientation>;
+}
+
 export interface SupportsGuestProcessSpawn {
   /**
    * Spawns a process inside the Simulator (the native equivalent of `simctl spawn`) — an escape
@@ -644,6 +671,7 @@ export type Simulator = CoreSimulator &
   SupportsScreenshot &
   SupportsScreenRecording &
   SupportsScreenStreaming &
+  SupportsOrientation &
   SupportsGuestProcessSpawn;
 
 interface KeyboardOptions {
