@@ -3,6 +3,8 @@
 [![NPM version](http://img.shields.io/npm/v/appium-ios-simulator.svg)](https://npmjs.org/package/appium-ios-simulator)
 [![Downloads](http://img.shields.io/npm/dm/appium-ios-simulator.svg)](https://npmjs.org/package/appium-ios-simulator)
 
+> **This repository has moved.** Development now continues in the [appium-ios monorepo](https://github.com/appium/appium-ios/tree/main/packages/simulator).
+
 A Node.js API for controlling iOS simulators, used internally by
 [Appium](https://appium.io)'s [XCUITest driver](https://github.com/appium/appium-xcuitest-driver).
 It talks to `CoreSimulator.framework` directly through [`@appium/coresim`](https://github.com/appium/coresim),
