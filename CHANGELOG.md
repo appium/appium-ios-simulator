@@ -1,3 +1,9 @@
+## [10.3.0](https://github.com/appium/appium-ios-simulator/compare/v10.2.0...v10.3.0) (2026-09-29)
+
+### Features
+
+* bump @appium/coresim and expose device orientation APIs ([#510](https://github.com/appium/appium-ios-simulator/issues/510)) ([0599eba](https://github.com/appium/appium-ios-simulator/commit/0599eba69b5bf84e38b2ad6dc06b7900a7b99bd6))
+
 ## [10.2.0](https://github.com/appium/appium-ios-simulator/compare/v10.1.1...v10.2.0) (2026-09-25)
 
 ### Features
